@@ -1,5 +1,3 @@
-Overview
-Title: [Snow Caller]
 [Snow Caller] is a Python-based, text-driven role-playing game where players embark on adventures, battle monsters, and gather loot in a fantasy world. Choose from three classes—Warrior, Mage, or Rogue—and explore procedurally generated adventures with random encounters, events, and boss fights. Manage your inventory, upgrade gear, use skills, and visit the shop or tavern to prepare for the next challenge. The game features a persistent save system (stored in save.txt) and a modular design with items, skills, and mechanics defined in text files for easy customization.
 How It Works
 
