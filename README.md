@@ -1,5 +1,9 @@
 Snow Caller is a text based video game that plays entirely within terminal.
 
+To run git clone the repo and then launch game.py.
+
+See below the custom math and random chances.
+
 Combat Mechanics
 
     Critical Hit Chance:
