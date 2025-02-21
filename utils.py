@@ -1,7 +1,11 @@
 def load_file(filename):
-    with open(filename, "r") as f:
-        # Filter out empty lines and comments starting with '#'
-        return [line.strip() for line in f.readlines() if line.strip() and not line.strip().startswith('#')]
+    if getattr(sys, 'frozen', False):  # Running as .exe
+        base_path = sys._MEIPASS
+    else:  # Running as .py
+        base_path = os.path.dirname(__file__)
+    file_path = os.path.join(base_path, filename)
+    with open(file_path, "r") as f:
+        return [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
 def parse_stats(stat_str, is_consumable=False):
     stats = {}
