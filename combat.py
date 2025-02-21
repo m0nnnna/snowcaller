@@ -7,7 +7,14 @@ def get_weapon_damage_range(player):
     weapon = player.equipment.get("main_hand")
     damage_bonus = 0
     if "Rage" in player.skill_effects:
-        # ... (Rage logic unchanged) ...
+        skills = load_file("skills.txt")
+        for skill in skills:
+            parts = skill[1:-1].split()
+            if parts[2] == "Rage":
+                base_dmg = int(parts[3])
+                stat = parts[7]
+                damage_bonus = base_dmg + (int(player.stats[stat] * 0.5) if stat != "none" else 0)
+                break
     if weapon:
         for g in load_file("gear.txt"):
             parts = g.split()
@@ -15,7 +22,7 @@ def get_weapon_damage_range(player):
                 bracket = parts[-1][1:-1].split()
                 if bracket[-1] == "[R]":
                     bracket.pop()
-                damage = bracket[3]  # Damage field
+                damage = bracket[3]
                 if damage != "none":
                     min_dmg, max_dmg = map(float, damage.split("-"))
                     if "Sword" in weapon[0]:
