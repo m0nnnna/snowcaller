@@ -1,17 +1,11 @@
-# Level 1-10 Consumables
-Minor Health Potion S5A0I0W0L0T0 [L:1-10 5%]
-Minor Mana Potion S0A0I0W2L0T0 [L:1-10 5%]
-Strength Brew S3A0I0W0L0T3 [L:1-10 3%]
-Stamina Food S0A0I0W2L0T0 [L:1-10 4%]
+#Name, min-max level, type hp mp buff offense, value, turns, drop rate, gold, add [R]] to close it for boss only,
+Minor Health Potion [L:1-10 HP 20 none 0 5% 10]      # Restores 20 HP
+Minor Mana Potion [L:1-10 MP 10 none 0 5% 10]        # Restores 10 MP
+Health Potion [L:11-20 HP 20 none 0 4% 20]           # 40 HP
+Mana Potion [L:11-20 MP 10 none 0 4% 20]             # 20 MP
 
-# Level 11-20 Consumables
-Health Potion S10A0I0W0L0T0 [L:11-20 4%]
-Mana Potion S0A0I0W5L0T0 [L:11-20 4%]
-Poison S-1A0I0W0L0T2E [L:11-20 3%]
-Vitality Tonic S5A0I0W3L0T0 [L:11-20 3%]
+Strength Brew [L:1-10 Buff 3 S 3 3% 15]              # +3 Strength for 3 turns
+Agility Tonic [L:11-20 Buff 4 A 3 2% 25]             # +4 Agility for 3 turns
 
-# Level 21-30 Consumables
-Major Health Potion S20A0I0W0L0T0 [L:21-30 3%]
-Major Mana Potion S0A0I0W10L0T0 [L:21-30 3%]
-Sleep Powder S0A0I0W-2L0T3E [L:21-30 2%]
-Lucky Leaf S0A0I0W0L2T3 [L:21-30 1%]
+Poison Vial [L:1-10 Offense 5 Poison 3 4% 12]        # 5 damage/turn for 3 turns
+Fire Bomb [L:11-20 Offense 10 none 0 3% 20]          # 10 instant damage

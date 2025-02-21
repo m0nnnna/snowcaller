@@ -5,19 +5,25 @@ from player import Player, save_game, load_game
 from combat import combat
 from shop import shop_menu, parse_shop_item, calculate_price
 from tavern import tavern_menu
+from events import random_event
 from utils import load_file, parse_stats
 
 def parse_gear_drop_info(gear_line):
     parts = gear_line.split()
-    bracket = parts[-1] if parts[-1].startswith("[") else None
-    if not bracket:
+    if not parts or not parts[-1].startswith("[") or not parts[-1].endswith("]"):
         return None, None, False
-    bracket_parts = bracket[1:-1].split()
-    level_part = bracket_parts[0]
-    chance_part = bracket_parts[1]
-    is_rare = "R" in bracket_parts
+    name = " ".join(parts[:-1])
+    bracket = parts[-1][1:-1].split()
+    is_rare = False
+    if bracket[-1] == "[R]":
+        bracket.pop()
+        is_rare = True
+    if len(bracket) != 6:
+        print(f"Warning: Invalid gear format: {gear_line}")
+        return None
+    level_part, slot, stats, damage, drop_rate, gold = bracket
     min_level, max_level = map(int, level_part[2:].split("-"))
-    drop_chance = float(chance_part[:-1]) / 100
+    drop_chance = float(drop_rate[:-1]) / 100
     return (min_level, max_level), drop_chance, is_rare
 
 def display_inventory(player):
@@ -130,270 +136,205 @@ def award_treasure_chest(player):
 
     if chest_type == "unlocked":
         items = random.sample(treasures, random.randint(1, 2))
-        gold = random.randint(5, 15)
+        gold = random.randint(10, 25)
         player.inventory.extend(items)
         player.gold += gold
-        print(f"You open the chest and find: {', '.join(items)} and {gold} gold!")
+        print(f"You open it and find: {', '.join(items)} and {gold} gold!")
         time.sleep(0.5)
 
     elif chest_type == "locked":
-        if "Lockpick" in player.inventory:
-            print("Use a Lockpick to open the chest? (1. Yes | 2. No)")
+        if random.random() < player.stats["A"] * 0.05:
+            items = random.sample(treasures, random.randint(1, 3))
+            gold = random.randint(15, 30)
+            player.inventory.extend(items)
+            player.gold += gold
+            print(f"You pick the lock and find: {', '.join(items)} and {gold} gold!")
             time.sleep(0.5)
-            choice = input("Selection: ")
-            if choice == "1":
-                player.inventory.remove("Lockpick")
-                items = random.sample(treasures, random.randint(2, 3))
-                gold = random.randint(15, 30)
-                player.inventory.extend(items)
-                player.gold += gold
-                print(f"You use a Lockpick and open the chest, finding: {', '.join(items)} and {gold} gold!")
-                time.sleep(0.5)
-            else:
-                print("You leave the locked chest behind.")
-                time.sleep(0.5)
         else:
-            print("The chest is locked! You need a Lockpick to open it.")
+            print("The lock holds firm—you leave empty-handed.")
             time.sleep(0.5)
 
     elif chest_type == "magical":
-        if "Magical Removal Scroll" in player.inventory:
-            print("Use a Magical Removal Scroll to open the chest? (1. Yes | 2. No)")
+        if random.random() < player.stats["I"] * 0.05:
+            items = random.sample(treasures, random.randint(2, 4))
+            gold = random.randint(20, 40)
+            player.inventory.extend(items)
+            player.gold += gold
+            print(f"You dispel the ward and find: {', '.join(items)} and {gold} gold!")
             time.sleep(0.5)
-            choice = input("Selection: ")
-            if choice == "1":
-                player.inventory.remove("Magical Removal Scroll")
-                items = random.sample(treasures, random.randint(3, 4))
-                gold = random.randint(30, 50)
-                player.inventory.extend(items)
-                player.gold += gold
-                print(f"You use a Magical Removal Scroll and open the chest, finding: {', '.join(items)} and {gold} gold!")
-                time.sleep(0.5)
-            else:
-                print("You leave the magically locked chest behind.")
-                time.sleep(0.5)
         else:
-            print("The chest is magically locked! You need a Magical Removal Scroll to open it.")
+            damage = player.max_hp * 0.1
+            player.hp -= damage
+            print(f"The ward backfires, dealing {round(damage, 1)} damage!")
             time.sleep(0.5)
 
 def main():
     if os.path.exists("save.txt"):
-        player = load_game()
-        print(f"Welcome back, {player.name}!")
+        print("1. New Game | 2. Load Game")
+        time.sleep(0.5)
+        choice = input("Selection: ")
+        if choice == "2":
+            try:
+                player = load_game()
+                print(f"Welcome back, {player.name}!")
+                time.sleep(0.5)
+            except:
+                print("Save file corrupted! Starting new game.")
+                time.sleep(0.5)
+                choice = "1"
+        else:
+            choice = "1"
     else:
+        choice = "1"
+
+    if choice == "1":
         name = input("Enter your name: ")
-        print("Choose class: 1. Warrior | 2. Mage | 3. Rogue")
+        print("Select your class:")
+        print("1. Warrior (High Strength) | 2. Mage (High Intelligence) | 3. Rogue (High Agility)")
+        time.sleep(0.5)
         class_type = input("Selection: ")
+        while class_type not in ["1", "2", "3"]:
+            print("Invalid class! Choose 1, 2, or 3.")
+            class_type = input("Selection: ")
         player = Player(name, class_type)
-        print(f"Starting gear equipped!")
-        player.gold = 0
-        player.shop_stock = {}
-        save_game(player)
-        print("New save file created with your character!")
+        print(f"Welcome, {player.name} the {'Warrior' if class_type == '1' else 'Mage' if class_type == '2' else 'Rogue'}!")
         time.sleep(0.5)
 
-    locations = load_file("locations.txt")
-    monsters = load_file("monsters.txt")
-    gear = load_file("gear.txt")
-    consumables = load_file("consumables.txt")
-    shop_items = load_file("shop.txt")
-    
-    regular_monsters = [m for m in monsters if not m.startswith("# Boss Monsters")]
-    boss_monsters = [m for m in monsters if not m.startswith("# Regular Monsters") and not m.startswith("#")]
-
     while True:
-        print(f"\n{player.name} | Level: {player.level} | HP: {player.hp}/{player.max_hp} | MP: {player.mp}/{player.max_mp} | XP: {player.exp}/{player.max_exp} | Gold: {player.gold}")
-        print("Stats: S:{0} A:{1} I:{2} W:{3} L:{4}".format(
-            player.stats["S"], player.stats["A"], player.stats["I"], player.stats["W"], player.stats["L"]))
-        if player.stat_points > 0:
-            print(f"Stat points to allocate: {player.stat_points}")
-        print("1. Adventure | 2. Inventory | 3. Allocate Stat Point | 4. Shop | 5. Tavern | 6. Save | 7. Quit")
+        print(f"\n{'-' * 20} {player.name}: Level {player.level} {'-' * 20}")
+        print(f"HP: {round(player.hp, 1)}/{player.max_hp} | MP: {player.mp}/{player.max_mp} | Gold: {player.gold}")
+        print("1. Adventure | 2. Inventory | 3. Stats | 4. Shop | 5. Tavern | 6. Save | 7. Quit")
         time.sleep(0.5)
         choice = input("Selection: ")
 
         if choice == "1":
-            location = random.choice(locations).split()
-            print(f"You travel to the {location[0]} {location[1]}...")
+            locations = load_file("locations.txt")
+            location = random.choice(locations)
+            print(f"\nYou set out for {location}!")
             time.sleep(0.5)
-            num_encounters = random.randint(2, 10)
-            boss_triggered = False
-            
-            for i in range(num_encounters):
-                if player.hp <= 0:
+            max_encounters = random.randint(2, 10)
+            boss_fight = False
+            encounter_count = 0
+            completed_encounters = 0
+            treasure_inventory = []
+            adventure = True
+            event_chance = 25
+
+            while adventure:
+                if encounter_count >= max_encounters:
+                    adventure = False
                     break
-                
-                if i > 0 and survived:
-                    print("\nA new encounter approaches!")
-                    time.sleep(0.5)
-                
-                if i == num_encounters - 1 and num_encounters >= 8:
-                    if num_encounters == 10 and random.random() < 0.25:
-                        monster_line = random.choice(boss_monsters)
-                        boss_type = "rare boss"
-                        is_rare_monster = True
-                    else:
-                        monster_line = random.choice(boss_monsters)
-                        boss_type = "boss"
-                        is_rare_monster = False
-                    
-                    print(f"\nWARNING: A powerful {boss_type} lies ahead!")
-                    print("1. Fight the Boss | 2. Return to Town")
+
+                encounter_count += 1
+                Encounters = []
+
+                if encounter_count >= 8 and not boss_fight and random.random() < 0.25:
+                    print(f"\nA powerful foe blocks your path! Fight the boss?")
+                    print("1. Yes | 2. No")
                     time.sleep(0.5)
                     boss_choice = input("Selection: ")
-                    
-                    if boss_choice == "2":
-                        print("You return to town, ending the adventure.")
-                        time.sleep(0.5)
-                        boss_triggered = True
-                        break
-                    elif boss_choice != "1":
-                        print("Invalid choice, proceeding to fight the boss!")
-                        time.sleep(0.5)
-                    print(f"A powerful {boss_type} appears!")
-                    time.sleep(0.5)
-                else:
-                    eligible_monsters = []
-                    for m in regular_monsters:
-                        parts = m.split()
-                        level_idx = next(i for i, part in enumerate(parts) if part.startswith("L:"))
-                        level_range = parts[level_idx][2:]
-                        min_level, max_level = map(int, level_range.split("-"))
-                        rare_idx = next((i for i, part in enumerate(parts) if part.endswith("%") and not part.startswith("G:")), -1)
-                        if rare_idx != -1 and rare_idx > level_idx:
-                            if random.random() < float(parts[rare_idx][:-1]) / 100:
-                                eligible_monsters.append(m)
-                        else:
-                            for lvl in range(min_level, max_level + 1):
-                                if abs(player.level - lvl) <= 3:
-                                    eligible_monsters.append(m)
-                                    break
-                    if not eligible_monsters:
-                        print("No suitable monsters found for this encounter!")
-                        time.sleep(0.5)
-                        continue
-                    monster_line = random.choice(eligible_monsters)
-                    is_rare_monster = False
-                
-                monster_name = monster_line.split('[')[1].split(']')[0]
-                monster_parts = monster_line.split()
-                level_idx = next(i for i, part in enumerate(monster_parts) if part.startswith("L:"))
-                monster_stats = parse_stats(monster_parts[level_idx - 1], is_consumable=False)
-                min_level, max_level = map(int, monster_parts[level_idx][2:].split("-"))
-                monster_stats["level"] = random.randint(
-                    max(min_level, player.level - 3), 
-                    min(max_level, player.level + 3)
-                )
-                monster_stats["damage_range"] = monster_parts[level_idx + 1][2:]
-                
-                gold_idx = next((i for i, part in enumerate(monster_parts) if part.startswith("G:")), -1)
-                if gold_idx != -1:
-                    gold_chance = float(monster_parts[gold_idx][2:-1]) / 100
-                    if random.random() < gold_chance:
-                        max_gold = monster_stats["level"] * 2
-                        gold_drop = int(random.triangular(0, max_gold, 0))
-                        player.gold += gold_drop
-                        if gold_drop > 0:
-                            print(f"You found {gold_drop} gold!")
-                            time.sleep(0.5)
-                
-                if is_rare_monster:
-                    for stat in ["S", "A", "I", "W", "L"]:
-                        monster_stats[stat] = int(monster_stats[stat] * 1.2)
-                    monster_hp_boost = int((10 + 2 * monster_stats["S"]) * 1.2)
-                    monster_stats["hp_boost"] = monster_hp_boost
-                
-                survived = combat(player, monster_name, monster_stats)
-                if not survived:
-                    print("Adventure ended prematurely!")
-                    time.sleep(0.5)
-                    break
-                
-                if i == num_encounters - 1 and survived:
-                    monster_level_block = (monster_stats["level"] // 10) * 10 + 1
-                    if num_encounters >= 8:
-                        eligible_gear = []
-                        eligible_consumables = []
-                        for g in gear + consumables:
-                            level_range, drop_chance, _ = parse_gear_drop_info(g)
-                            if level_range and monster_level_block <= level_range[1] and monster_level_block >= level_range[0]:
-                                boosted_chance = min(drop_chance + (0.08 if is_rare_monster else 0.05), 1.0)
-                                if random.random() < boosted_chance:
-                                    (eligible_gear if g in gear else eligible_consumables).append(g)
-                        eligible_items = eligible_gear + eligible_consumables
-                        if eligible_items:
-                            reward = random.choice(eligible_items).split()[0]
-                            player.inventory.append(reward)
-                            print(f"{'Rare monster' if is_rare_monster else 'Boss'} dropped: {reward}!")
-                            time.sleep(0.5)
-                        else:
-                            reward = random.choice(gear + consumables).split()[0]
-                            player.inventory.append(reward)
-                            print(f"You found: {reward}")
-                            time.sleep(0.5)
+                    if boss_choice == "1":
+                        boss_fight = True
+                        result = combat(player, True)
+                        Encounters.append(result)
                     else:
-                        rare_drop_chance = (num_encounters - 1) * 0.1
-                        if random.random() < rare_drop_chance:
-                            rare_items = [g for g in gear if " R]" in g]
-                            if rare_items:
-                                reward = random.choice(rare_items).split()[0]
-                                player.inventory.append(reward)
-                                print(f"Rare drop! You found: {reward}")
-                                time.sleep(0.5)
-                            else:
-                                reward = random.choice(gear + consumables).split()[0]
-                                player.inventory.append(reward)
-                                print(f"You found: {reward}")
-                                time.sleep(0.5)
-                        else:
-                            reward = random.choice(gear + consumables).split()[0]
-                            player.inventory.append(reward)
-                            print(f"You found: {reward}")
-                            time.sleep(0.5)
-            
-            # Reset tavern buff and award chest after adventure
-            if hasattr(player, "tavern_buff") and player.tavern_buff:
-                stat, value = list(player.tavern_buff.items())[0]
-                player.stats[stat] -= value
-                player.tavern_buff = None
-                print("Your tavern feast buff has worn off.")
-                time.sleep(0.5)
-            
-            if player.hp > 0:
-                print("\nAdventure completed!")
-                time.sleep(0.5)
-                player.apply_xp()
-                award_treasure_chest(player)  # Award chest here
-                save_game(player)
-                print("Game autosaved!")
-                time.sleep(0.5)
-            else:
-                player.apply_xp()
-        
-        elif choice == "2":
-            inventory_menu(player)
-        
-        elif choice == "3":
+                        print("You avoid the boss and continue cautiously.")
+                        time.sleep(0.5)
+                else:
+                    if random.randint(1, 100) <= event_chance:
+                        max_encounters = random_event(player, encounter_count, max_encounters)
+                    else:
+                        result = combat(player, False)
+                        Encounters.append(result)
+
+                if player.hp <= 0:
+                    print("\nYou have died!")
+                    if os.path.exists("save.txt"):
+                        os.remove("save.txt")
+                    print("Game Over.")
+                    time.sleep(1)
+                    return
+
+                if Encounters and "Victory" in Encounters[-1]:
+                    completed_encounters += 1
+                    drop_item = None
+                    gear = load_file("gear.txt")
+                    consumables = load_file("consumables.txt")
+                    valid_drops = []
+
+                    # Gear drops
+                    for g in gear:
+                        level_range, drop_chance, is_rare = parse_gear_drop_info(g)
+                        if level_range and player.level >= level_range[0] and player.level <= level_range[1] and (not is_rare or boss_fight):
+                            valid_drops.append((g.split()[0], drop_chance))
+
+                    # Consumable drops
+                    from items import parse_consumable
+                    for c in consumables:
+                        consumable = parse_consumable(c)
+                        if consumable and player.level >= consumable["level_range"][0] and player.level <= consumable["level_range"][1]:
+                            if not consumable["is_rare"] or boss_fight:  # Rare only for bosses
+                                valid_drops.append((consumable["name"], consumable["drop_rate"]))
+
+                    # Drop chance check
+                    if valid_drops and random.random() < 0.25:
+                        drop_item = random.choices(
+                            [item[0] for item in valid_drops],
+                            weights=[item[1] for item in valid_drops],
+                            k=1
+                        )[0]
+                        player.inventory.append(drop_item)
+                        print(f"\nYou found a {drop_item}!")
+                        time.sleep(0.5)
+
+                    if random.random() < 0.15 or (boss_fight and random.random() < 0.5):
+                        treasure_inventory.append("Treasure Chest")
+
+                elif Encounters and "Fled" in Encounters[-1]:
+                    print("You fled, forfeiting potential rewards.")
+                    time.sleep(0.5)
+
+            print(f"\nAdventure complete! Returning to town with {len(treasure_inventory)} treasure items from {completed_encounters} victories.")
+            time.sleep(0.5)
+            for _ in range(len(treasure_inventory)):
+                award_treasure_chest(player)
+            player.buff = []
+            player.event_cooldowns = {k: 0 for k in player.event_cooldowns}
+            player.rage_turns = 0
+
             if player.stat_points > 0:
                 player.allocate_stat()
-            else:
-                print("No stat points available!")
-                time.sleep(0.5)
-        
+            player.apply_xp()
+
+        elif choice == "2":
+            inventory_menu(player)
+
+        elif choice == "3":
+            print(f"\nStats: S:{player.stats['S']} A:{player.stats['A']} I:{player.stats['I']} W:{player.stats['W']} L:{player.stats['L']}")
+            print(f"Level: {player.level} | XP: {player.exp}/{player.max_exp}")
+            if player.stat_points > 0:
+                player.allocate_stat()
+            time.sleep(0.5)
+
         elif choice == "4":
-            shop_menu(player, gear, consumables)
-        
+            shop_menu(player)
+
         elif choice == "5":
             tavern_menu(player)
-        
+
         elif choice == "6":
             save_game(player)
             print("Game saved!")
             time.sleep(0.5)
-        
+
         elif choice == "7":
             print("Goodbye!")
             time.sleep(0.5)
             break
+
+        else:
+            print("Invalid choice!")
+            time.sleep(0.5)
 
 if __name__ == "__main__":
     main()

@@ -1,21 +1,16 @@
-# Level 1-10 Consumables
-Minor Health Potion S5A0I0W0L0T0 [L:1-10 5 10]
-Minor Mana Potion S0A0I0W2L0T0 [L:1-10 5 10]
-Strength Brew S3A0I0W0L0T3 [L:1-10 3 20]
-Stamina Food S0A0I0W2L0T0 [L:1-10 4 15]
+#item name, level range, how many in stock, price,
+# Gear
+Iron Sword [L:1-10 Gear 5 25]
+Steel Armor [L:11-20 Gear 3 50]
+Magic Staff [L:21-30 Gear 2 75]
 
-# Level 11-20 Consumables
-Health Potion S10A0I0W0L0T0 [L:11-20 4 25]
-Mana Potion S0A0I0W5L0T0 [L:11-20 4 25]
-Poison S-1A0I0W0L0T2E [L:11-20 3 30]
-Vitality Tonic S5A0I0W3L0T0 [L:11-20 3 35]
+# Consumables
+Health Potion [L:1-10 Consumables 10 10]
+Mana Crystal [L:11-20 Consumables 8 15]
+Elixir [L:21-30 Consumables 5 20]
 
-# Level 21-30 Consumables
-Major Health Potion S20A0I0W0L0T0 [L:21-30 3 50]
-Major Mana Potion S0A0I0W10L0T0 [L:21-30 3 50]
-Sleep Powder S0A0I0W-2L0T3E [L:21-30 2 60]
-Lucky Leaf S0A0I0W0L2T3 [L:21-30 2 70]
-
-# Always Available
-Lockpick S0A0I0W0L0T0 [L:1-100 10 25]
-Magical Removal Scroll S0A0I0W0L0T0 [L:1-100 10 45]
+# Items
+Scroll [L:11-20 Items 3 12]
+Gemstone [L:21-30 Items 2 30]
+Lockpick [L:1-100 10 25]
+Magical Removal Scroll [L:1-100 10 45]

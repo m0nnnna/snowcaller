@@ -18,7 +18,10 @@ class Player:
         self.gold = 0
         self.shop_stock = {}
         self.tavern_buff = None
-        self.rage_turns = 0  # Track Rage duration
+        self.rage_turns = 0  # Legacy, keeping for compatibility
+        self.event_cooldowns = {"treasure": 0, "merchant": 0, "trap": 0, "friendly": 0, "curse": 0, "lost": 0}
+        self.skills = []  # NEW: List of unlocked skill names
+        self.skill_effects = {}  # NEW: Dict of active effects (e.g., {"Rage": 3 turns})
 
         if class_type == "1":  # Warrior
             self.stats = {"S": 3, "A": 1, "I": 1, "W": 2, "L": 1}
@@ -47,7 +50,7 @@ class Player:
         
         self.max_hp = 10 + 2 * self.stats["S"]
         self.hp = self.max_hp
-        self.max_mp = 3 * self.stats["W"] if class_type == "2" else 2 * self.stats["W"]  # Mage gets 3 * W
+        self.max_mp = 3 * self.stats["W"] if class_type == "2" else 2 * self.stats["W"]
         self.mp = self.max_mp
 
     def apply_xp(self):
@@ -59,9 +62,14 @@ class Player:
             self.max_exp = int(10 * (self.level ** 1.5))
             self.stat_points += 1
             print(f"{self.name} leveled up to {self.level}! You have {self.stat_points} stat points to allocate.")
-            if self.level == 5:
-                skill = {"1": "Rage", "2": "Fireball", "3": "Backstab"}[self.class_type]
-                print(f"You’ve unlocked the {skill} skill!")
+            # Check for new skills
+            skills = load_file("skills.txt")
+            for skill_line in skills:
+                parts = skill_line[1:-1].split()  # Remove brackets
+                class_type, level, name = parts[0], int(parts[1]), parts[2]
+                if class_type == self.class_type and level == self.level and name not in self.skills:
+                    self.skills.append(name)
+                    print(f"You’ve unlocked the {name} skill!")
 
     def allocate_stat(self):
         if self.stat_points > 0:
@@ -78,7 +86,7 @@ class Player:
                 self.stats["I"] += 1
             elif choice == "4":
                 self.stats["W"] += 1
-                self.max_mp += 3 if self.class_type == "2" else 2  # Mage gets +3 MP per W
+                self.max_mp += 3 if self.class_type == "2" else 2
                 self.mp = self.max_mp
             elif choice == "5":
                 self.stats["L"] += 1
@@ -108,7 +116,9 @@ def save_game(player):
         f.write(f"{player.gold}\n")
         f.write(",".join([f"{k}:{v}" for k, v in player.shop_stock.items()]) + "\n")
         f.write(f"{player.tavern_buff['stat']}:{player.tavern_buff['value']}\n" if player.tavern_buff else "None\n")
-        f.write(f"{player.rage_turns}\n")  # Save Rage turns
+        f.write(f"{player.rage_turns}\n")
+        f.write(",".join(player.skills) + "\n")  # NEW: Save skills
+        f.write(",".join([f"{k}:{v}" for k, v in player.skill_effects.items()]) + "\n")  # NEW: Save active effects
 
 def load_game():
     with open("save.txt", "r") as f:
@@ -142,5 +152,7 @@ def load_game():
         if player.tavern_buff:
             stat, value = list(player.tavern_buff.items())[0]
             player.stats[stat] += value
-        player.rage_turns = int(lines[18]) if len(lines) > 18 else 0  # Load Rage turns
+        player.rage_turns = int(lines[18]) if len(lines) > 18 else 0
+        player.skills = lines[19].strip().split(",") if len(lines) > 19 and lines[19].strip() else []  # NEW: Load skills
+        player.skill_effects = dict(item.split(":") for item in lines[20].strip().split(",") if item) if len(lines) > 20 and lines[20].strip() else {}  # NEW: Load effects
         return player

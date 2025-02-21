@@ -1,226 +1,225 @@
 import random
-import os
 import time
-from items import use_item
 from utils import load_file, parse_stats
+from items import use_item
 
 def get_weapon_damage_range(player):
     weapon = player.equipment.get("main_hand")
-    damage_bonus = 4 if player.rage_turns > 0 else 0  # Rage bonus
+    damage_bonus = 0
+    if "Rage" in player.skill_effects:
+        # ... (Rage logic unchanged) ...
     if weapon:
         for g in load_file("gear.txt"):
             parts = g.split()
-            if parts[0] == weapon[0] and len(parts) > 3:
-                min_dmg, max_dmg = map(float, parts[-3].split("-"))
-                if "Sword" in weapon[0]:
-                    stat_bonus = player.stats["S"] * 0.5
-                elif "Dagger" in weapon[0]:
-                    stat_bonus = player.stats["A"] * 0.5
-                elif "Staff" in weapon[0]:
-                    stat_bonus = player.stats["I"] * 0.5
-                    # Mage-specific I modifier (0.8% per I point)
-                    if player.class_type == "2":
-                        i_modifier = 1 + (player.stats["I"] * 0.008)
-                        min_dmg *= i_modifier
-                        max_dmg *= i_modifier
-                else:
-                    stat_bonus = 0
-                return (min_dmg + stat_bonus + damage_bonus, max_dmg + stat_bonus + damage_bonus)
+            if parts[0] == weapon[0]:
+                bracket = parts[-1][1:-1].split()
+                if bracket[-1] == "[R]":
+                    bracket.pop()
+                damage = bracket[3]  # Damage field
+                if damage != "none":
+                    min_dmg, max_dmg = map(float, damage.split("-"))
+                    if "Sword" in weapon[0]:
+                        stat_bonus = player.stats["S"] * 0.5
+                    elif "Dagger" in weapon[0]:
+                        stat_bonus = player.stats["A"] * 0.5
+                    elif "Staff" in weapon[0]:
+                        stat_bonus = player.stats["I"] * 0.5
+                        if player.class_type == "2":
+                            i_modifier = 1 + (player.stats["I"] * 0.008)
+                            min_dmg *= i_modifier
+                            max_dmg *= i_modifier
+                    else:
+                        stat_bonus = 0
+                    return (min_dmg + stat_bonus + damage_bonus, max_dmg + stat_bonus + damage_bonus)
     return (1 + damage_bonus, 2 + damage_bonus)
 
-def calculate_dodge_chance(attacker_a, defender_a):
-    base_dodge = min(5 + defender_a * 0.5, 20)
-    if defender_a > attacker_a:
-        bonus = (defender_a - attacker_a) * 0.25
-        total_dodge = min(base_dodge + bonus, 20)
-    else:
-        total_dodge = base_dodge
-    return total_dodge / 100
-
-def calculate_flee_chance(player_luck, monster_luck):
-    base_chance = 0.5
-    luck_diff = player_luck - monster_luck
-    modifier = luck_diff * 0.05
-    flee_chance = base_chance + modifier
-    return max(0.1, min(flee_chance, 0.9))
-
-def combat(player, monster, monster_stats):
-    monster_hp = monster_stats.get("hp_boost", 10 + 2 * monster_stats["S"])
-    monster_max_hp = monster_hp
-    monster_mp = 2 * monster_stats["W"]
-    base_min_dmg, base_max_dmg = map(float, monster_stats["damage_range"].split("-"))
-    level_scale = 1 + (monster_stats["level"] - 1) * 0.05
-    monster_min_dmg = base_min_dmg * level_scale + monster_stats["S"] * 0.5
-    monster_max_dmg = base_max_dmg * level_scale + monster_stats["S"] * 0.5
+def combat(player, boss_fight=False):
+    monsters = load_file("monsters.txt")
+    monster = random.choice(monsters)
+    parts = monster.split()
+    name = parts[0]
+    stats_str = parts[1]
+    monster_stats = parse_stats(stats_str, is_consumable=False)
+    level_scale = 1 + (monster_stats["level"] - 1) * 0.05 if not boss_fight else 1 + (monster_stats["level"] - 1) * 0.1
+    monster_hp = monster_stats["hp"] * level_scale
+    monster_mp = monster_stats["mp"] * level_scale
+    monster_min_dmg = float(parts[-2].split("-")[0]) * level_scale
+    monster_max_dmg = float(parts[-2].split("-")[1]) * level_scale
     
-    print(f"A {monster} (Level {monster_stats['level']}) appears! HP: {monster_hp}, MP: {monster_mp}")
-    time.sleep(1)
-    original_monster_stats = monster_stats.copy()
+    if boss_fight:
+        monster_hp *= 1.5
+        monster_min_dmg *= 1.2
+        monster_max_dmg *= 1.2
+        name = "Boss " + name
+    
+    print(f"\nA {name} appears! HP: {round(monster_hp, 1)}")
+    time.sleep(0.5)
+
     while monster_hp > 0 and player.hp > 0:
-        crit_chance = 0.2 * player.stats["A"]
-        print(f"\n{player.name}: HP {round(player.hp, 1)}/{player.max_hp}, MP {player.mp}/{player.max_mp} | {monster}: HP {round(monster_hp, 1)}/{monster_max_hp}, MP {monster_mp}")
-        if player.active_enemy_effect:
-            print(f"Active effect: {player.active_enemy_effect[0]} ({player.active_enemy_effect[1]} turns left)")
-        if player.rage_turns > 0:
-            print(f"Rage active ({player.rage_turns} turns left)")
+        # Apply active skill effects
+        for skill_name, turns in list(player.skill_effects.items()):
+            if turns > 0:
+                player.skill_effects[skill_name] -= 1
+                if player.skill_effects[skill_name] == 0:
+                    del player.skill_effects[skill_name]
+                    print(f"{skill_name} effect has worn off!")
+                    time.sleep(0.5)
+
+        print(f"\n{name}: {round(monster_hp, 1)} HP | {player.name}: {round(player.hp, 1)}/{player.max_hp} HP, {player.mp}/{player.max_mp} MP")
+        print("1. Attack | 2. Item | 3. Flee | 4. Skill" if player.level >= 5 else "1. Attack | 2. Item | 3. Flee")
         time.sleep(0.5)
-        if player.level >= 5:
-            skill = {"1": "Rage", "2": "Fireball", "3": "Backstab"}[player.class_type]
-            print(f"1. Attack | 2. Use Item | 3. Flee | 4. {skill}")
-        else:
-            print("1. Attack | 2. Use Item | 3. Flee")
         choice = input("Selection: ")
-        
-        player_turn_used = True
+
         if choice == "1":
             min_dmg, max_dmg = get_weapon_damage_range(player)
+            dodge_chance = monster_stats["A"] * 0.02
+            crit_chance = player.stats["A"] * 0.02
             damage = random.uniform(min_dmg, max_dmg)
-            if random.random() < crit_chance / 100:
-                damage *= 2
-                print("Critical hit!")
-                time.sleep(1)
-            damage = round(damage, 1)
-            dodge_chance = calculate_dodge_chance(player.stats["A"], monster_stats["A"])
             if random.random() < dodge_chance:
-                print(f"{monster} dodges your attack!")
-                time.sleep(1)
+                print(f"{name} dodges your attack!")
             else:
+                if random.random() < crit_chance:
+                    damage *= 1.5
+                    print("Critical hit!")
                 monster_hp -= damage
-                print(f"You deal {damage} damage!")
-                time.sleep(1)
-            if monster_hp <= 0:
-                print(f"You defeated the {monster}!")
-                time.sleep(1)
-                xp_gain = max(1, monster_stats["level"] * 5 - (player.level - monster_stats["level"]) * 2)
-                player.pending_xp += xp_gain
-                print(f"Earned {xp_gain} XP (to be applied after adventure)!")
-                time.sleep(1)
-                return True
-        elif choice == "2" and player.rage_turns == 0:
+                print(f"You deal {round(damage, 1)} damage to {name}!")
+            time.sleep(0.5)
+
+        elif choice == "2":
             if not player.inventory:
-                print("No items in inventory!")
-                time.sleep(1)
-                player_turn_used = False
-            else:
-                print("Inventory:", ", ".join(player.inventory))
+                print("No items available!")
                 time.sleep(0.5)
-                item = input("Choose item: ")
-                if item in player.inventory:
-                    player_turn_used = use_item(player, item, monster_stats)
-                    if not player_turn_used:
-                        monster_hp = min(monster_hp, 10 + 2 * monster_stats["S"])
-                        monster_mp = 2 * monster_stats["W"]
-                else:
-                    print("Item not found!")
-                    time.sleep(1)
-                    player_turn_used = False
-        elif choice == "3" and player.rage_turns == 0:
-            flee_chance = calculate_flee_chance(player.stats["L"], monster_stats["L"])
-            if random.random() < flee_chance:
-                print("You fled successfully!")
-                time.sleep(1)
-                return False
+                continue
+            print("\nInventory:", ", ".join(player.inventory))
+            item = input("Select item (or 'back'): ")
+            if item == "back":
+                continue
+            if item in player.inventory:
+                if not use_item(player, item, monster_stats):
+                    print(f"{item} cannot be used here!")
+                    time.sleep(0.5)
+                    continue
+                if monster_stats.get("E") and player.active_enemy_effect:
+                    monster_hp -= monster_stats.get("hp", 0)
+                    monster_min_dmg -= monster_stats.get("S", 0) * 0.5
+                    monster_max_dmg -= monster_stats.get("S", 0) * 0.5
+                    monster_stats["T"] -= 1
+                    if monster_stats["T"] <= 0:
+                        player.active_enemy_effect = None
+                print(f"Used {item}!")
+                time.sleep(0.5)
             else:
-                print("Failed to flee!")
-                time.sleep(1)
+                print("Item not found!")
+                time.sleep(0.5)
+                continue
+
+        elif choice == "3":
+            flee_chance = 0.5 + (player.stats["A"] - monster_stats["A"]) * 0.05
+            if random.random() < flee_chance:
+                print("You flee successfully!")
+                time.sleep(0.5)
+                return "Fled"
+            else:
+                print("You fail to flee!")
+                time.sleep(0.5)
+
         elif choice == "4" and player.level >= 5:
-            if player.class_type == "1":  # Warrior - Rage
-                if player.mp >= 5:
-                    player.mp -= 5
-                    player.rage_turns = 3
-                    print("You enter a Rage, increasing damage by 4 for 3 turns!")
-                    time.sleep(1)
+            if not player.skills:
+                print("No skills available!")
+                time.sleep(0.5)
+                continue
+            print("\nSkills:", ", ".join(player.skills))
+            skill_choice = input("Select skill (or 'back'): ")
+            if skill_choice == "back":
+                continue
+            if skill_choice in player.skills:
+                skills = load_file("skills.txt")
+                for skill in skills:
+                    parts = skill[1:-1].split()
+                    if parts[2] == skill_choice:
+                        mp_cost = int(parts[5])
+                        if player.mp < mp_cost:
+                            print("Not enough MP!")
+                            time.sleep(0.5)
+                            break
+                        player.mp -= mp_cost
+                        base_dmg = int(parts[3])
+                        effect = parts[4]
+                        duration = int(parts[6])
+                        stat = parts[7]
+                        # Apply scaling based on stat
+                        scaled_dmg = base_dmg
+                        if stat != "none":
+                            if effect == "damage_bonus":
+                                scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
+                            elif effect == "direct_damage":
+                                scaled_dmg = base_dmg + int(player.stats[stat] * 1.0)
+                            elif effect == "heal":
+                                scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
+                            elif effect == "damage_over_time":
+                                scaled_dmg = base_dmg + int(player.stats[stat] * 0.2)
+
+                        if effect == "damage_bonus":
+                            player.skill_effects[skill_choice] = duration
+                            print(f"{skill_choice} activated! +{scaled_dmg} damage for {duration} turns.")
+                        elif effect == "direct_damage":
+                            monster_hp -= scaled_dmg
+                            print(f"{skill_choice} deals {scaled_dmg} damage to {name}!")
+                        elif effect == "heal":
+                            player.hp = min(player.hp + scaled_dmg, player.max_hp)
+                            print(f"{skill_choice} heals you for {scaled_dmg} HP!")
+                        elif effect == "damage_over_time":
+                            player.skill_effects[skill_choice] = duration
+                            print(f"{skill_choice} applies {scaled_dmg} damage per turn to {name} for {duration} turns!")
+                            monster_hp -= scaled_dmg  # Initial hit
+                        time.sleep(0.5)
+                        break
                 else:
-                    print("Not enough MP for Rage (5 MP required)!")
-                    time.sleep(1)
-                    player_turn_used = False
-            elif player.class_type == "3":  # Rogue - Backstab
-                if player.mp >= 5:
-                    player.mp -= 5
-                    min_dmg, max_dmg = get_weapon_damage_range(player)
-                    base_damage = random.uniform(min_dmg, max_dmg)
-                    damage = base_damage + 2 * player.stats["A"]
-                    hit_chance = 0.7 - calculate_dodge_chance(player.stats["A"], monster_stats["A"])
-                    if random.random() < hit_chance:
-                        monster_hp -= damage
-                        print(f"You Backstab, dealing {round(damage, 1)} damage!")
-                        time.sleep(1)
-                    else:
-                        print(f"{monster} dodges your Backstab!")
-                        time.sleep(1)
-                    if monster_hp <= 0:
-                        print(f"You defeated the {monster}!")
-                        time.sleep(1)
-                        xp_gain = max(1, monster_stats["level"] * 5 - (player.level - monster_stats["level"]) * 2)
-                        player.pending_xp += xp_gain
-                        print(f"Earned {xp_gain} XP (to be applied after adventure)!")
-                        time.sleep(1)
-                        return True
-                else:
-                    print("Not enough MP for Backstab (5 MP required)!")
-                    time.sleep(1)
-                    player_turn_used = False
-            elif player.class_type == "2":  # Mage - Fireball
-                if player.mp >= 10:
-                    player.mp -= 10
-                    base_damage = 15
-                    i_bonus = 1 + (player.stats["I"] * 0.005)
-                    damage = base_damage * i_bonus
-                    monster_hp -= damage
-                    print(f"You cast Fireball, dealing {round(damage, 1)} damage!")
-                    time.sleep(1)
-                    if monster_hp <= 0:
-                        print(f"You defeated the {monster}!")
-                        time.sleep(1)
-                        xp_gain = max(1, monster_stats["level"] * 5 - (player.level - monster_stats["level"]) * 2)
-                        player.pending_xp += xp_gain
-                        print(f"Earned {xp_gain} XP (to be applied after adventure)!")
-                        time.sleep(1)
-                        return True
-                else:
-                    print("Not enough MP for Fireball (10 MP required)!")
-                    time.sleep(1)
-                    player_turn_used = False
-        
-        if player_turn_used:
+                    print("Skill not found!")
+                    time.sleep(0.5)
+            else:
+                print("Invalid skill!")
+                time.sleep(0.5)
+                continue
+
+        else:
+            print("Invalid choice!")
+            time.sleep(0.5)
+            continue
+
+        # Monster turn
+        if monster_hp > 0:
+            dodge_chance = player.stats["A"] * 0.02
             damage = random.uniform(monster_min_dmg, monster_max_dmg)
-            if random.random() < 0.2 * monster_stats["A"] / 100:
-                damage *= 2
-                print(f"{monster} lands a critical hit!")
-                time.sleep(1)
-            damage = round(damage, 1)
-            dodge_chance = calculate_dodge_chance(monster_stats["A"], player.stats["A"])
             if random.random() < dodge_chance:
-                print("You dodge the monster's attack!")
-                time.sleep(1)
+                print(f"You dodge {name}'s attack!")
             else:
                 player.hp -= damage
-                print(f"{monster} deals {damage} damage!")
-                time.sleep(1)
-            
-            if player.active_enemy_effect:
-                player.active_enemy_effect[1] = int(player.active_enemy_effect[1]) - 1
-                if player.active_enemy_effect[1] <= 0:
-                    print(f"{player.active_enemy_effect[0]} effect wears off!")
-                    time.sleep(1)
-                    for stat in monster_stats:
-                        if stat not in ["level", "damage_range", "hp_boost"]:
-                            monster_stats[stat] = original_monster_stats[stat]
-                    player.active_enemy_effect = None
-        
-        if player.rage_turns > 0:
-            player.rage_turns -= 1
-            if player.rage_turns == 0:
-                print("Your Rage subsides.")
-                time.sleep(1)
-        
-        if player.hp <= 0:
-            print("You died!")
-            time.sleep(1)
-            try:
-                os.remove("save.txt")
-            except PermissionError:
-                print("Could not delete save file due to a permission issue. Please close any programs using 'save.txt' and delete it manually.")
-                time.sleep(1)
-            return False
-    return False
+                print(f"{name} deals {round(damage, 1)} damage to you!")
+            time.sleep(0.5)
+
+            # Apply damage-over-time effects
+            for skill_name, turns in list(player.skill_effects.items()):
+                if turns > 0 and "damage_over_time" in skill_name.lower():
+                    skills = load_file("skills.txt")
+                    for skill in skills:
+                        parts = skill[1:-1].split()
+                        if parts[2] == skill_name:
+                            base_dmg = int(parts[3])
+                            stat = parts[7]
+                            dot_dmg = base_dmg + (int(player.stats[stat] * 0.2) if stat != "none" else 0)
+                            monster_hp -= dot_dmg
+                            print(f"{skill_name} deals {dot_dmg} damage to {name}!")
+                            time.sleep(0.5)
+                            break
+
+    if player.hp <= 0:
+        return "Defeat"
+    elif monster_hp <= 0:
+        xp = monster_stats["level"] * 10 * (1.5 if boss_fight else 1)
+        gold = random.randint(monster_stats["level"] * 2, monster_stats["level"] * 5) * (2 if boss_fight else 1)
+        player.pending_xp += xp
+        player.gold += gold
+        print(f"\nVictory! Gained {xp} XP and {gold} gold!")
+        time.sleep(0.5)
+        return "Victory"

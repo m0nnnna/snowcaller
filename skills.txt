@@ -1,0 +1,12 @@
+#first number is class
+#second number is level 
+#name it
+#damage type damage_bonus, direct_damage, heal, dmage_over_time,
+#base damage
+#number is number of turns
+#stat that scales the skill
+[1 5 Rage 2 damage_bonus 5 3 S]         # Warrior: +2 base + S*0.5 damage
+[2 5 Fireball 5 direct_damage 5 0 I]    # Mage: 5 base + I*1 damage
+[3 5 Backstab 4 direct_damage 5 0 A]    # Rogue: 4 base + A*0.8 damage
+[2 10 Heal 10 heal 6 0 W]               # Mage: 10 base + W*0.5 HP
+[3 10 Poison 1 damage_over_time 5 3 I]  # Rogue: 1 base + I*0.2 per turn
