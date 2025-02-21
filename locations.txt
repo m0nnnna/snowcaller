@@ -1,4 +1,22 @@
-Forest Castle
-Desert Fort
-Mountain Cave
-Swamp Ruins
+# Main Areas
+Forest
+Desert
+Mountain
+Swamp
+Jungle
+Plains
+Tundra
+Volcano
+Crimson
+Mystic
+# Sub Areas
+Castle
+Fort
+Cave
+Ruins
+Tower
+Village
+Citadel
+Temple
+Mines
+Grove

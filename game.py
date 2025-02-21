@@ -208,9 +208,24 @@ def main():
         choice = input("Selection: ")
 
         if choice == "1":
-            locations = load_file("locations.txt")
-            location = random.choice(locations)
-            print(f"\nYou set out for {location}!")
+            # Load and parse locations.txt
+            locations_file = load_file("locations.txt")
+            main_areas = []
+            sub_areas = []
+            current_section = None
+            for line in locations_file:
+                if line == "# Main Areas":
+                    current_section = main_areas
+                elif line == "# Sub Areas":
+                    current_section = sub_areas
+                elif current_section is not None:
+                    current_section.append(line)
+            
+            # Generate random location
+            main_area = random.choice(main_areas)
+            sub_area = random.choice(sub_areas)
+            location = f"{main_area} {sub_area}"
+            print(f"\nYou set out for the {location}!")
             time.sleep(0.5)
             max_encounters = random.randint(2, 10)
             boss_fight = False
