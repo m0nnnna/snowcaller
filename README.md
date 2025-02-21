@@ -1,84 +1,80 @@
-Snow Caller is a text based video game that plays entirely within terminal.
+Overview
+Title: [Snow Caller]
+[Snow Caller] is a Python-based, text-driven role-playing game where players embark on adventures, battle monsters, and gather loot in a fantasy world. Choose from three classes—Warrior, Mage, or Rogue—and explore procedurally generated adventures with random encounters, events, and boss fights. Manage your inventory, upgrade gear, use skills, and visit the shop or tavern to prepare for the next challenge. The game features a persistent save system (stored in save.txt) and a modular design with items, skills, and mechanics defined in text files for easy customization.
+How It Works
 
-To run git clone the repo and then launch game.py.
+    Game Loop: From a central hub, players select options: Adventure, Inventory, Stats, Shop, Tavern, Save, or Quit.
+    Adventures: Travel to random locations, facing 2-10 encounters (combat or events). Defeat enemies to earn XP, gold, and loot; survive to claim a treasure chest (if victorious).
+    Combat: Turn-based battles with options to attack, use items, flee, or cast skills (unlocked at level 5+). Damage scales with stats and gear, with dodge/crit mechanics.
+    Progression: Gain XP to level up, allocating stat points (Strength, Agility, Intelligence, Will, Luck) and unlocking class-specific skills from skills.txt.
+    Economy: Gold from combat and events funds purchases at the shop (shop.txt) or tavern buffs. Sell gear and consumables for half their Gold value.
+    Loot: Gear (gear.txt) and consumables (consumables.txt) drop from monsters, with rare items ([R]) exclusive to bosses.
 
-See below the custom math and random chances.
+Core Mechanics
 
-Combat Mechanics
+    Classes: Warrior (Strength-focused), Mage (Intelligence-focused), Rogue (Agility-focused), each with unique starting gear and skills.
+    Stats: S (Strength: HP/damage), A (Agility: dodge/crit), I (Intelligence: magic), W (Will: MP), L (Luck: flee/events).
+    Skills: Defined in skills.txt, scale with stats (e.g., Rage boosts damage, Fireball deals direct damage).
+    Items: Gear enhances stats; consumables restore HP/MP, buff stats, or harm enemies, with level-scaled effects.
+    Events: Random encounters (treasure, traps, etc.) add variety, with cooldowns to prevent repetition.
+    Persistence: Death deletes the save; manual saves preserve progress
 
-    Critical Hit Chance:
-        Base Rate: 20% per point of Agility (A).
-        Formula: Chance = 0.2 * A / 100.
-        Effect: Doubles damage on a successful basic attack or Backstab.
-        Example: A=5 → 1% chance to crit.
-    Dodge Chance:
-        Base Rate: 5% + 0.5% per defender’s Agility (A), capped at 20%.
-        Bonus: If defender’s A > attacker’s A, +0.25% per difference, still capped at 20%.
-        Formula: Base = min(5 + 0.5 * Defender_A, 20); Total = min(Base + (Defender_A - Attacker_A) * 0.25, 20) / 100.
-        Example: Defender A=10, Attacker A=5 → min(5 + 5, 20) + (10 - 5) * 0.25 = 11.25%.
-    Flee Chance:
-        Base Rate: 50%.
-        Modifier: ±5% per point of difference between player’s Luck (L) and monster’s L.
-        Formula: Chance = 0.5 + (Player_L - Monster_L) * 0.05, capped between 10% and 90%.
-        Example: Player L=3, Monster L=1 → 0.5 + (3 - 1) * 0.05 = 60%.
-    Rogue - Backstab Hit Chance:
-        Base Rate: 70%.
-        Adjusted: Reduced by monster’s dodge chance.
-        Formula: Hit_Chance = 0.7 - Monster_Dodge_Chance.
-        Example: Monster Dodge=10% → 0.7 - 0.1 = 60%.
-    Monster Critical Hit Chance:
-        Base Rate: 20% per point of monster’s Agility (A).
-        Formula: Chance = 0.2 * Monster_A / 100.
-        Example: Monster A=5 → 1% chance to crit.
+Quick Reference Sheet for Players
+Game Basics
 
-Damage Modifiers
+    Start: Choose a name and class (1: Warrior, 2: Mage, 3: Rogue).
+    Hub Options:
+        1. Adventure: Fight monsters, find loot (2-10 encounters).
+        2. Inventory: Equip gear or use items.
+        3. Stats: View stats, allocate points (if available).
+        4. Shop: Buy/sell items (level-gated).
+        5. Tavern: Rest (HP/MP) or feast (stat buff).
+        6. Save: Save progress.
+        7. Quit: Exit game.
+    Death: Save file (save.txt) is deleted; start anew.
 
-    Warrior - Rage:
-        Damage Increase: +4 to basic attack damage.
-        Duration: 3 turns.
-        Cost: 5 MP.
-    Rogue - Backstab:
-        Damage: Weapon damage + 2 * A.
-        Cost: 5 MP.
-        Example: Dagger (2-3), A=3 → 8-9 damage.
-    Mage - Fireball:
-        Base Damage: 15.
-        I Modifier: +0.5% per Intelligence (I) point.
-        Formula: Damage = 15 * (1 + 0.005 * I).
-        Cost: 10 MP.
-        Example: I=3 → 15 * 1.015 = 15.225.
-    Mage - Basic Attack (Staff):
-        I Modifier: +0.8% per I point to weapon base damage.
-        Formula: Min_Dmg * (1 + 0.008 * I), Max_Dmg * (1 + 0.008 * I) + stat bonus.
-        Example: Staff (1-2), I=3 → 1.024-2.048 + 1.5 = 2.524-3.548.
+Combat
 
-Treasure Chests (End of Adventure)
+    Options:
+        1. Attack: Deals weapon damage (scaled by S/A/I).
+        2. Item: Use consumables or equip gear.
+        3. Flee: Escape chance based on Luck/Agility.
+        4. Skill (Level 5+): Use class skills (MP cost).
+    Mechanics:
+        Dodge: Chance based on Agility (A * 0.02).
+        Crit: Chance based on Agility (A * 0.02, 1.5x damage).
+        Bosses: Appear after 8+ encounters (25% chance), tougher stats.
 
-    Chest Type Probabilities:
-        Unlocked: 70% (1-2 treasures, 5-15 gold).
-        Locked (Physical): 20% (2-3 treasures, 15-30 gold, requires Lockpick).
-        Magically Locked: 10% (3-4 treasures, 30-50 gold, requires Magical Removal Scroll).
+Stats Cheat Sheet
 
-Adventure Rewards
+    S (Strength): +2 HP per point, boosts sword damage.
+    A (Agility): Improves dodge/crit, dagger damage.
+    I (Intelligence): Boosts staff damage, mage skill power.
+    W (Will): +2 MP (3 for Mage), regen on equip.
+    L (Luck): Improves flee chance, event outcomes.
 
-    Rare Drop Chance (Non-Boss):
-        Base Rate: 10% per encounter defeated (e.g., 5 encounters = 40%).
-        Effect: Grants a rare gear item if successful.
-    Boss/Rare Monster Drop Boost:
-        Base Drop Chance Increase: +5% (boss), +8% (rare boss).
-        Formula: Boosted_Chance = min(Base_Chance + Boost, 1.0).
-    Gold Drop Chance:
-        Base Rate: Defined in monsters.txt (G:X%), e.g., G:50%.
-        Amount: Triangular distribution from 0 to 2 * Monster_Level.
+Items
 
-Stat Effects
+    Gear: Equipped in slots (e.g., head, main_hand), boosts stats.
+        Example: Short Sword [L:1-10 main_hand S2A0I0W0L0 2-4 3% 25]
+        Sell: Half Gold value (e.g., 25 → 12 gold).
+    Consumables: HP/MP restore, stat buffs, or monster effects.
+        Example: Minor Health Potion [L:1-10 HP 20 none 0 5% 10]
+        Sell: Half Gold value (e.g., 10 → 5 gold).
+        Scaling: Effect doubles per 10 levels (e.g., 20 HP → 40 HP at 11-20).
 
-    Strength (S): +2 HP per point, +0.5 damage per point for Swords.
-    Agility (A): +0.2% crit chance per point, +0.5 damage per point for Daggers, +2 damage per point for Backstab.
-    Intelligence (I): +0.5 damage per point for Staffs, +0.8% basic attack damage per point (Mage), +0.5% Fireball damage per point.
-    Will (W): +2 MP per point (Warrior/Rogue), +3 MP per point (Mage).
-    Luck (L): +5% flee chance per point.
+Skills
 
+    Defined in skills.txt (e.g., [1 5 Rage 2 damage_bonus 5 3 S]).
+    Unlocked at level milestones (e.g., 5).
+    Effects: Damage bonus, direct damage, heal, etc., scaled by stat (S/A/I).
+
+Tips
+
+    Fleeing/Declining Boss: No chest rewards.
+    Shop: Items level-gated (1-10, 11-20, etc.).
+    Tavern: Rest (10g) or feast (5g, +2 stat).
+    Loot: Rare items ([R]) from bosses only.
 Shop Items
 
     Lockpick: 25 gold, unlocks physical locked chests.
