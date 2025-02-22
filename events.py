@@ -51,8 +51,16 @@ def random_event(player, encounter_count, max_encounters):
     elif event == "merchant":
         gear = load_file("gear.txt") + load_file("consumables.txt")
         item = random.choice([g for g in gear if not any(i in g for i in ["main_hand", "off_hand"])])
-        name = item.split()[0]
-        base_price = int(item.split()[-1].split()[2]) if "L:" in item else 10
+        name = " ".join(item.split()[:-1])  # Get full name, e.g., "Health Potion"
+        bracket = item.split()[-1].strip("[]").split()  # Parse bracket, e.g., "L:1-5 HP 10 none 0 5% 5"
+        
+        # Extract price (last element in bracket for both gear and consumables)
+        try:
+            base_price = int(bracket[-1])  # Price is the last number
+        except (IndexError, ValueError):
+            print(f"Warning: Could not parse price from '{item}', defaulting to 10")
+            base_price = 10
+        
         price_mod = random.choice([0.8, 1.5])  # 20% discount or 50% markup
         price = int(base_price * price_mod)
         print(f"A cloaked figure emerges from the mist, offering {name} for {price} gold.")

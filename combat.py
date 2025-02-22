@@ -40,24 +40,82 @@ def get_weapon_damage_range(player):
                     return (min_dmg + stat_bonus + damage_bonus, max_dmg + stat_bonus + damage_bonus)
     return (1 + damage_bonus, 2 + damage_bonus)
 
+def parse_monster(monster_line):
+    parts = monster_line.split()
+    print(f"Debug: monster_line = '{monster_line}'")
+    print(f"Debug: parts = {parts}")
+    if len(parts) < 5:
+        print(f"Warning: Invalid monster format: '{monster_line}'")
+        return {"name": "Unknown", "stats": {"S": 1, "A": 1, "I": 1, "W": 1, "L": 1}, "level": 1, "hp": 10, "mp": 2, "min_dmg": 1, "max_dmg": 2, "gold_chance": 0.5}
+    
+    # Find the stats string (starts with "S" and has expected length)
+    name_parts = []
+    stats_index = None
+    for i, part in enumerate(parts):
+        if part.startswith("S") and len(part) >= 10:
+            stats_index = i
+            break
+        name_parts.append(part)
+    name = " ".join(name_parts).strip("[]")
+    
+    if stats_index is None or stats_index + 3 >= len(parts):
+        print(f"Warning: No valid stats or incomplete data in '{monster_line}'")
+        return {"name": name, "stats": {"S": 1, "A": 1, "I": 1, "W": 1, "L": 1}, "level": 1, "hp": 10, "mp": 2, "min_dmg": 1, "max_dmg": 2, "gold_chance": 0.5}
+    
+    stats_str = parts[stats_index]      # e.g., "S6A3I2W4L4"
+    level_range = parts[stats_index + 1]  # "L:5-10"
+    damage_range = parts[stats_index + 2] # "D:4-8"
+    gold_chance = parts[stats_index + 3]  # "G:75%"
+    print(f"Debug: name = '{name}', stats_str = '{stats_str}'")  # Moved after assignment
+
+    # Parse stats
+    stats = parse_stats(stats_str, is_consumable=False)
+    
+    # Parse level range
+    min_level, max_level = map(int, level_range[2:].split("-"))
+    level = random.randint(min_level, max_level)
+    
+    # Parse damage range
+    min_dmg, max_dmg = map(float, damage_range[2:].split("-"))
+    
+    # Parse gold chance
+    gold_chance = float(gold_chance[2:-1]) / 100  # "75%" -> 0.75
+    
+    # Base HP and MP from stats
+    hp = 10 + 2 * stats["S"]
+    mp = 2 * stats["W"]
+    
+    return {
+        "name": name,
+        "stats": stats,
+        "level": level,
+        "hp": hp,
+        "mp": mp,
+        "min_dmg": min_dmg,
+        "max_dmg": max_dmg,
+        "gold_chance": gold_chance
+    }
+
 def combat(player, boss_fight=False):
     monsters = load_file("monsters.txt")
+    print(f"Debug: all monsters = {monsters}")  # Add this to see full list
     monster = random.choice(monsters)
-    parts = monster.split()
-    name = parts[0]
-    stats_str = parts[1]
-    monster_stats = parse_stats(stats_str, is_consumable=False)
+    monster_stats = parse_monster(monster)
+    
+    # Scale stats based on level
     level_scale = 1 + (monster_stats["level"] - 1) * 0.05 if not boss_fight else 1 + (monster_stats["level"] - 1) * 0.1
     monster_hp = monster_stats["hp"] * level_scale
     monster_mp = monster_stats["mp"] * level_scale
-    monster_min_dmg = float(parts[-2].split("-")[0]) * level_scale
-    monster_max_dmg = float(parts[-2].split("-")[1]) * level_scale
+    monster_min_dmg = monster_stats["min_dmg"] * level_scale
+    monster_max_dmg = monster_stats["max_dmg"] * level_scale
     
     if boss_fight:
         monster_hp *= 1.5
         monster_min_dmg *= 1.2
         monster_max_dmg *= 1.2
-        name = "Boss " + name
+        name = "Boss " + monster_stats["name"]
+    else:
+        name = monster_stats["name"]
     
     print(f"\nA {name} appears! HP: {round(monster_hp, 1)}")
     time.sleep(0.5)
@@ -79,7 +137,7 @@ def combat(player, boss_fight=False):
 
         if choice == "1":
             min_dmg, max_dmg = get_weapon_damage_range(player)
-            dodge_chance = monster_stats["A"] * 0.02
+            dodge_chance = monster_stats["stats"]["A"] * 0.02  # Access nested stats
             crit_chance = player.stats["A"] * 0.02
             damage = random.uniform(min_dmg, max_dmg)
             if random.random() < dodge_chance:
@@ -106,13 +164,14 @@ def combat(player, boss_fight=False):
                     print(f"{item} cannot be used here!")
                     time.sleep(0.5)
                     continue
-                if monster_stats.get("E") and player.active_enemy_effect:
-                    monster_hp -= monster_stats.get("hp", 0)
-                    monster_min_dmg -= monster_stats.get("S", 0) * 0.5
-                    monster_max_dmg -= monster_stats.get("S", 0) * 0.5
-                    monster_stats["T"] -= 1
-                    if monster_stats["T"] <= 0:
-                        player.active_enemy_effect = None
+                # Simplified effect handling (adjust as needed)
+                if "effects" in monster_stats and monster_stats["effects"]:
+                    for effect, turns in list(monster_stats["effects"].items()):
+                        if turns > 0:
+                            monster_hp -= 5  # Example damage from items
+                            monster_stats["effects"][effect] -= 1
+                            if monster_stats["effects"][effect] <= 0:
+                                del monster_stats["effects"][effect]
                 print(f"Used {item}!")
                 time.sleep(0.5)
             else:
@@ -121,7 +180,7 @@ def combat(player, boss_fight=False):
                 continue
 
         elif choice == "3":
-            flee_chance = 0.5 + (player.stats["A"] - monster_stats["A"]) * 0.05
+            flee_chance = 0.5 + (player.stats["A"] - monster_stats["stats"]["A"]) * 0.05
             if random.random() < flee_chance:
                 print("You flee successfully!")
                 time.sleep(0.5)
@@ -154,7 +213,6 @@ def combat(player, boss_fight=False):
                         effect = parts[4]
                         duration = int(parts[6])
                         stat = parts[7]
-                        # Apply scaling based on stat
                         scaled_dmg = base_dmg
                         if stat != "none":
                             if effect == "damage_bonus":
@@ -178,7 +236,7 @@ def combat(player, boss_fight=False):
                         elif effect == "damage_over_time":
                             player.skill_effects[skill_choice] = duration
                             print(f"{skill_choice} applies {scaled_dmg} damage per turn to {name} for {duration} turns!")
-                            monster_hp -= scaled_dmg  # Initial hit
+                            monster_hp -= scaled_dmg
                         time.sleep(0.5)
                         break
                 else:
@@ -225,8 +283,9 @@ def combat(player, boss_fight=False):
     elif monster_hp <= 0:
         xp = monster_stats["level"] * 10 * (1.5 if boss_fight else 1)
         gold = random.randint(monster_stats["level"] * 2, monster_stats["level"] * 5) * (2 if boss_fight else 1)
+        if random.random() < monster_stats["gold_chance"]:
+            player.gold += gold
         player.pending_xp += xp
-        player.gold += gold
         print(f"\nVictory! Gained {xp} XP and {gold} gold!")
         time.sleep(0.5)
         return "Victory"

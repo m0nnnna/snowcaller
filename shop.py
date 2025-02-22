@@ -32,7 +32,7 @@ def parse_shop_item(shop_line):
         print(f"Warning: Could not parse shop item: {shop_line}")
         return None
 
-def parse_gear_item(gear_line):  # New function for gear parsing
+def parse_gear_item(gear_line):
     parts = gear_line.split()
     if not parts or not parts[-1].startswith("[") or not parts[-1].endswith("]"):
         return None
@@ -63,7 +63,7 @@ def parse_gear_item(gear_line):  # New function for gear parsing
         print(f"Warning: Could not parse gear: {gear_line}")
         return None
 
-def calculate_price(base_price, drop_chance):  # Kept for legacy items
+def calculate_price(base_price, drop_chance):
     return int(base_price * (1 / drop_chance)) if drop_chance > 0 else base_price
 
 def shop_menu(player):
@@ -77,8 +77,10 @@ def shop_menu(player):
     level_max = level_block + 9
 
     if shop_choice == "1":
-        # ... (buy logic unchanged) ...
-
+        pass  # Placeholder - add your buy logic here
+        # You might want to add code like:
+        # print("Buy menu coming soon!")
+        # time.sleep(0.5)
     elif shop_choice == "2":
         if not player.inventory:
             print("Nothing to sell!")
@@ -89,14 +91,12 @@ def shop_menu(player):
         from items import parse_consumable
         print("\nYour inventory:")
         for idx, item in enumerate(player.inventory, 1):
-            # Check gear first
             gear_item = next((parse_gear_item(g) for g in gear if parse_gear_item(g) and parse_gear_item(g)["name"] == item), None)
             if gear_item:
                 sell_price = gear_item["gold"] // 2
             else:
-                # Check consumables
                 cons_item = next((parse_consumable(c) for c in consumables if parse_consumable(c) and parse_consumable(c)["name"] == item), None)
-                sell_price = cons_item["gold"] // 2 if cons_item else 5  # Default 5 if not found
+                sell_price = cons_item["gold"] // 2 if cons_item else 5
             print(f"{idx}. {item} - Sell Price: {sell_price} Gold")
         time.sleep(0.5)
         sell_choice = input("Select item to sell (or 0 to exit): ")
@@ -122,7 +122,6 @@ def shop_menu(player):
         except ValueError:
             print("Invalid input!")
             time.sleep(0.5)
-
     elif shop_choice == "3":
         return
     else:

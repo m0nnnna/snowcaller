@@ -199,6 +199,11 @@ def main():
         player = Player(name, class_type)
         print(f"Welcome, {player.name} the {'Warrior' if class_type == '1' else 'Mage' if class_type == '2' else 'Rogue'}!")
         time.sleep(0.5)
+        
+    # Autosave after player setup (new or loaded)
+    save_game(player)
+    print("Game autosaved!")
+    time.sleep(0.5)
 
     while True:
         print(f"\n{'-' * 20} {player.name}: Level {player.level} {'-' * 20}")
@@ -208,18 +213,29 @@ def main():
         choice = input("Selection: ")
 
         if choice == "1":
-            # Load and parse locations.txt
-            locations_file = load_file("locations.txt")
+            # Load locations.txt without filtering headers initially
+            with open("locations.txt", "r") as f:
+                lines = [line.strip() for line in f if line.strip()]
+            
+            # Parse into main_areas and sub_areas
             main_areas = []
             sub_areas = []
             current_section = None
-            for line in locations_file:
+            for line in lines:
                 if line == "# Main Areas":
                     current_section = main_areas
                 elif line == "# Sub Areas":
                     current_section = sub_areas
                 elif current_section is not None:
                     current_section.append(line)
+            
+            # Fallback if lists are empty
+            if not main_areas:
+                main_areas = ["Forest", "Desert", "Mountain"]  # Minimal fallback
+                print("Warning: No main areas loaded from locations.txt, using defaults.")
+            if not sub_areas:
+                sub_areas = ["Castle", "Cave", "Village"]  # Minimal fallback
+                print("Warning: No sub areas loaded from locations.txt, using defaults.")
             
             # Generate random location
             main_area = random.choice(main_areas)

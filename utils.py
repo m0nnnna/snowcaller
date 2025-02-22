@@ -1,3 +1,6 @@
+import sys  # Required for sys._MEIPASS and sys.frozen
+import os   # Required for os.path.dirname and os.path.join
+
 def load_file(filename):
     if getattr(sys, 'frozen', False):  # Running as .exe
         base_path = sys._MEIPASS

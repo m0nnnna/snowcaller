@@ -9,7 +9,7 @@ def parse_consumable(item_line):
     bracket = parts[-1][1:-1].split()
     is_rare = False
     if bracket[-1] == "[R]":
-        bracket.pop()  # Remove [R] from the list
+        bracket.pop()
         is_rare = True
     if len(bracket) != 7:
         print(f"Warning: Invalid consumable format: {item_line}")
@@ -22,7 +22,7 @@ def parse_consumable(item_line):
         min_level, max_level = map(int, level_part[2:].split("-"))
         value = int(value)
         duration = int(duration)
-        drop_rate = float(drop_rate[:-1]) / 100  # Convert "5%" to 0.05
+        drop_rate = float(drop_rate[:-1]) / 100
         gold = int(gold)
         if effect_type not in ["HP", "MP", "Buff", "Offense"]:
             print(f"Warning: Invalid effect type {effect_type} in {item_line}")
@@ -39,7 +39,7 @@ def parse_consumable(item_line):
             "duration": duration,
             "drop_rate": drop_rate,
             "gold": gold,
-            "is_rare": is_rare  # New field for rarity
+            "is_rare": is_rare
         }
     except (ValueError, IndexError):
         print(f"Warning: Could not parse consumable: {item_line}")
@@ -52,9 +52,9 @@ def use_item(player, item, monster_stats=None):
 
     # Ensure effect tracking exists
     if not hasattr(player, "active_effects"):
-        player.active_effects = {}  # {name: turns} for player effects
+        player.active_effects = {}
     if monster_stats and "effects" not in monster_stats:
-        monster_stats["effects"] = {}  # {name: turns} for monster effects
+        monster_stats["effects"] = {}
 
     for c in consumables:
         consumable = parse_consumable(c)
@@ -65,9 +65,8 @@ def use_item(player, item, monster_stats=None):
                 time.sleep(0.5)
                 return False
 
-            # Calculate scaling factor
             level_block = ((consumable["level_range"][0] - 1) // 10) + 1
-            scale = level_block  # 1x for 1-10, 2x for 11-20, etc.
+            scale = level_block
             effect_value = consumable["value"] * scale
 
             if consumable["type"] == "HP":
@@ -112,8 +111,7 @@ def use_item(player, item, monster_stats=None):
             time.sleep(0.5)
             return True
 
-    # Gear equipping (unchanged)
-  for g in gear:
+    for g in gear:
         parts = g.split()
         if parts[0] == item:
             matched = True
@@ -142,7 +140,8 @@ def use_item(player, item, monster_stats=None):
             time.sleep(0.5)
             return True
 
+    # This block should be indented under the function
     if not matched:
         print(f"Item {item} not found!")
         time.sleep(0.5)
-    return False
+        return False

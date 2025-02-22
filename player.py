@@ -18,10 +18,10 @@ class Player:
         self.gold = 0
         self.shop_stock = {}
         self.tavern_buff = None
-        self.rage_turns = 0  # Legacy, keeping for compatibility
+        self.rage_turns = 0
         self.event_cooldowns = {"treasure": 0, "merchant": 0, "trap": 0, "friendly": 0, "curse": 0, "lost": 0}
-        self.skills = []  # NEW: List of unlocked skill names
-        self.skill_effects = {}  # NEW: Dict of active effects (e.g., {"Rage": 3 turns})
+        self.skills = []
+        self.skill_effects = {}
 
         if class_type == "1":  # Warrior
             self.stats = {"S": 3, "A": 1, "I": 1, "W": 2, "L": 1}
@@ -41,12 +41,18 @@ class Player:
         }
         for item in starting_gear[class_type]:
             for g in gear:
-                if g.split()[0] == item:
-                    slot = g.split()[2]
-                    stats = parse_stats(g.split()[1], is_consumable=False)
+                # Match full name by joining words before the bracket
+                gear_name = " ".join(g.split()[:-1])
+                if gear_name == item:
+                    parts = g.split()
+                    bracket = parts[-1].strip("[]").split()  # e.g., "L:1-5 head S1A0I0W0L0 none 5% 10"
+                    slot = bracket[1]  # "head"
+                    stats_str = bracket[2]  # "S1A0I0W0L0"
+                    stats = parse_stats(stats_str, is_consumable=False)
                     self.equipment[slot] = (item, stats)
                     for stat, val in stats.items():
                         self.stats[stat] += val
+                    break
         
         self.max_hp = 10 + 2 * self.stats["S"]
         self.hp = self.max_hp
