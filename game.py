@@ -11,20 +11,31 @@ from utils import load_file, parse_stats
 def parse_gear_drop_info(gear_line):
     parts = gear_line.split()
     if not parts or not parts[-1].startswith("[") or not parts[-1].endswith("]"):
-        return None, None, False
+        return (1, 1), 0.0, False
+    
     name = " ".join(parts[:-1])
-    bracket = parts[-1][1:-1].split()
+    bracket_str = parts[-1][1:-1]
+    bracket = bracket_str.split()
+    
     is_rare = False
-    if bracket[-1] == "[R]":
+    if bracket and bracket[-1] == "[R]":
         bracket.pop()
         is_rare = True
-    if len(bracket) != 6:
+    
+    if len(bracket) != 7:  # Now 7 elements with ScalingStat
         print(f"Warning: Invalid gear format: {gear_line}")
-        return None
-    level_part, slot, stats, damage, drop_rate, gold = bracket
-    min_level, max_level = map(int, level_part[2:].split("-"))
-    drop_chance = float(drop_rate[:-1]) / 100
-    return (min_level, max_level), drop_chance, is_rare
+        return (1, 1), 0.0, False
+    
+    try:
+        level_part, slot, scaling_stat, stats, damage, drop_rate, gold = bracket
+        min_level, max_level = map(int, level_part[2:].split("-"))
+        drop_chance = float(drop_rate[:-1]) / 100
+        if not (level_part.startswith("L:") and drop_rate.endswith("%") and scaling_stat in ["S", "A", "I", "W", "L"]):
+            raise ValueError("Invalid level, drop rate, or scaling stat format")
+        return (min_level, max_level), drop_chance, is_rare
+    except (ValueError, IndexError) as e:
+        print(f"Error parsing gear '{gear_line}': {e}. Using defaults.")
+        return (1, 1), 0.0, False
 
 def display_inventory(player):
     gear = load_file("gear.txt")
@@ -32,9 +43,27 @@ def display_inventory(player):
     print("Equipment:")
     for slot, item in player.equipment.items():
         if item:
-            stats = item[1]
+            item_name, stats, scaling_stat, armor_value = item  # Unpack the tuple
             stat_display = ", ".join([f"+{val} {stat[:3].capitalize()}" for stat, val in stats.items() if val > 0])
-            print(f"{slot.capitalize()}: {item[0]} ({stat_display})")
+            
+            # Look up damage from gear.txt
+            damage = "none"
+            for g in gear:
+                gear_name = g.split('[')[0].strip()  # Get name before bracket
+                if gear_name == item_name:
+                    bracket = g.split('[')[1].strip("]").split()
+                    damage = bracket[4]  # Damage field (e.g., "1-3" or "none")
+                    break
+            
+            # Build display string
+            parts = []
+            if stat_display:
+                parts.append(stat_display)
+            parts.append(f"AV:{armor_value}")
+            if damage != "none":
+                parts.append(f"Dmg:{damage}")
+            display_str = f"{item_name} ({', '.join(parts)})"
+            print(f"{slot.capitalize()}: {display_str}")
         else:
             print(f"{slot.capitalize()}: None")
 
@@ -59,7 +88,7 @@ def inventory_menu(player):
                 slot_idx = int(slot_choice) - 1
                 if 0 <= slot_idx < len(slots):
                     selected_slot = slots[slot_idx]
-                    compatible_items = [item for item in player.inventory if any(g.split()[0] == item and g.split()[2] == selected_slot for g in gear)]
+                    compatible_items = [item for item in player.inventory if any(" ".join(g.split()[:-1]) == item and g.split()[-1].strip("[]").split()[1] == selected_slot for g in gear)]
                     if not compatible_items and not player.equipment[selected_slot]:
                         print("No compatible gear for this slot!")
                         time.sleep(0.5)
@@ -67,10 +96,19 @@ def inventory_menu(player):
                     print(f"\nAvailable gear for {selected_slot.capitalize()}:")
                     for idx, item in enumerate(compatible_items, 1):
                         for g in gear:
-                            if g.split()[0] == item:
-                                stats = parse_stats(g.split()[1], is_consumable=False)
+                            gear_name = g.split('[')[0].strip()
+                            if gear_name == item:
+                                bracket = g.split('[')[1].strip("]").split()
+                                stats = parse_stats(bracket[3], is_consumable=False)
                                 stat_display = ", ".join([f"+{val} {stat[:3].capitalize()}" for stat, val in stats.items() if val > 0])
-                                print(f"{idx}. {item} ({stat_display})")
+                                armor_value = int(bracket[5].split(":")[1])
+                                damage = bracket[4]
+                                parts = [stat_display] if stat_display else []
+                                parts.append(f"AV:{armor_value}")
+                                if damage != "none":
+                                    parts.append(f"Dmg:{damage}")
+                                display_str = f"{item} ({', '.join(parts)})"
+                                print(f"{idx}. {display_str}")
                                 break
                     print(f"{len(compatible_items) + 1}. Remove")
                     print(f"{len(compatible_items) + 2}. Back")
@@ -100,9 +138,13 @@ def inventory_menu(player):
                                 for stat, val in player.equipment[selected_slot][1].items():
                                     player.stats[stat] -= val
                             for g in gear:
-                                if g.split()[0] == new_item:
-                                    stats = parse_stats(g.split()[1], is_consumable=False)
-                                    player.equipment[selected_slot] = (new_item, stats)
+                                parts = g.split()
+                                if " ".join(parts[:-1]) == new_item:
+                                    bracket = parts[-1].strip("[]").split()
+                                    stats = parse_stats(bracket[3], is_consumable=False)
+                                    scaling_stat = bracket[2]
+                                    armor_value = int(bracket[5].split(":")[1])
+                                    player.equipment[selected_slot] = (new_item, stats, scaling_stat, armor_value)
                                     for stat, val in stats.items():
                                         player.stats[stat] += val
                                     break
@@ -231,10 +273,10 @@ def main():
             
             # Fallback if lists are empty
             if not main_areas:
-                main_areas = ["Forest", "Desert", "Mountain"]  # Minimal fallback
+                main_areas = ["Forest", "Desert", "Mountain"]
                 print("Warning: No main areas loaded from locations.txt, using defaults.")
             if not sub_areas:
-                sub_areas = ["Castle", "Cave", "Village"]  # Minimal fallback
+                sub_areas = ["Castle", "Cave", "Village"]
                 print("Warning: No sub areas loaded from locations.txt, using defaults.")
             
             # Generate random location
@@ -253,30 +295,39 @@ def main():
 
             while adventure:
                 if encounter_count >= max_encounters:
+                    if encounter_count >= 8 and not boss_fight and random.random() < 0.25:
+                        print(f"\nA powerful foe blocks your path! Fight the boss?")
+                        print("1. Yes | 2. No")
+                        time.sleep(0.5)
+                        boss_choice = input("Selection: ")
+                        if boss_choice == "1":
+                            boss_fight = True
+                            result = combat(player, True)  # Explicitly trigger boss fight
+                            Encounters.append(result)
+                            if player.hp <= 0:
+                                print("\nYou have died!")
+                                if os.path.exists("save.txt"):
+                                    os.remove("save.txt")
+                                print("Game Over.")
+                                time.sleep(1)
+                                return
+                            if "Victory" in result:
+                                completed_encounters += 1
+                        else:
+                            print("You avoid the boss and head back to town.")
+                            time.sleep(0.5)
                     adventure = False
                     break
 
                 encounter_count += 1
                 Encounters = []
 
-                if encounter_count >= 8 and not boss_fight and random.random() < 0.25:
-                    print(f"\nA powerful foe blocks your path! Fight the boss?")
-                    print("1. Yes | 2. No")
-                    time.sleep(0.5)
-                    boss_choice = input("Selection: ")
-                    if boss_choice == "1":
-                        boss_fight = True
-                        result = combat(player, True)
-                        Encounters.append(result)
-                    else:
-                        print("You avoid the boss and continue cautiously.")
-                        time.sleep(0.5)
+                # Regular encounter (no bosses allowed)
+                if random.randint(1, 100) <= event_chance:
+                    max_encounters = random_event(player, encounter_count, max_encounters)
                 else:
-                    if random.randint(1, 100) <= event_chance:
-                        max_encounters = random_event(player, encounter_count, max_encounters)
-                    else:
-                        result = combat(player, False)
-                        Encounters.append(result)
+                    result = combat(player, False)  # Regular fight only
+                    Encounters.append(result)
 
                 if player.hp <= 0:
                     print("\nYou have died!")
@@ -304,7 +355,7 @@ def main():
                     for c in consumables:
                         consumable = parse_consumable(c)
                         if consumable and player.level >= consumable["level_range"][0] and player.level <= consumable["level_range"][1]:
-                            if not consumable["is_rare"] or boss_fight:  # Rare only for bosses
+                            if not consumable["is_rare"] or boss_fight:
                                 valid_drops.append((consumable["name"], consumable["drop_rate"]))
 
                     # Drop chance check
@@ -343,6 +394,7 @@ def main():
         elif choice == "3":
             print(f"\nStats: S:{player.stats['S']} A:{player.stats['A']} I:{player.stats['I']} W:{player.stats['W']} L:{player.stats['L']}")
             print(f"Level: {player.level} | XP: {player.exp}/{player.max_exp}")
+            print(f"Armor Value: {round(player.get_total_armor_value(), 1)}% (damage reduction)")
             if player.stat_points > 0:
                 player.allocate_stat()
             time.sleep(0.5)

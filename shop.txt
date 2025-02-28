@@ -1,16 +1,13 @@
 #item name, level range, how many in stock, price,
 # Gear
-Iron Sword [L:1-10 Gear 5 25]
-Steel Armor [L:11-20 Gear 3 50]
-Magic Staff [L:21-30 Gear 2 75]
+
 
 # Consumables
-Health Potion [L:1-10 Consumables 10 10]
-Mana Crystal [L:11-20 Consumables 8 15]
-Elixir [L:21-30 Consumables 5 20]
+Minor Health Potion [L:1-10 HP 20 none 0 5% 10]      # Restores 20 HP
+Minor Mana Potion [L:1-10 MP 10 none 0 5% 10]        # Restores 10 MP
+Health Potion [L:11-20 HP 20 none 0 4% 20]           # 40 HP
+Mana Potion [L:11-20 MP 10 none 0 4% 20] 
 
 # Items
-Scroll [L:11-20 Items 3 12]
-Gemstone [L:21-30 Items 2 30]
-Lockpick [L:1-100 10 25]
-Magical Removal Scroll [L:1-100 10 45]
+Lockpick [L:0-100 10 25]
+Magical Removal Scroll [L:0-100 10 45]

@@ -1,5 +1,6 @@
 import time
 from utils import load_file
+from items import parse_consumable
 
 def parse_shop_item(shop_line):
     parts = shop_line.split()
@@ -41,20 +42,23 @@ def parse_gear_item(gear_line):
     is_rare = False
     if bracket[-1] == "[R]":
         bracket.pop()
-    if len(bracket) != 6:
+        is_rare = True
+    if len(bracket) != 7:
         print(f"Warning: Invalid gear format: {gear_line}")
         return None
-    level_part, slot, stats, damage, drop_rate, gold = bracket
+    level_part, slot, scaling_stat, stats, damage, drop_rate, gold = bracket
     try:
         min_level, max_level = map(int, level_part[2:].split("-"))
         drop_rate = float(drop_rate[:-1]) / 100
         gold = int(gold)
+        armor_value = int(bracket[5].split(":")[1])
         return {
             "name": name,
             "level_range": (min_level, max_level),
             "slot": slot,
             "stats": stats,
             "damage": damage,
+            "armor_value": armor_value,
             "drop_rate": drop_rate,
             "gold": gold,
             "is_rare": is_rare
@@ -68,6 +72,8 @@ def calculate_price(base_price, drop_chance):
 
 def shop_menu(player):
     shop_items = load_file("shop.txt")
+    gear_items = load_file("gear.txt")
+    consumable_items = load_file("consumables.txt")
     print(f"\nWelcome to the Shop! Gold: {player.gold}")
     print("1. Buy | 2. Sell | 3. Exit")
     time.sleep(0.5)
@@ -77,11 +83,111 @@ def shop_menu(player):
     level_max = level_block + 9
 
     if shop_choice == "1":
-        pass  # Placeholder - add your buy logic here
-        # You might want to add code like:
-        # print("Buy menu coming soon!")
-        # time.sleep(0.5)
+        available_items = []
+        always_available = ["Lockpick", "Magical Removal Scroll"]
+
+        for line in shop_items:
+            if line.startswith("#"):
+                continue
+            shop_item = parse_shop_item(line)
+            if shop_item:
+                # Always include Lockpick and Magical Removal Scroll
+                if shop_item["name"] in always_available:
+                    item_details = {"name": shop_item["name"], "price": shop_item["price"], "stock": float('inf'), "type": "Item"}  # Infinite stock
+                    available_items.append(item_details)
+                # Regular items filtered by level and stock
+                elif shop_item["level_range"][0] <= player.level <= shop_item["level_range"][1] and shop_item["stock"] > 0:
+                    if shop_item["category"] == "Gear":
+                        gear_detail = next((parse_gear_item(g) for g in gear_items if parse_gear_item(g) and parse_gear_item(g)["name"] == shop_item["name"]), None)
+                        if gear_detail:
+                            available_items.append({
+                                "name": shop_item["name"],
+                                "price": shop_item["price"],
+                                "stock": shop_item["stock"],
+                                "type": "Gear",
+                                "damage": gear_detail["damage"],
+                                "armor_value": gear_detail["armor_value"],
+                                "stats": gear_detail["stats"]
+                            })
+                    elif shop_item["category"] == "Consumables":
+                        cons_detail = next((parse_consumable(c) for c in consumable_items if parse_consumable(c) and parse_consumable(c)["name"] == shop_item["name"]), None)
+                        if cons_detail:
+                            available_items.append({
+                                "name": shop_item["name"],
+                                "price": shop_item["price"],
+                                "stock": shop_item["stock"],
+                                "type": cons_detail["type"],
+                                "value": cons_detail["value"],
+                                "turns": cons_detail["turns"],
+                                "buff": cons_detail["buff"]
+                            })
+                    elif shop_item["category"] == "Items":
+                        available_items.append({
+                            "name": shop_item["name"],
+                            "price": shop_item["price"],
+                            "stock": shop_item["stock"],
+                            "type": "Item"
+                        })
+
+        if not available_items:
+            print("No items available for your level!")
+            time.sleep(0.5)
+            return
+        
+        print("\nAvailable items:")
+        for idx, item in enumerate(available_items, 1):
+            if item["type"] == "Gear":
+                stats_str = item["stats"] if item["stats"] else ""
+                print(f"{idx}. {item['name']} - Price: {item['price']} Gold (Stock: {item['stock'] if item['stock'] != float('inf') else '∞'}, Dmg: {item['damage']}, AV: {item['armor_value']}, Stats: {stats_str})")
+            elif item["type"] in ["HP", "MP"]:
+                print(f"{idx}. {item['name']} - Price: {item['price']} Gold (Stock: {item['stock'] if item['stock'] != float('inf') else '∞'}, Restores: {item['value']} {item['type']})")
+            elif item["type"] == "Buff":
+                print(f"{idx}. {item['name']} - Price: {item['price']} Gold (Stock: {item['stock'] if item['stock'] != float('inf') else '∞'}, +{item['value']} {item['buff']} for {item['turns']} turns)")
+            elif item["type"] == "Offense":
+                effect = f"{item['value']} damage/turn for {item['turns']} turns" if item["buff"] == "Poison" else f"{item['value']} damage"
+                print(f"{idx}. {item['name']} - Price: {item['price']} Gold (Stock: {item['stock'] if item['stock'] != float('inf') else '∞'}, {effect})")
+            else:  # Items like Lockpick, Magical Removal Scroll
+                print(f"{idx}. {item['name']} - Price: {item['price']} Gold (Stock: {item['stock'] if item['stock'] != float('inf') else '∞'})")
+        time.sleep(0.5)
+        
+        buy_choice = input("Select item to buy (or 0 to exit): ")
+        if buy_choice == "0":
+            return
+        
+        try:
+            item_idx = int(buy_choice) - 1
+            if 0 <= item_idx < len(available_items):
+                item = available_items[item_idx]
+                if player.gold >= item["price"]:
+                    player.gold -= item["price"]
+                    player.inventory.append(item["name"])
+                    # Only decrement stock for non-infinite items
+                    if item["stock"] != float('inf'):
+                        item["stock"] -= 1
+                        with open("shop.txt", "w") as f:
+                            for line in shop_items:
+                                if line.startswith(item["name"]):
+                                    parts = line.split()
+                                    bracket = parts[-1][1:-1].split()
+                                    bracket[2] = str(item["stock"])
+                                    new_line = f"{item['name']} [{' '.join(bracket)}]"
+                                    f.write(new_line + "\n")
+                                else:
+                                    f.write(line + "\n")
+                    print(f"Bought {item['name']} for {item['price']} gold!")
+                    time.sleep(0.5)
+                else:
+                    print("Not enough gold!")
+                    time.sleep(0.5)
+            else:
+                print("Invalid selection!")
+                time.sleep(0.5)
+        except ValueError:
+            print("Invalid input!")
+            time.sleep(0.5)
+
     elif shop_choice == "2":
+        # [Sell logic unchanged]
         if not player.inventory:
             print("Nothing to sell!")
             time.sleep(0.5)
@@ -122,6 +228,7 @@ def shop_menu(player):
         except ValueError:
             print("Invalid input!")
             time.sleep(0.5)
+
     elif shop_choice == "3":
         return
     else:
