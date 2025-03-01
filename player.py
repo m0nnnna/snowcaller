@@ -1,3 +1,5 @@
+import json
+import sys
 import os
 import math
 from utils import load_file, parse_stats
@@ -154,68 +156,94 @@ class Player:
             print(f"Stat allocated! Remaining points: {self.stat_points}")
 
 def save_game(player):
-    with open("save.txt", "w") as f:
-        f.write(f"{player.name}\n")
-        f.write(f"{player.level}\n")
-        f.write(f"{player.exp}\n")
-        f.write(f"{player.max_exp}\n")
-        f.write("".join([f"{k}{v}" for k, v in player.stats.items()]) + "\n")
-        f.write(f"{player.hp}\n")
-        f.write(f"{player.max_hp}\n")
-        f.write(f"{player.mp}\n")
-        f.write(f"{player.max_mp}\n")
-        f.write(",".join(player.inventory) if player.inventory else "\n")
-        equipment_str = ",".join([f"{k}:{v[0]}:{''.join([f'{stat}{val}' for stat, val in v[1].items()])}:{v[2]}:{v[3]}" for k, v in player.equipment.items() if v]) or ""
-        f.write(f"{equipment_str}\n")
-        f.write(f"{player.active_enemy_effect[0]}:{player.active_enemy_effect[1]}" if player.active_enemy_effect else "None\n")
-        f.write(f"{player.class_type}\n")
-        f.write(f"{player.pending_xp}\n")
-        f.write(f"{player.stat_points}\n")
-        f.write(f"{player.gold}\n")
-        f.write(",".join([f"{k}:{v}" for k, v in player.shop_stock.items()]) if player.shop_stock else "\n")
-        f.write(f"{player.tavern_buff['stat']}:{player.tavern_buff['value']}" if player.tavern_buff else "None\n")
-        f.write(f"{player.rage_turns}\n")
-        f.write(",".join(player.skills) if player.skills else "\n")
-        f.write(",".join([f"{k}:{v}" for k, v in player.skill_effects.items()]) if player.skill_effects else "\n")
+    try:
+        if getattr(sys, 'frozen', False):  # Running as .exe
+            base_path = os.path.dirname(sys.executable)
+        else:  # Running as .py
+            base_path = os.path.dirname(__file__)
+        save_path = os.path.join(base_path, "save.json")
+
+        # Prepare data to save
+        save_data = {
+            "name": player.name,
+            "level": player.level,
+            "exp": player.exp,
+            "max_exp": player.max_exp,
+            "stats": player.stats,
+            "hp": player.hp,
+            "max_hp": player.max_hp,
+            "mp": player.mp,
+            "max_mp": player.max_mp,
+            "inventory": player.inventory,
+            "equipment": {
+                slot: (item[0], item[1], item[2], item[3]) if item else None
+                for slot, item in player.equipment.items()
+            },
+            "active_enemy_effect": player.active_enemy_effect,
+            "class_type": player.class_type,
+            "pending_xp": player.pending_xp,
+            "stat_points": player.stat_points,
+            "gold": player.gold,
+            "shop_stock": player.shop_stock,
+            "tavern_buff": player.tavern_buff,
+            "rage_turns": player.rage_turns,
+            "skills": player.skills,
+            "skill_effects": player.skill_effects
+        }
+
+        with open(save_path, "w") as f:
+            json.dump(save_data, f, indent=4)  # Use indent=4 for readability (optional)
+        print("Game saved successfully as save.json.")
+    except Exception as e:
+        print(f"Error saving game: {e}")
+        raise
 
 def load_game():
     try:
-        with open("save.txt", "r") as f:
-            lines = [line.strip() for line in f.readlines()]  # No filtering blanks yet
-            if len(lines) != 21:
-                raise ValueError(f"Expected 21 lines, got {len(lines)}")
+        if getattr(sys, 'frozen', False):  # Running as .exe
+            base_path = os.path.dirname(sys.executable)
+        else:  # Running as .py
+            base_path = os.path.dirname(__file__)
+        save_path = os.path.join(base_path, "save.json")
 
-            player = Player(lines[0], lines[12])  # name, class_type
-            player.level = int(lines[1])
-            player.exp = int(lines[2])
-            player.max_exp = int(lines[3])
-            player.stats = parse_stats(lines[4], is_consumable=False)
-            player.hp = float(lines[5])
-            player.max_hp = float(lines[6])
-            player.mp = float(lines[7])
-            player.max_mp = float(lines[8])
-            player.inventory = lines[9].split(",") if lines[9] else []
-            equipment = lines[10].split(",") if lines[10] else []
-            for slot_item in equipment:
-                if slot_item:
-                    slot, item_name, stats_str, scaling_stat, av = slot_item.split(":")
-                    stats = parse_stats(stats_str, is_consumable=False)
-                    player.equipment[slot] = (item_name, stats, scaling_stat, int(av))
-            player.active_enemy_effect = lines[11].split(":") if lines[11] != "None" else None
-            # player.class_type already set in constructor
-            player.pending_xp = int(lines[13])
-            player.stat_points = int(lines[14])
-            player.gold = int(lines[15])
-            player.shop_stock = dict(item.split(":") for item in lines[16].split(",") if item) if lines[16] else {}
-            buff = lines[17]
-            player.tavern_buff = {buff.split(":")[0]: int(buff.split(":")[1])} if buff != "None" and ":" in buff else None
-            if player.tavern_buff:
-                stat, value = list(player.tavern_buff.items())[0]
-                player.stats[stat] += value
-            player.rage_turns = int(lines[18])
-            player.skills = lines[19].split(",") if lines[19] else []
-            player.skill_effects = dict(item.split(":") for item in lines[20].split(",") if item) if lines[20] else {}
-            return player
-    except (IndexError, ValueError, FileNotFoundError) as e:
+        with open(save_path, "r") as f:
+            save_data = json.load(f)
+
+        # Create a new player with name and class_type
+        player = Player(save_data["name"], save_data["class_type"])
+
+        # Update all attributes from saved data
+        player.level = save_data["level"]
+        player.exp = save_data["exp"]
+        player.max_exp = save_data["max_exp"]
+        player.stats = save_data["stats"]
+        player.hp = save_data["hp"]
+        player.max_hp = save_data["max_hp"]
+        player.mp = save_data["mp"]
+        player.max_mp = save_data["max_mp"]
+        player.inventory = save_data["inventory"]
+        player.equipment = {
+            slot: (data[0], data[1], data[2], data[3]) if data else None
+            for slot, data in save_data["equipment"].items()
+        }
+        player.active_enemy_effect = save_data["active_enemy_effect"]
+        player.pending_xp = save_data["pending_xp"]
+        player.stat_points = save_data["stat_points"]
+        player.gold = save_data["gold"]
+        player.shop_stock = save_data["shop_stock"]
+        player.tavern_buff = save_data["tavern_buff"]
+        player.rage_turns = save_data["rage_turns"]
+        player.skills = save_data["skills"]
+        player.skill_effects = save_data["skill_effects"]
+
+        # Recalculate derived stats (HP, MP) based on current stats
+        player.max_hp = 10 + 2 * player.stats["S"]
+        player.hp = min(player.hp, player.max_hp)  # Ensure HP doesn’t exceed max
+        player.max_mp = 3 * player.stats["W"] if player.class_type == "2" else 2 * player.stats["W"]
+        player.mp = min(player.mp, player.max_mp)  # Ensure MP doesn’t exceed max
+
+        print("Game loaded successfully from save.json.")
+        return player
+    except (FileNotFoundError, json.JSONDecodeError, KeyError) as e:
         print(f"Save file corrupted or missing: {e}. Starting new game.")
         raise

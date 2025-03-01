@@ -22,16 +22,29 @@ def parse_gear_drop_info(gear_line):
         bracket.pop()
         is_rare = True
     
-    if len(bracket) != 7:  # Now 7 elements with ScalingStat
+    # Updated to handle the full format: L:level_range slot scaling_stat stats damage AV:value drop_rate gold
+    if len(bracket) != 9:  # Expect 9 elements: L:1-10, slot, scaling_stat, stats, damage, AV:value, drop_rate, gold
         print(f"Warning: Invalid gear format: {gear_line}")
         return (1, 1), 0.0, False
     
     try:
-        level_part, slot, scaling_stat, stats, damage, drop_rate, gold = bracket
+        level_part, slot, scaling_stat, stats, damage, armor_part, drop_rate, gold, _ = bracket
         min_level, max_level = map(int, level_part[2:].split("-"))
+        
+        # Parse armor value (AV:value)
+        if not armor_part.startswith("AV:"):
+            raise ValueError("Invalid armor value format")
+        armor_value = int(armor_part[3:])
+        
+        # Parse drop rate (ends with %)
+        if not drop_rate.endswith("%"):
+            raise ValueError("Invalid drop rate format")
         drop_chance = float(drop_rate[:-1]) / 100
-        if not (level_part.startswith("L:") and drop_rate.endswith("%") and scaling_stat in ["S", "A", "I", "W", "L"]):
-            raise ValueError("Invalid level, drop rate, or scaling stat format")
+        
+        # Validate scaling stat
+        if scaling_stat not in ["S", "A", "I", "W", "L"]:
+            raise ValueError("Invalid scaling stat format")
+        
         return (min_level, max_level), drop_chance, is_rare
     except (ValueError, IndexError) as e:
         print(f"Error parsing gear '{gear_line}': {e}. Using defaults.")
