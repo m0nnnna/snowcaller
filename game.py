@@ -240,6 +240,8 @@ def main():
             class_type = input("Selection: ")
         player = Player(name, class_type)
         print(f"Welcome, {player.name} the {'Warrior' if class_type == '1' else 'Mage' if class_type == '2' else 'Rogue'}!")
+        if player.skills:  # Only print if skills were assigned in __init__
+            print(f"Skills unlocked: {', '.join(player.skills)}")
         time.sleep(0.5)
         
     # Autosave after player setup (new or loaded)
@@ -373,20 +375,26 @@ def main():
                         adventure = False
                         break
 
-                # Prompt every 3 combat encounters (excluding events)
-                if combat_count % 3 == 0 and combat_count < max_encounters and adventure:
-                    print(f"\nYou've fought {combat_count} battles in the {location}.")
-                    choice = input("Would you like to keep going? (yes/no): ").lower()
-                    if choice != "yes":
+                # Prompt only if HP < 50% of max after combat
+                if combat_count > 0 and player.hp < player.max_hp / 2 and adventure:
+                    print(f"\nYou've fought {combat_count} battles in the {location}. HP: {round(player.hp, 1)}/{player.max_hp}")
+                    print("Continue adventure? 1 for Yes | 2 for No")
+                    time.sleep(0.5)
+                    choice = input("Selection: ")
+                    if choice == "2":
                         print(f"You decide to return to town with {completed_encounters} victories.")
                         adventure = False
                         break
+                    elif choice != "1":
+                        print("Invalid choice, continuing adventure.")
+                        time.sleep(0.5)
 
             if adventure is False and "FleeAdventure" not in Encounters:
                 print(f"\nAdventure complete! Returning to town with {len(treasure_inventory)} treasure items from {completed_encounters} victories.")
                 time.sleep(0.5)
-                for _ in range(len(treasure_inventory)):
-                    award_treasure_chest(player)
+                if choice != "2":  # Only award chests if not manually ending early
+                    for _ in range(len(treasure_inventory)):
+                        award_treasure_chest(player)
             
             player.buff = []
             player.event_cooldowns = {k: 0 for k in player.event_cooldowns}
@@ -402,6 +410,54 @@ def main():
         elif choice == "3":
             print(f"\nStats: S:{player.stats['S']} A:{player.stats['A']} I:{player.stats['I']} W:{player.stats['W']} L:{player.stats['L']}")
             print(f"Level: {player.level} | XP: {player.exp}/{player.max_exp}")
+            
+            # Calculate Attack DPS
+            from combat import get_weapon_damage_range
+            min_dmg, max_dmg = get_weapon_damage_range(player)
+            attack_dps = (min_dmg + max_dmg) / 2
+            print(f"Attack DPS: {round(attack_dps, 1)} (avg weapon damage per turn)")
+            
+            # Calculate Skill DPS
+            skills = load_file("skills.txt")
+            total_skill_dps = 0
+            skill_count = 0
+            for skill in skills:
+                skill_data = skill.split('#')[0].strip()
+                if not skill_data.startswith('[') or not skill_data.endswith(']'):
+                    continue
+                parts = skill_data[1:-1].strip().split()
+                if len(parts) != 8:
+                    continue
+                class_type, level_req, name, base_dmg, effect, mp_cost, duration, stat = parts
+                if name in player.skills:  # Only count unlocked skills
+                    base_dmg = int(base_dmg)
+                    mp_cost = int(mp_cost)
+                    duration = int(duration)
+                    scaled_dmg = base_dmg
+                    if stat != "none":
+                        if effect == "damage_bonus":
+                            scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
+                        elif effect == "direct_damage":
+                            scaled_dmg = base_dmg + int(player.stats[stat] * 1.0)
+                        elif effect == "damage_over_time":
+                            scaled_dmg = base_dmg + int(player.stats[stat] * 0.2)
+                        # "heal" excluded from DPS
+                    
+                    if effect == "direct_damage" and duration == 0:
+                        dps = scaled_dmg  # One-time damage
+                    elif effect in ["damage_bonus", "damage_over_time"]:
+                        # Spread damage over duration + MP recovery turns
+                        total_turns = max(1, mp_cost) + duration  # Approximate MP recharge
+                        dps = (scaled_dmg * duration) / total_turns if duration > 0 else 0
+                    else:
+                        dps = 0  # Heal or invalid effect
+                    
+                    total_skill_dps += dps
+                    skill_count += 1
+            
+            skill_dps = total_skill_dps / skill_count if skill_count > 0 else 0
+            print(f"Skill DPS: {round(skill_dps, 1)} (avg skill damage per turn)")
+            
             print(f"Armor Value: {round(player.get_total_armor_value(), 1)}% (damage reduction)")
             if player.stat_points > 0:
                 player.allocate_stat()

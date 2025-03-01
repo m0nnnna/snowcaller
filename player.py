@@ -20,7 +20,7 @@ class Player:
         self.tavern_buff = None
         self.rage_turns = 0
         self.event_cooldowns = {"treasure": 0, "merchant": 0, "trap": 0, "friendly": 0, "curse": 0, "lost": 0}
-        self.skills = []
+        self.skills = []  # Ordered list of unlocked skills
         self.skill_effects = {}
 
         if class_type == "1":  # Warrior
@@ -58,6 +58,49 @@ class Player:
         self.hp = self.max_hp
         self.max_mp = 3 * self.stats["W"] if class_type == "2" else 2 * self.stats["W"]
         self.mp = self.max_mp
+
+        # Assign only Level 1 skills at creation
+        skills = load_file("skills.txt")
+        for skill_line in skills:
+            parts = skill_line[1:-1].split()
+            class_type_skill, level_req, name = parts[0], int(parts[1]), parts[2]
+            if class_type_skill == self.class_type and level_req == 1 and name not in self.skills:  # Only Level 1
+                if len(self.skills) < 15:
+                    self.skills.append(name)
+                    print(f"Starting skill unlocked: {name}")
+
+    def get_total_armor_value(self):
+        total_av = 0
+        for slot, item in self.equipment.items():
+            if item:
+                _, _, scaling_stat, base_av = item
+                scaling_bonus = self.stats[scaling_stat] * 0.5
+                total_av += base_av + scaling_bonus
+        return min(total_av, 100)
+
+    def apply_xp(self):
+        self.exp += self.pending_xp
+        self.pending_xp = 0
+        while self.exp >= self.max_exp:
+            self.level += 1
+            self.exp -= self.max_exp
+            self.max_exp = int(10 * (self.level ** 1.5))
+            self.stat_points += 1
+            print(f"{self.name} leveled up to {self.level}! You have {self.stat_points} stat points to allocate.")
+            skills = load_file("skills.txt")
+            for skill_line in skills:
+                parts = skill_line[1:-1].split()
+                class_type_skill, level_req, name = parts[0], int(parts[1]), parts[2]
+                if (class_type_skill == self.class_type and 
+                    level_req <= self.level and 
+                    name not in self.skills and 
+                    len(self.skills) < 15):
+                    self.skills.append(name)
+                    print(f"You’ve unlocked the {name} skill!")
+            self.max_hp = 10 + 2 * self.stats["S"]
+            self.hp = self.max_hp
+            self.max_mp = 3 * self.stats["W"] if self.class_type == "2" else 2 * self.stats["W"]
+            self.mp = self.max_mp
 
     def get_total_armor_value(self):
         total_av = 0

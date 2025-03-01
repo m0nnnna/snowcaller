@@ -62,10 +62,9 @@ def parse_monster(monster_line):
     level_range = parts[stats_index + 1]
     damage_range = parts[stats_index + 2]
     
-    # Adjusted parsing for optional spawn_chance and required gold_chance + new armor_value
     spawn_chance_part = None
     gold_chance = None
-    armor_value = 0  # Default armor value
+    armor_value = 0
     if len(parts) > stats_index + 3:
         if parts[stats_index + 3].endswith("%") and not parts[stats_index + 3].startswith("G:"):
             spawn_chance_part = parts[stats_index + 3]
@@ -101,7 +100,6 @@ def parse_monster(monster_line):
         print(f"Error parsing gold chance '{gold_chance}' in '{monster_line}': {e}. Using default 0.5.")
         gold_chance = 0.5
     
-    # Parse armor value
     try:
         if armor_value and armor_value.startswith("AV:"):
             armor_value = int(armor_value[3:])
@@ -223,8 +221,30 @@ def combat(player, boss_fight=False):
                     print(f"{skill_name} effect has worn off!")
                     time.sleep(0.5)
 
-        print(f"\n{name}: {round(monster_hp, 1)} HP | {player.name}: {round(player.hp, 1)}/{player.max_hp} HP, {player.mp}/{player.max_mp} MP")
-        print("1. Attack | 2. Item | 3. Flee | 4. Skill" if player.level >= 5 else "1. Attack | 2. Item | 3. Flee")
+        # Calculate active damage bonus from skill effects
+        bonus_display = ""
+        skills = load_file("skills.txt")
+        total_dmg_bonus = 0
+        for skill_name, turns in player.skill_effects.items():
+            if turns > 0:
+                for skill in skills:
+                    skill_data = skill.split('#')[0].strip()
+                    if not skill_data.startswith('[') or not skill_data.endswith(']'):
+                        continue
+                    parts = skill_data[1:-1].strip().split()
+                    if len(parts) != 8:
+                        continue
+                    class_type, level_req, name, base_dmg, effect, mp_cost, duration, stat = parts
+                    if name == skill_name and effect == "damage_bonus":
+                        base_dmg = int(base_dmg)
+                        scaled_dmg = base_dmg + (int(player.stats[stat] * 0.5) if stat != "none" else 0)
+                        total_dmg_bonus += scaled_dmg
+                        break
+        if total_dmg_bonus > 0:
+            bonus_display = f" | Bonus: +{total_dmg_bonus} dmg ({', '.join([f'{k} {v}' for k, v in player.skill_effects.items()])})"
+
+        print(f"\n{monster_stats['name']}: {round(monster_hp, 1)} HP | {player.name}: {round(player.hp, 1)}/{player.max_hp} HP, {player.mp}/{player.max_mp} MP{bonus_display}")
+        print("1. Attack | 2. Item | 3. Flee | 4. Skill")
         time.sleep(0.5)
         choice = input("Selection: ")
 
@@ -239,7 +259,6 @@ def combat(player, boss_fight=False):
                 if random.random() < crit_chance:
                     damage *= 1.5
                     print("Critical hit!")
-                # Apply monster armor reduction
                 armor_reduction = monster_stats["armor_value"] / 100
                 reduced_damage = damage * (1 - armor_reduction)
                 monster_hp -= reduced_damage
@@ -287,67 +306,80 @@ def combat(player, boss_fight=False):
                 print("You fail to flee!")
                 time.sleep(0.5)
 
-        elif choice == "4" and player.level >= 5:
+        elif choice == "4":
             if not player.skills:
                 print("No skills available!")
                 time.sleep(0.5)
                 continue
-            print("\nSkills:", ", ".join(player.skills))
-            skill_choice = input("Select skill (or 'back'): ")
-            if skill_choice == "back":
-                continue
-            if skill_choice in player.skills:
-                skills = load_file("skills.txt")
-                for skill in skills:
-                    parts = skill[1:-1].split()
-                    if parts[2] == skill_choice:
-                        mp_cost = int(parts[5])
-                        if player.mp < mp_cost:
-                            print("Not enough MP!")
+            print("\nAvailable Skills:")
+            for i, skill_name in enumerate(player.skills, 1):
+                print(f"{i}. {skill_name}")
+            print("0. Back")
+            time.sleep(0.5)
+            skill_choice = input("Select skill number (0 to back): ")
+            try:
+                skill_idx = int(skill_choice)
+                if skill_idx == 0:
+                    continue
+                if 1 <= skill_idx <= len(player.skills):
+                    skill_name = player.skills[skill_idx - 1]
+                    skills = load_file("skills.txt")
+                    skill_found = False
+                    for skill in skills:
+                        # Strip comments and extra whitespace
+                        skill_data = skill.split('#')[0].strip()  # Take only text before '#'
+                        if not skill_data.startswith('[') or not skill_data.endswith(']'):
+                            continue  # Skip invalid or empty lines
+                        parts = skill_data[1:-1].strip().split()
+                        if len(parts) != 8:
+                            print(f"Warning: Invalid skill format: {skill_data}")
+                            continue
+                        class_type, level_req, name, base_dmg, effect, mp_cost, duration, stat = parts
+                        if name == skill_name:
+                            skill_found = True
+                            mp_cost = int(mp_cost)
+                            if player.mp < mp_cost:
+                                print("Not enough MP!")
+                                time.sleep(0.5)
+                                break
+                            player.mp -= mp_cost
+                            base_dmg = int(base_dmg)
+                            duration = int(duration)
+                            scaled_dmg = base_dmg
+                            if stat != "none":
+                                if effect == "damage_bonus":
+                                    scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
+                                elif effect == "direct_damage":
+                                    scaled_dmg = base_dmg + int(player.stats[stat] * 1.0)
+                                elif effect == "heal":
+                                    scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
+                                elif effect == "damage_over_time":
+                                    scaled_dmg = base_dmg + int(player.stats[stat] * 0.2)
+
+                            if effect == "damage_bonus":
+                                player.skill_effects[skill_name] = duration
+                                print(f"{skill_name} activated! +{scaled_dmg} damage for {duration} turns.")
+                            elif effect == "direct_damage":
+                                monster_hp -= scaled_dmg
+                                print(f"{skill_name} deals {scaled_dmg} damage to {name}!")
+                            elif effect == "heal":
+                                player.hp = min(player.hp + scaled_dmg, player.max_hp)
+                                print(f"{skill_name} heals you for {scaled_dmg} HP!")
+                            elif effect == "damage_over_time":
+                                player.skill_effects[skill_name] = duration
+                                print(f"{skill_name} applies {scaled_dmg} damage per turn to {name} for {duration} turns!")
+                                monster_hp -= scaled_dmg
                             time.sleep(0.5)
                             break
-                        player.mp -= mp_cost
-                        base_dmg = int(parts[3])
-                        effect = parts[4]
-                        duration = int(parts[6])
-                        stat = parts[7]
-                        scaled_dmg = base_dmg
-                        if stat != "none":
-                            if effect == "damage_bonus":
-                                scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
-                            elif effect == "direct_damage":
-                                scaled_dmg = base_dmg + int(player.stats[stat] * 1.0)
-                            elif effect == "heal":
-                                scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
-                            elif effect == "damage_over_time":
-                                scaled_dmg = base_dmg + int(player.stats[stat] * 0.2)
-
-                        if effect == "damage_bonus":
-                            player.skill_effects[skill_choice] = duration
-                            print(f"{skill_choice} activated! +{scaled_dmg} damage for {duration} turns.")
-                        elif effect == "direct_damage":
-                            monster_hp -= scaled_dmg
-                            print(f"{skill_choice} deals {scaled_dmg} damage to {name}!")
-                        elif effect == "heal":
-                            player.hp = min(player.hp + scaled_dmg, player.max_hp)
-                            print(f"{skill_choice} heals you for {scaled_dmg} HP!")
-                        elif effect == "damage_over_time":
-                            player.skill_effects[skill_choice] = duration
-                            print(f"{skill_choice} applies {scaled_dmg} damage per turn to {name} for {duration} turns!")
-                            monster_hp -= scaled_dmg
+                    if not skill_found:
+                        print(f"Skill '{skill_name}' not found in skills.txt!")
                         time.sleep(0.5)
-                        break
                 else:
-                    print("Skill not found!")
+                    print("Invalid skill number!")
                     time.sleep(0.5)
-            else:
-                print("Invalid skill!")
+            except ValueError as e:
+                print(f"ValueError occurred: {e}")
                 time.sleep(0.5)
-                continue
-
-        else:
-            print("Invalid choice!")
-            time.sleep(0.5)
             continue
 
         if monster_hp > 0:
@@ -362,6 +394,7 @@ def combat(player, boss_fight=False):
                 print(f"{name} deals {round(reduced_damage, 1)} damage to you (reduced from {round(damage, 1)} by armor)!")
             time.sleep(0.5)
 
+            # Damage over time effects
             for skill_name, turns in list(player.skill_effects.items()):
                 if turns > 0 and "damage_over_time" in skill_name.lower():
                     skills = load_file("skills.txt")
