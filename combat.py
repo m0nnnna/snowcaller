@@ -16,23 +16,28 @@ def get_weapon_damage_range(player):
                 damage_bonus = base_dmg + (int(player.stats[stat] * 0.5) if stat != "none" else 0)
                 break
     if weapon:
+        weapon_name = weapon[0].strip()
         for g in load_file("gear.txt"):
-            parts = g.split()
-            gear_name = " ".join(parts[:-1])
-            if gear_name == weapon[0]:
-                bracket = parts[-1][1:-1].split()
-                if bracket[-1] == "[R]":
-                    bracket.pop()
-                scaling_stat = bracket[2]
-                damage = bracket[3]
-                if damage != "none":
-                    min_dmg, max_dmg = map(float, damage.split("-"))
-                    stat_bonus = player.stats[scaling_stat] * 0.5
-                    if "Staff" in weapon[0] and player.class_type == "2":
-                        i_modifier = 1 + (player.stats["I"] * 0.008)
-                        min_dmg *= i_modifier
-                        max_dmg *= i_modifier
-                    return (min_dmg + stat_bonus + damage_bonus, max_dmg + stat_bonus + damage_bonus)
+            if '[' in g:
+                gear_name, bracket_part = g.split('[', 1)
+                gear_name = gear_name.strip()
+                bracket = bracket_part.rstrip(']').split()
+                if gear_name == weapon_name:
+                    if bracket[-1] == "[R]":
+                        bracket.pop()
+                    scaling_stat = bracket[2]
+                    damage = bracket[4]
+                    if damage != "none":
+                        try:
+                            min_dmg, max_dmg = map(float, damage.split("-"))
+                            stat_bonus = player.stats[scaling_stat] * 0.5
+                            if "Staff" in weapon_name and player.class_type == "2":
+                                i_modifier = 1 + (player.stats["I"] * 0.008)
+                                min_dmg *= i_modifier
+                                max_dmg *= i_modifier
+                            return (min_dmg + stat_bonus + damage_bonus, max_dmg + stat_bonus + damage_bonus)
+                        except ValueError:
+                            pass  # Silently fall back if parsing fails
     return (1 + damage_bonus, 2 + damage_bonus)
 
 def parse_monster(monster_line):

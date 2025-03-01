@@ -255,11 +255,9 @@ def main():
         choice = input("Selection: ")
 
         if choice == "1":
-            # Load locations.txt without filtering headers initially
             with open("locations.txt", "r") as f:
                 lines = [line.strip() for line in f if line.strip()]
             
-            # Parse into main_areas and sub_areas
             main_areas = []
             sub_areas = []
             current_section = None
@@ -271,7 +269,6 @@ def main():
                 elif current_section is not None:
                     current_section.append(line)
             
-            # Fallback if lists are empty
             if not main_areas:
                 main_areas = ["Forest", "Desert", "Mountain"]
                 print("Warning: No main areas loaded from locations.txt, using defaults.")
@@ -279,7 +276,6 @@ def main():
                 sub_areas = ["Castle", "Cave", "Village"]
                 print("Warning: No sub areas loaded from locations.txt, using defaults.")
             
-            # Generate random location
             main_area = random.choice(main_areas)
             sub_area = random.choice(sub_areas)
             location = f"{main_area} {sub_area}"
@@ -287,7 +283,8 @@ def main():
             time.sleep(0.5)
             max_encounters = random.randint(2, 10)
             boss_fight = False
-            encounter_count = 0
+            encounter_count = 0  # Total attempts (combat + events)
+            combat_count = 0     # Only combat encounters
             completed_encounters = 0
             treasure_inventory = []
             adventure = True
@@ -322,63 +319,70 @@ def main():
                 encounter_count += 1
                 Encounters = []
 
-                # Regular encounter (no bosses allowed)
+                # Random event or combat
                 if random.randint(1, 100) <= event_chance:
                     max_encounters = random_event(player, encounter_count, max_encounters)
                 else:
+                    combat_count += 1
                     result = combat(player, False)
                     Encounters.append(result)
 
-                if player.hp <= 0:
-                    print("\nYou have died!")
-                    if os.path.exists("save.txt"):
-                        os.remove("save.txt")
-                    print("Game Over.")
-                    time.sleep(1)
-                    return
+                    if player.hp <= 0:
+                        print("\nYou have died!")
+                        if os.path.exists("save.txt"):
+                            os.remove("save.txt")
+                        print("Game Over.")
+                        time.sleep(1)
+                        return
 
-                if Encounters and "Victory" in Encounters[-1]:
-                    completed_encounters += 1
-                    drop_item = None
-                    gear = load_file("gear.txt")
-                    consumables = load_file("consumables.txt")
-                    valid_drops = []
+                    if Encounters and "Victory" in Encounters[-1]:
+                        completed_encounters += 1
+                        drop_item = None
+                        gear = load_file("gear.txt")
+                        consumables = load_file("consumables.txt")
+                        valid_drops = []
 
-                    # Gear drops
-                    for g in gear:
-                        level_range, drop_chance, is_rare = parse_gear_drop_info(g)
-                        if level_range and player.level >= level_range[0] and player.level <= level_range[1] and (not is_rare or boss_fight):
-                            valid_drops.append((g.split()[0], drop_chance))
+                        for g in gear:
+                            level_range, drop_chance, is_rare = parse_gear_drop_info(g)
+                            if level_range and player.level >= level_range[0] and player.level <= level_range[1] and (not is_rare or boss_fight):
+                                valid_drops.append((g.split()[0], drop_chance))
 
-                    # Consumable drops
-                    from items import parse_consumable
-                    for c in consumables:
-                        consumable = parse_consumable(c)
-                        if consumable and player.level >= consumable["level_range"][0] and player.level <= consumable["level_range"][1]:
-                            if not consumable["is_rare"] or boss_fight:
-                                valid_drops.append((consumable["name"], consumable["drop_rate"]))
+                        from items import parse_consumable
+                        for c in consumables:
+                            consumable = parse_consumable(c)
+                            if consumable and player.level >= consumable["level_range"][0] and player.level <= consumable["level_range"][1]:
+                                if not consumable["is_rare"] or boss_fight:
+                                    valid_drops.append((consumable["name"], consumable["drop_rate"]))
 
-                    # Drop chance check
-                    if valid_drops and random.random() < 0.25:
-                        drop_item = random.choices(
-                            [item[0] for item in valid_drops],
-                            weights=[item[1] for item in valid_drops],
-                            k=1
-                        )[0]
-                        player.inventory.append(drop_item)
-                        print(f"\nYou found a {drop_item}!")
+                        if valid_drops and random.random() < 0.25:
+                            drop_item = random.choices(
+                                [item[0] for item in valid_drops],
+                                weights=[item[1] for item in valid_drops],
+                                k=1
+                            )[0]
+                            player.inventory.append(drop_item)
+                            print(f"\nYou found a {drop_item}!")
+                            time.sleep(0.5)
+
+                        if random.random() < 0.15 or (boss_fight and random.random() < 0.5):
+                            treasure_inventory.append("Treasure Chest")
+
+                    elif Encounters and "FleeAdventure" in Encounters[-1]:
+                        print(f"\nYou escaped the {location}, ending your adventure with {completed_encounters} victories.")
                         time.sleep(0.5)
+                        adventure = False
+                        break
 
-                    if random.random() < 0.15 or (boss_fight and random.random() < 0.5):
-                        treasure_inventory.append("Treasure Chest")
+                # Prompt every 3 combat encounters (excluding events)
+                if combat_count % 3 == 0 and combat_count < max_encounters and adventure:
+                    print(f"\nYou've fought {combat_count} battles in the {location}.")
+                    choice = input("Would you like to keep going? (yes/no): ").lower()
+                    if choice != "yes":
+                        print(f"You decide to return to town with {completed_encounters} victories.")
+                        adventure = False
+                        break
 
-                elif Encounters and "FleeAdventure" in Encounters[-1]:
-                    print(f"\nYou escaped the {location}, ending your adventure with {completed_encounters} victories.")
-                    time.sleep(0.5)
-                    adventure = False  # End the adventure immediately
-                    break
-
-            if adventure is False and "FleeAdventure" not in Encounters:  # Only award chests if adventure ended naturally
+            if adventure is False and "FleeAdventure" not in Encounters:
                 print(f"\nAdventure complete! Returning to town with {len(treasure_inventory)} treasure items from {completed_encounters} victories.")
                 time.sleep(0.5)
                 for _ in range(len(treasure_inventory)):

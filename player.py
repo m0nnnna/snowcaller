@@ -34,7 +34,7 @@ class Player:
         starting_gear = {
             "1": ["Warrior Cap", "Warrior Vest", "Warrior Blade"],
             "2": ["Mage Cap", "Mage Gown", "Mage Wand"],
-            "3": ["Rogue Cap", "Rogue Shirt", "Rogue Knife"]
+            "3": ["Rogue Pants", "Rogue Gloves", "Rogue Boots", "Rogue Shirt", "Rogue Knife"]
         }
         for item in starting_gear[class_type]:
             for g in gear:

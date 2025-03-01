@@ -1,11 +1,11 @@
 # [name] S#A#I#W#L# L:min-max D:min-max [spawn_chance%] G:gold_chance% AV:#
 
 # Regular Monsters
-[Goblin] S3A2I1W1L1 L:1-3 D:1-3 75% G:50% AV:10
+[Goblin] S2A2I1W1L1 L:1-3 D:1-3 75% G:50% AV:0
+[Skeleton] S2A1I2W1L1 L:2-4 D:1-3 G:50%
 [Troll] S5A3I2W2L1 L:5-7 D:3-5 G:75% AV:25
 [Orc] S3A2I1W2L2 L:2-5 D:2-4 G:50%
 [Dragon] S10A5I5W5L5 L:90-100 D:5-10 5% G:75%
-[Skeleton] S2A1I2W1L1 L:1-4 D:1-3 G:50%
 
 # Boss Monsters
 [Ogre King] S6A3I2W4L4 L:5-10 D:4-8 G:75%
