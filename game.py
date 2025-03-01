@@ -302,7 +302,7 @@ def main():
                         boss_choice = input("Selection: ")
                         if boss_choice == "1":
                             boss_fight = True
-                            result = combat(player, True)  # Explicitly trigger boss fight
+                            result = combat(player, True)
                             Encounters.append(result)
                             if player.hp <= 0:
                                 print("\nYou have died!")
@@ -326,7 +326,7 @@ def main():
                 if random.randint(1, 100) <= event_chance:
                     max_encounters = random_event(player, encounter_count, max_encounters)
                 else:
-                    result = combat(player, False)  # Regular fight only
+                    result = combat(player, False)
                     Encounters.append(result)
 
                 if player.hp <= 0:
@@ -372,14 +372,18 @@ def main():
                     if random.random() < 0.15 or (boss_fight and random.random() < 0.5):
                         treasure_inventory.append("Treasure Chest")
 
-                elif Encounters and "Fled" in Encounters[-1]:
-                    print("You fled, forfeiting potential rewards.")
+                elif Encounters and "FleeAdventure" in Encounters[-1]:
+                    print(f"\nYou escaped the {location}, ending your adventure with {completed_encounters} victories.")
                     time.sleep(0.5)
+                    adventure = False  # End the adventure immediately
+                    break
 
-            print(f"\nAdventure complete! Returning to town with {len(treasure_inventory)} treasure items from {completed_encounters} victories.")
-            time.sleep(0.5)
-            for _ in range(len(treasure_inventory)):
-                award_treasure_chest(player)
+            if adventure is False and "FleeAdventure" not in Encounters:  # Only award chests if adventure ended naturally
+                print(f"\nAdventure complete! Returning to town with {len(treasure_inventory)} treasure items from {completed_encounters} victories.")
+                time.sleep(0.5)
+                for _ in range(len(treasure_inventory)):
+                    award_treasure_chest(player)
+            
             player.buff = []
             player.event_cooldowns = {k: 0 for k in player.event_cooldowns}
             player.rage_turns = 0

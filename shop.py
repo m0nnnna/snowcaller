@@ -3,25 +3,31 @@ from utils import load_file
 from items import parse_consumable
 
 def parse_shop_item(shop_line):
-    parts = shop_line.split()
-    if not parts or not parts[-1].startswith("[") or not parts[-1].endswith("]"):
+    start = shop_line.find("[")
+    end = shop_line.rfind("]") + 1
+    if start == -1 or end == 0:
         return None
-    name = " ".join(parts[:-1])
-    bracket = parts[-1][1:-1].split()
-    if len(bracket) != 4:
-        print(f"Warning: Invalid shop item format: {shop_line}")
+    name = shop_line[:start].strip()
+    bracket_str = shop_line[start:end]
+    bracket = bracket_str[1:-1].split()
+    
+    if not bracket or not bracket[0].startswith("L:"):
         return None
-    level_part, category, stock, price = bracket
-    if not level_part.startswith("L:"):
-        print(f"Warning: Invalid level range: {shop_line}")
-        return None
+    
+    level_part = bracket[0]
     try:
         min_level, max_level = map(int, level_part[2:].split("-"))
-        stock = int(stock)
-        price = int(price)
-        if category not in ["Gear", "Consumables", "Items"]:
-            print(f"Warning: Invalid category {category} in {shop_line}")
+        if len(bracket) >= 7:  # Consumables: [L:min-max HP/MP value none stock drop% price]
+            stock = int(bracket[4])
+            price = int(bracket[6])
+            category = "Consumables" if "HP" in bracket or "MP" in bracket else "Gear"
+        elif len(bracket) == 3:  # Items: [L:min-max stock price]
+            stock = int(bracket[1])
+            price = int(bracket[2])
+            category = "Items" if name in ["Lockpick", "Magical Removal Scroll"] else "Gear"
+        else:
             return None
+        
         return {
             "name": name,
             "level_range": (min_level, max_level),
@@ -30,7 +36,6 @@ def parse_shop_item(shop_line):
             "price": price
         }
     except (ValueError, IndexError):
-        print(f"Warning: Could not parse shop item: {shop_line}")
         return None
 
 def parse_gear_item(gear_line):
@@ -44,7 +49,6 @@ def parse_gear_item(gear_line):
         bracket.pop()
         is_rare = True
     if len(bracket) != 7:
-        print(f"Warning: Invalid gear format: {gear_line}")
         return None
     level_part, slot, scaling_stat, stats, damage, drop_rate, gold = bracket
     try:
@@ -64,7 +68,6 @@ def parse_gear_item(gear_line):
             "is_rare": is_rare
         }
     except (ValueError, IndexError):
-        print(f"Warning: Could not parse gear: {gear_line}")
         return None
 
 def calculate_price(base_price, drop_chance):
@@ -90,26 +93,27 @@ def shop_menu(player):
             if line.startswith("#"):
                 continue
             shop_item = parse_shop_item(line)
-            if shop_item:
-                # Always include Lockpick and Magical Removal Scroll
-                if shop_item["name"] in always_available:
-                    item_details = {"name": shop_item["name"], "price": shop_item["price"], "stock": float('inf'), "type": "Item"}  # Infinite stock
-                    available_items.append(item_details)
-                # Regular items filtered by level and stock
-                elif shop_item["level_range"][0] <= player.level <= shop_item["level_range"][1] and shop_item["stock"] > 0:
-                    if shop_item["category"] == "Gear":
-                        gear_detail = next((parse_gear_item(g) for g in gear_items if parse_gear_item(g) and parse_gear_item(g)["name"] == shop_item["name"]), None)
-                        if gear_detail:
-                            available_items.append({
-                                "name": shop_item["name"],
-                                "price": shop_item["price"],
-                                "stock": shop_item["stock"],
-                                "type": "Gear",
-                                "damage": gear_detail["damage"],
-                                "armor_value": gear_detail["armor_value"],
-                                "stats": gear_detail["stats"]
-                            })
-                    elif shop_item["category"] == "Consumables":
+            if not shop_item:
+                continue
+            
+            if shop_item["name"] in always_available:
+                item_details = {"name": shop_item["name"], "price": shop_item["price"], "stock": float('inf'), "type": "Item"}
+                available_items.append(item_details)
+            elif shop_item["level_range"][0] <= player.level <= shop_item["level_range"][1] and shop_item["stock"] > 0:
+                if shop_item["category"] == "Gear":
+                    gear_detail = next((parse_gear_item(g) for g in gear_items if parse_gear_item(g) and parse_gear_item(g)["name"] == shop_item["name"]), None)
+                    if gear_detail:
+                        available_items.append({
+                            "name": shop_item["name"],
+                            "price": shop_item["price"],
+                            "stock": shop_item["stock"],
+                            "type": "Gear",
+                            "damage": gear_detail["damage"],
+                            "armor_value": gear_detail["armor_value"],
+                            "stats": gear_detail["stats"]
+                        })
+                elif shop_item["category"] == "Consumables":
+                    try:
                         cons_detail = next((parse_consumable(c) for c in consumable_items if parse_consumable(c) and parse_consumable(c)["name"] == shop_item["name"]), None)
                         if cons_detail:
                             available_items.append({
@@ -118,16 +122,42 @@ def shop_menu(player):
                                 "stock": shop_item["stock"],
                                 "type": cons_detail["type"],
                                 "value": cons_detail["value"],
-                                "turns": cons_detail["turns"],
-                                "buff": cons_detail["buff"]
+                                "turns": cons_detail["duration"],
+                                "buff": cons_detail["stat"] if cons_detail["type"] in ["Buff", "Offense"] else None
                             })
-                    elif shop_item["category"] == "Items":
+                        else:
+                            bracket = line.split("[")[1].split("]")[0].split()
+                            effect_type = "HP" if "HP" in bracket else "MP" if "MP" in bracket else "Unknown"
+                            value = int(bracket[2]) if len(bracket) > 2 else 0
+                            available_items.append({
+                                "name": shop_item["name"],
+                                "price": shop_item["price"],
+                                "stock": shop_item["stock"],
+                                "type": effect_type,
+                                "value": value,
+                                "turns": 0,
+                                "buff": None
+                            })
+                    except NameError:
+                        bracket = line.split("[")[1].split("]")[0].split()
+                        effect_type = "HP" if "HP" in bracket else "MP" if "MP" in bracket else "Unknown"
+                        value = int(bracket[2]) if len(bracket) > 2 else 0
                         available_items.append({
                             "name": shop_item["name"],
                             "price": shop_item["price"],
                             "stock": shop_item["stock"],
-                            "type": "Item"
+                            "type": effect_type,
+                            "value": value,
+                            "turns": 0,
+                            "buff": None
                         })
+                elif shop_item["category"] == "Items":
+                    available_items.append({
+                        "name": shop_item["name"],
+                        "price": shop_item["price"],
+                        "stock": shop_item["stock"],
+                        "type": "Item"
+                    })
 
         if not available_items:
             print("No items available for your level!")
@@ -146,7 +176,7 @@ def shop_menu(player):
             elif item["type"] == "Offense":
                 effect = f"{item['value']} damage/turn for {item['turns']} turns" if item["buff"] == "Poison" else f"{item['value']} damage"
                 print(f"{idx}. {item['name']} - Price: {item['price']} Gold (Stock: {item['stock'] if item['stock'] != float('inf') else '∞'}, {effect})")
-            else:  # Items like Lockpick, Magical Removal Scroll
+            else:
                 print(f"{idx}. {item['name']} - Price: {item['price']} Gold (Stock: {item['stock'] if item['stock'] != float('inf') else '∞'})")
         time.sleep(0.5)
         

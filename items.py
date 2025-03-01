@@ -30,12 +30,18 @@ def parse_consumable(item_line):
         if effect_type == "Buff" and stat not in ["S", "A", "I", "W", "L"]:
             print(f"Warning: Invalid stat {stat} for Buff in {item_line}")
             return None
+        if effect_type in ["HP", "MP"] and stat != "none":
+            print(f"Warning: HP/MP items should use 'none' for stat, got {stat} in {item_line}")
+            # Still allow it to proceed, treating unexpected stat as 'none'
+        if effect_type == "Offense" and stat not in ["Poison", "none"]:
+            print(f"Warning: Invalid stat {stat} for Offense in {item_line}")
+            return None
         return {
             "name": name,
             "level_range": (min_level, max_level),
             "type": effect_type,
             "value": value,
-            "stat": stat,
+            "stat": stat if effect_type in ["Buff", "Offense"] else None,  # Only keep stat for Buff/Offense
             "duration": duration,
             "drop_rate": drop_rate,
             "gold": gold,

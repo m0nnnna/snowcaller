@@ -18,17 +18,17 @@ def get_weapon_damage_range(player):
     if weapon:
         for g in load_file("gear.txt"):
             parts = g.split()
-            gear_name = " ".join(parts[:-1])  # Handle multi-word names
-            if gear_name == weapon[0]:  # Match full name
+            gear_name = " ".join(parts[:-1])
+            if gear_name == weapon[0]:
                 bracket = parts[-1][1:-1].split()
                 if bracket[-1] == "[R]":
                     bracket.pop()
-                scaling_stat = bracket[2]  # e.g., "A" for Dagger
-                damage = bracket[3]  # e.g., "1-3"
+                scaling_stat = bracket[2]
+                damage = bracket[3]
                 if damage != "none":
                     min_dmg, max_dmg = map(float, damage.split("-"))
                     stat_bonus = player.stats[scaling_stat] * 0.5
-                    if "Staff" in weapon[0] and player.class_type == "2":  # Mage bonus for staves
+                    if "Staff" in weapon[0] and player.class_type == "2":
                         i_modifier = 1 + (player.stats["I"] * 0.008)
                         min_dmg *= i_modifier
                         max_dmg *= i_modifier
@@ -37,9 +37,9 @@ def get_weapon_damage_range(player):
 
 def parse_monster(monster_line):
     parts = monster_line.split()
-    if len(parts) < 5:  # Minimum: [Name] S# L: D: G:
+    if len(parts) < 5:
         print(f"Warning: Invalid monster format: '{monster_line}'")
-        return {"name": "Unknown", "stats": {"S": 1, "A": 1, "I": 1, "W": 1, "L": 1}, "level_range": (1, 1), "hp": 10, "mp": 2, "min_dmg": 1, "max_dmg": 2, "gold_chance": 0.5, "spawn_chance": 1.0}
+        return {"name": "Unknown", "stats": {"S": 1, "A": 1, "I": 1, "W": 1, "L": 1}, "level_range": (1, 1), "hp": 10, "mp": 2, "min_dmg": 1, "max_dmg": 2, "gold_chance": 0.5, "spawn_chance": 1.0, "armor_value": 0}
     
     name_parts = []
     stats_index = None
@@ -52,25 +52,31 @@ def parse_monster(monster_line):
     
     if stats_index is None or stats_index + 3 >= len(parts):
         print(f"Warning: No valid stats or incomplete data in '{monster_line}'")
-        return {"name": name, "stats": {"S": 1, "A": 1, "I": 1, "W": 1, "L": 1}, "level_range": (1, 1), "hp": 10, "mp": 2, "min_dmg": 1, "max_dmg": 2, "gold_chance": 0.5, "spawn_chance": 1.0}
+        return {"name": name, "stats": {"S": 1, "A": 1, "I": 1, "W": 1, "L": 1}, "level_range": (1, 1), "hp": 10, "mp": 2, "min_dmg": 1, "max_dmg": 2, "gold_chance": 0.5, "spawn_chance": 1.0, "armor_value": 0}
     
-    stats_str = parts[stats_index]      # e.g., "S10A5I5W5L5"
-    level_range = parts[stats_index + 1]  # "L:90-100"
-    damage_range = parts[stats_index + 2] # "D:5-10"
+    stats_str = parts[stats_index]
+    level_range = parts[stats_index + 1]
+    damage_range = parts[stats_index + 2]
     
-    # Check for spawn chance (optional)
-    if len(parts) == stats_index + 5:  # Has Spawn% (e.g., [Dragon])
-        spawn_chance_part = parts[stats_index + 3]  # "5%"
-        gold_chance = parts[stats_index + 4]        # "G:75%"
-    else:  # No Spawn% (e.g., [Troll])
-        spawn_chance_part = None
-        gold_chance = parts[stats_index + 3]        # "G:50%"
+    # Adjusted parsing for optional spawn_chance and required gold_chance + new armor_value
+    spawn_chance_part = None
+    gold_chance = None
+    armor_value = 0  # Default armor value
+    if len(parts) > stats_index + 3:
+        if parts[stats_index + 3].endswith("%") and not parts[stats_index + 3].startswith("G:"):
+            spawn_chance_part = parts[stats_index + 3]
+            gold_chance = parts[stats_index + 4] if len(parts) > stats_index + 4 else "G:50%"
+        else:
+            gold_chance = parts[stats_index + 3]
+        if len(parts) > stats_index + 4 and parts[stats_index + 4].startswith("AV:"):
+            armor_value = parts[stats_index + 4]
+        elif len(parts) > stats_index + 5 and parts[stats_index + 5].startswith("AV:"):
+            armor_value = parts[stats_index + 5]
 
     stats = parse_stats(stats_str, is_consumable=False)
     min_level, max_level = map(int, level_range[2:].split("-"))
     min_dmg, max_dmg = map(float, damage_range[2:].split("-"))
     
-    # Parse spawn chance (default to 100% if not present)
     if spawn_chance_part and spawn_chance_part.endswith("%"):
         try:
             spawn_chance = float(spawn_chance_part[:-1]) / 100
@@ -80,7 +86,6 @@ def parse_monster(monster_line):
     else:
         spawn_chance = 1.0
     
-    # Parse gold chance
     try:
         if not gold_chance.startswith("G:") or gold_chance[-1] != "%":
             raise ValueError("Invalid gold chance format")
@@ -92,6 +97,18 @@ def parse_monster(monster_line):
         print(f"Error parsing gold chance '{gold_chance}' in '{monster_line}': {e}. Using default 0.5.")
         gold_chance = 0.5
     
+    # Parse armor value
+    try:
+        if armor_value and armor_value.startswith("AV:"):
+            armor_value = int(armor_value[3:])
+            if not (0 <= armor_value <= 100):
+                raise ValueError("Armor value must be between 0 and 100")
+        else:
+            armor_value = 0
+    except (ValueError, IndexError) as e:
+        print(f"Error parsing armor value '{armor_value}' in '{monster_line}': {e}. Using default 0.")
+        armor_value = 0
+
     hp = 10 + 2 * stats["S"]
     mp = 2 * stats["W"]
     
@@ -104,7 +121,8 @@ def parse_monster(monster_line):
         "min_dmg": min_dmg,
         "max_dmg": max_dmg,
         "gold_chance": gold_chance,
-        "spawn_chance": spawn_chance  # New field
+        "spawn_chance": spawn_chance,
+        "armor_value": armor_value  # New field
     }
 
 def combat(player, boss_fight=False):
@@ -129,7 +147,6 @@ def combat(player, boss_fight=False):
         print(f"Warning: No {'boss' if boss_fight else 'regular'} monsters found!")
         monster_pool = ["[Fallback] S1A1I1W1L1 L:1-1 D:1-2 G:50%]"]
     
-    # Parse all monsters to get spawn chances
     parsed_monsters = [parse_monster(m) for m in monster_pool]
     valid_monsters = [m for m in parsed_monsters if m["level_range"][0] <= player.level <= m["level_range"][1]]
     
@@ -137,17 +154,16 @@ def combat(player, boss_fight=False):
         print(f"No suitable {'boss' if boss_fight else 'regular'} monsters for level {player.level}. Using fallback.")
         valid_monsters = [parse_monster(monster_pool[0])]
     
-    # Select monster with spawn chance weighting
-    if not boss_fight:  # Only apply spawn chance for regular monsters
+    if not boss_fight:
         monster = random.choices(
             valid_monsters,
             weights=[m["spawn_chance"] for m in valid_monsters],
             k=1
         )[0]
     else:
-        monster = random.choice(valid_monsters)  # Bosses don’t use spawn chance
+        monster = random.choice(valid_monsters)
     
-    monster_stats = monster  # Already parsed
+    monster_stats = monster
     level = random.randint(monster_stats["level_range"][0], monster_stats["level_range"][1])
     
     level_scale = 1 + (level - 1) * 0.05 if not boss_fight else 1 + (level - 1) * 0.1
@@ -166,7 +182,6 @@ def combat(player, boss_fight=False):
     
     print(f"\nA {name} appears! HP: {round(monster_hp, 1)}")
     time.sleep(0.5)
-
 
     while monster_hp > 0 and player.hp > 0:
         for skill_name, turns in list(player.skill_effects.items()):
@@ -193,8 +208,14 @@ def combat(player, boss_fight=False):
                 if random.random() < crit_chance:
                     damage *= 1.5
                     print("Critical hit!")
-                monster_hp -= damage
-                print(f"You deal {round(damage, 1)} damage to {name}!")
+                # Apply monster armor reduction
+                armor_reduction = monster_stats["armor_value"] / 100
+                reduced_damage = damage * (1 - armor_reduction)
+                monster_hp -= reduced_damage
+                if damage != reduced_damage:
+                    print(f"You deal {round(reduced_damage, 1)} damage to {name} (reduced from {round(damage, 1)} by armor)!")
+                else:
+                    print(f"You deal {round(reduced_damage, 1)} damage to {name}!")
             time.sleep(0.5)
 
         elif choice == "2":
@@ -228,9 +249,9 @@ def combat(player, boss_fight=False):
         elif choice == "3":
             flee_chance = 0.5 + (player.stats["A"] - monster_stats["stats"]["A"]) * 0.05
             if random.random() < flee_chance:
-                print("You flee successfully!")
+                print("You flee successfully, ending your adventure!")
                 time.sleep(0.5)
-                return "Fled"
+                return "FleeAdventure"
             else:
                 print("You fail to flee!")
                 time.sleep(0.5)
@@ -298,7 +319,6 @@ def combat(player, boss_fight=False):
             time.sleep(0.5)
             continue
 
-        # Monster turn
         if monster_hp > 0:
             dodge_chance = player.stats["A"] * 0.02
             damage = random.uniform(monster_min_dmg, monster_max_dmg)
@@ -311,7 +331,6 @@ def combat(player, boss_fight=False):
                 print(f"{name} deals {round(reduced_damage, 1)} damage to you (reduced from {round(damage, 1)} by armor)!")
             time.sleep(0.5)
 
-            # Apply damage-over-time effects
             for skill_name, turns in list(player.skill_effects.items()):
                 if turns > 0 and "damage_over_time" in skill_name.lower():
                     skills = load_file("skills.txt")
