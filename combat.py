@@ -16,7 +16,7 @@ def get_weapon_damage_range(player):
                 damage_bonus = base_dmg + (int(player.stats[stat] * 0.5) if stat != "none" else 0)
                 break
     if weapon:
-        weapon_name = weapon[0].strip()
+        weapon_name, stats, scaling_stat, armor_value = weapon  # Unpack the tuple
         for g in load_file("gear.txt"):
             if '[' in g:
                 gear_name, bracket_part = g.split('[', 1)
@@ -25,16 +25,15 @@ def get_weapon_damage_range(player):
                 if gear_name == weapon_name:
                     if bracket[-1] == "[R]":
                         bracket.pop()
-                    scaling_stat = bracket[2]
-                    damage = bracket[4]
+                    damage = bracket[4]  # e.g., "1-3" or "none"
                     if damage != "none":
                         try:
                             min_dmg, max_dmg = map(float, damage.split("-"))
-                            stat_bonus = player.stats[scaling_stat] * 0.5
-                            if "Staff" in weapon_name and player.class_type == "2":
-                                i_modifier = 1 + (player.stats["I"] * 0.008)
-                                min_dmg *= i_modifier
-                                max_dmg *= i_modifier
+                            # Sum scaling from all stats in the item
+                            stat_bonus = 0
+                            for stat, value in stats.items():
+                                if value > 0:  # Only scale if the stat has a bonus
+                                    stat_bonus += player.stats[stat] * 0.5
                             return (min_dmg + stat_bonus + damage_bonus, max_dmg + stat_bonus + damage_bonus)
                         except ValueError:
                             pass  # Silently fall back if parsing fails
@@ -135,15 +134,24 @@ def combat(player, boss_fight=False):
     
     boss_monsters = []
     regular_monsters = []
+    special_monsters = []  # New list for special monsters
     is_boss_section = False
+    is_special_section = False
     for monster in monsters:
         if monster.startswith("# Boss Monsters"):
             is_boss_section = True
+            is_special_section = False
         elif monster.startswith("# Regular Monsters"):
             is_boss_section = False
+            is_special_section = False
+        elif monster.startswith("# Special Monsters"):
+            is_boss_section = False
+            is_special_section = True
         elif monster.strip():
             if is_boss_section:
                 boss_monsters.append(monster)
+            elif is_special_section:
+                special_monsters.append(monster)
             else:
                 regular_monsters.append(monster)
     
@@ -159,13 +167,31 @@ def combat(player, boss_fight=False):
         print(f"No suitable {'boss' if boss_fight else 'regular'} monsters for level {player.level}. Using fallback.")
         valid_monsters = [parse_monster(monster_pool[0])]
     
-    if not boss_fight:
-        monster = random.choices(
-            valid_monsters,
-            weights=[m["spawn_chance"] for m in valid_monsters],
-            k=1
-        )[0]
+    if not boss_fight:  # Only apply special monster chance for regular encounters
+        if random.random() < 0.01:  # 1% chance for a special monster to spawn
+            if not special_monsters:
+                print("Warning: No special monsters defined! Falling back to regular monster.")
+                monster = random.choices(
+                    valid_monsters,
+                    weights=[m["spawn_chance"] for m in valid_monsters],
+                    k=1
+                )[0]
+            else:
+                parsed_specials = [parse_monster(m) for m in special_monsters]
+                monster = random.choices(
+                    parsed_specials,
+                    weights=[m["spawn_chance"] for m in parsed_specials],
+                    k=1
+                )[0]
+        else:
+            # Existing random.choices logic for regular monsters
+            monster = random.choices(
+                valid_monsters,
+                weights=[m["spawn_chance"] for m in valid_monsters],
+                k=1
+            )[0]
     else:
+        # For boss fights, use random.choice as before
         monster = random.choice(valid_monsters)
     
     monster_stats = monster
