@@ -1,4 +1,4 @@
-$# Snowcaller
+# Snowcaller
 
 **Snowcaller** is a text-based RPG crafted in Python, set in a frozen realm of epic quests and ancient mysteries. Become a hero guided by the Guild, battling monsters, collecting loot, and unraveling the lore of a world shaped by ice and fire.
 
