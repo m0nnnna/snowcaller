@@ -1,10 +1,24 @@
-import sys  # Required for sys._MEIPASS and sys.frozen
-import os   # Required for os.path.dirname and os.path.join
+import sys
+import os
+import json
+
+def load_json(filename):
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.dirname(__file__)
+    file_path = os.path.join(base_path, filename)
+    try:
+        with open(file_path, "r") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error loading {file_path}: {e}")
+        return []
 
 def load_file(filename):
-    if getattr(sys, 'frozen', False):  # Running as .exe
+    if getattr(sys, 'frozen', False):
         base_path = sys._MEIPASS
-    else:  # Running as .py
+    else:
         base_path = os.path.dirname(__file__)
     file_path = os.path.join(base_path, filename)
     with open(file_path, "r") as f:
@@ -17,7 +31,6 @@ def parse_stats(stat_str, is_consumable=False):
         return stats
     
     try:
-        # Find indices of stat letters and extract numbers
         s_val = stat_str[1:stat_str.index("A")]
         a_val = stat_str[stat_str.index("A")+1:stat_str.index("I")]
         i_val = stat_str[stat_str.index("I")+1:stat_str.index("W")]

@@ -1,0 +1,90 @@
+[
+  {
+    "name": "Minor Health Potion",
+    "level_range": {"min": 1, "max": 10},
+    "type": "HP",
+    "value": 20,
+    "stat": null,
+    "duration": 0,
+    "drop_rate": 0.05,
+    "gold": 10,
+    "boss_only": false
+  },
+  {
+    "name": "Minor Mana Potion",
+    "level_range": {"min": 1, "max": 10},
+    "type": "MP",
+    "value": 10,
+    "stat": null,
+    "duration": 0,
+    "drop_rate": 0.05,
+    "gold": 10,
+    "boss_only": false
+  },
+  {
+    "name": "Health Potion",
+    "level_range": {"min": 11, "max": 20},
+    "type": "HP",
+    "value": 20,
+    "stat": null,
+    "duration": 0,
+    "drop_rate": 0.04,
+    "gold": 20,
+    "boss_only": false
+  },
+  {
+    "name": "Mana Potion",
+    "level_range": {"min": 11, "max": 20},
+    "type": "MP",
+    "value": 10,
+    "stat": null,
+    "duration": 0,
+    "drop_rate": 0.04,
+    "gold": 20,
+    "boss_only": false
+  },
+  {
+    "name": "Strength Brew",
+    "level_range": {"min": 1, "max": 10},
+    "type": "Buff",
+    "value": 3,
+    "stat": "S",
+    "duration": 3,
+    "drop_rate": 0.03,
+    "gold": 15,
+    "boss_only": false
+  },
+  {
+    "name": "Agility Tonic",
+    "level_range": {"min": 11, "max": 20},
+    "type": "Buff",
+    "value": 4,
+    "stat": "A",
+    "duration": 3,
+    "drop_rate": 0.02,
+    "gold": 25,
+    "boss_only": false
+  },
+  {
+    "name": "Poison Vial",
+    "level_range": {"min": 1, "max": 10},
+    "type": "Offense",
+    "value": 5,
+    "stat": "Poison",
+    "duration": 3,
+    "drop_rate": 0.04,
+    "gold": 12,
+    "boss_only": false
+  },
+  {
+    "name": "Fire Bomb",
+    "level_range": {"min": 11, "max": 20},
+    "type": "Offense",
+    "value": 10,
+    "stat": null,
+    "duration": 0,
+    "drop_rate": 0.03,
+    "gold": 20,
+    "boss_only": false
+  }
+]

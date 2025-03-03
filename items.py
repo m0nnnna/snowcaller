@@ -1,5 +1,5 @@
 import time
-from utils import load_file, parse_stats
+from utils import load_json, parse_stats 
 
 def parse_consumable(item_line):
     parts = item_line.split()
@@ -51,71 +51,90 @@ def parse_consumable(item_line):
         print(f"Warning: Could not parse consumable: {item_line}")
         return None
 
-def use_item(player, item, monster_stats=None):
-    consumables = load_file("consumables.txt")
-    gear = load_file("gear.txt")
-    matched = False
+def use_item(player, item_name, monster_stats=None):
+    consumables = load_json("consumables.json")
+    gear = load_json("gear.json")
 
-    # Ensure effect tracking exists
     if not hasattr(player, "active_effects"):
         player.active_effects = {}
     if monster_stats and "effects" not in monster_stats:
         monster_stats["effects"] = {}
 
-    for c in consumables:
-        consumable = parse_consumable(c)
-        if consumable and consumable["name"] == item:
-            matched = True
-            if player.level < consumable["level_range"][0] or player.level > consumable["level_range"][1]:
-                print(f"{item} is not suitable for your level ({player.level})!")
+    for consumable in consumables:
+        if consumable["name"] == item_name:
+            if player.level < consumable["level_range"]["min"] or player.level > consumable["level_range"]["max"]:
+                print(f"{item_name} is not suitable for your level ({player.level})!")
                 time.sleep(0.5)
                 return False
 
-            level_block = ((consumable["level_range"][0] - 1) // 10) + 1
+            level_block = ((consumable["level_range"]["min"] - 1) // 10) + 1
             scale = level_block
             effect_value = consumable["value"] * scale
 
             if consumable["type"] == "HP":
                 if consumable["duration"] > 0:
-                    player.active_effects[item] = consumable["duration"]
-                    print(f"{item} will restore {effect_value} HP over {consumable['duration']} turns.")
+                    player.active_effects[item_name] = consumable["duration"]
+                    print(f"{item_name} will restore {effect_value} HP over {consumable['duration']} turns.")
                 else:
                     player.hp = min(player.hp + effect_value, player.max_hp)
-                    print(f"{item} restores {effect_value} HP!")
-            
+                    print(f"{item_name} restores {effect_value} HP!")
             elif consumable["type"] == "MP":
                 if consumable["duration"] > 0:
-                    player.active_effects[item] = consumable["duration"]
-                    print(f"{item} will restore {effect_value} MP over {consumable['duration']} turns.")
+                    player.active_effects[item_name] = consumable["duration"]
+                    print(f"{item_name} will restore {effect_value} MP over {consumable['duration']} turns.")
                 else:
                     player.mp = min(player.mp + effect_value, player.max_mp)
-                    print(f"{item} restores {effect_value} MP!")
-            
+                    print(f"{item_name} restores {effect_value} MP!")
             elif consumable["type"] == "Buff":
                 if consumable["duration"] > 0:
-                    player.active_effects[item] = consumable["duration"]
+                    player.active_effects[item_name] = consumable["duration"]
                     player.stats[consumable["stat"]] += effect_value
-                    print(f"{item} boosts {consumable['stat']} by {effect_value} for {consumable['duration']} turns!")
+                    print(f"{item_name} boosts {consumable['stat']} by {effect_value} for {consumable['duration']} turns!")
                 else:
-                    print(f"{item} has no duration; Buff requires turns!")
+                    print(f"{item_name} has no duration; Buff requires turns!")
                     time.sleep(0.5)
                     return False
-            
             elif consumable["type"] == "Offense":
                 if not monster_stats:
-                    print(f"{item} requires a target monster!")
+                    print(f"{item_name} requires a target monster!")
                     time.sleep(0.5)
                     return False
                 if consumable["duration"] > 0:
-                    monster_stats["effects"][item] = consumable["duration"]
-                    print(f"{item} applies {effect_value} damage per turn to the monster for {consumable['duration']} turns!")
+                    monster_stats["effects"][item_name] = consumable["duration"]
+                    print(f"{item_name} applies {effect_value} damage per turn to the monster for {consumable['duration']} turns!")
                 else:
                     monster_stats["hp"] -= effect_value
-                    print(f"{item} deals {effect_value} damage to the monster!")
-            
-            player.inventory.remove(item)
+                    print(f"{item_name} deals {effect_value} damage to the monster!")
+
+            player.inventory.remove(item_name)
             time.sleep(0.5)
             return True
+
+    for g in gear:
+        if g["name"] == item_name:
+            slot = g["slot"]
+            if player.level < g["level_range"]["min"] or player.level > g["level_range"]["max"]:
+                print(f"{item_name} is not suitable for your level ({player.level})!")
+                time.sleep(0.5)
+                return False
+            if player.equipment[slot]:
+                old_item = player.equipment[slot][0]
+                for stat, val in player.equipment[slot][1].items():
+                    player.stats[stat] -= val
+                player.inventory.append(old_item)
+            player.equipment[slot] = (item_name, g["stats"], g["modifier"], g["armor_value"])
+            for stat, val in g["stats"].items():
+                player.stats[stat] += val
+            player.inventory.remove(item_name)
+            player.hp = min(player.hp + 2 * player.stats["S"], player.max_hp)
+            player.mp = min(player.mp + 2 * player.stats["W"], player.max_mp)
+            print(f"Equipped {item_name} to {slot}!")
+            time.sleep(0.5)
+            return True
+
+    print(f"Item {item_name} not found!")
+    time.sleep(0.5)
+    return False
 
     for g in gear:
         parts = g.split()

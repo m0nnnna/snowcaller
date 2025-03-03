@@ -1,12 +1,24 @@
 import os
+import sys
 import time
 import random
+import json
 from player import Player, save_game, load_game
 from combat import combat
 from shop import shop_menu, parse_shop_item, calculate_price
 from tavern import tavern_menu
 from events import random_event
-from utils import load_file, parse_stats
+from utils import load_json, load_file, parse_stats
+
+
+def load_json(file_path):
+    try:
+        with open(file_path, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error loading {file_path}: {e}")
+        return []
+
 
 def parse_gear_drop_info(gear_line):
     parts = gear_line.split()
@@ -22,7 +34,6 @@ def parse_gear_drop_info(gear_line):
         bracket.pop()
         is_rare = True
     
-    # Updated to handle the full format: L:level_range slot scaling_stat stats damage AV:value drop_rate gold
     if len(bracket) != 9:  # Expect 9 elements: L:1-10, slot, scaling_stat, stats, damage, AV:value, drop_rate, gold
         print(f"Warning: Invalid gear format: {gear_line}")
         return (1, 1), 0.0, False
@@ -31,17 +42,14 @@ def parse_gear_drop_info(gear_line):
         level_part, slot, scaling_stat, stats, damage, armor_part, drop_rate, gold, _ = bracket
         min_level, max_level = map(int, level_part[2:].split("-"))
         
-        # Parse armor value (AV:value)
         if not armor_part.startswith("AV:"):
             raise ValueError("Invalid armor value format")
         armor_value = int(armor_part[3:])
         
-        # Parse drop rate (ends with %)
         if not drop_rate.endswith("%"):
             raise ValueError("Invalid drop rate format")
         drop_chance = float(drop_rate[:-1]) / 100
         
-        # Validate scaling stat
         if scaling_stat not in ["S", "A", "I", "W", "L"]:
             raise ValueError("Invalid scaling stat format")
         
@@ -50,28 +58,19 @@ def parse_gear_drop_info(gear_line):
         print(f"Error parsing gear '{gear_line}': {e}. Using defaults.")
         return (1, 1), 0.0, False
 
+
 def display_inventory(player):
-    gear = load_file("gear.txt")
-    print("\nStandard Items:", ", ".join([item for item in player.inventory if not any(item == g.split()[0] for g in gear)]) if any(item not in [g.split()[0] for g in gear] for item in player.inventory) else "No standard items in inventory!")
+    gear = load_json("gear.json")
+    standard_items = [item for item in player.inventory if not any(item == g["name"] for g in gear)]
+    print("\nStandard Items:", ", ".join(standard_items) if standard_items else "No standard items in inventory!")
+    
     print("Equipment:")
     for slot, item in player.equipment.items():
         if item:
-            item_name, stats, scaling_stat, armor_value = item  # Unpack the tuple
+            item_name, stats, scaling_stat, armor_value = item
             stat_display = ", ".join([f"+{val} {stat[:3].capitalize()}" for stat, val in stats.items() if val > 0])
-            
-            # Look up damage from gear.txt
-            damage = "none"
-            for g in gear:
-                gear_name = g.split('[')[0].strip()  # Get name before bracket
-                if gear_name == item_name:
-                    bracket = g.split('[')[1].strip("]").split()
-                    damage = bracket[4]  # Damage field (e.g., "1-3" or "none")
-                    break
-            
-            # Build display string
-            parts = []
-            if stat_display:
-                parts.append(stat_display)
+            damage = next((g["damage"] for g in gear if g["name"] == item_name), "none")
+            parts = [stat_display] if stat_display else []
             parts.append(f"AV:{armor_value}")
             if damage != "none":
                 parts.append(f"Dmg:{damage}")
@@ -80,8 +79,9 @@ def display_inventory(player):
         else:
             print(f"{slot.capitalize()}: None")
 
+
 def inventory_menu(player):
-    gear = load_file("gear.txt")
+    gear = load_json("gear.json")
     while True:
         display_inventory(player)
         print("\n1. Change Gear | 2. Back")
@@ -95,38 +95,37 @@ def inventory_menu(player):
                 print(f"{idx}. {slot.capitalize()}")
             time.sleep(0.5)
             slot_choice = input("Selection (or 0 to back): ")
+            
             if slot_choice == "0":
                 continue
             try:
                 slot_idx = int(slot_choice) - 1
                 if 0 <= slot_idx < len(slots):
                     selected_slot = slots[slot_idx]
-                    compatible_items = [item for item in player.inventory if any(" ".join(g.split()[:-1]) == item and g.split()[-1].strip("[]").split()[1] == selected_slot for g in gear)]
+                    compatible_items = [item for item in player.inventory if any(g["name"] == item and g["slot"] == selected_slot for g in gear)]
                     if not compatible_items and not player.equipment[selected_slot]:
                         print("No compatible gear for this slot!")
                         time.sleep(0.5)
                         continue
+                    
                     print(f"\nAvailable gear for {selected_slot.capitalize()}:")
                     for idx, item in enumerate(compatible_items, 1):
-                        for g in gear:
-                            gear_name = g.split('[')[0].strip()
-                            if gear_name == item:
-                                bracket = g.split('[')[1].strip("]").split()
-                                stats = parse_stats(bracket[3], is_consumable=False)
-                                stat_display = ", ".join([f"+{val} {stat[:3].capitalize()}" for stat, val in stats.items() if val > 0])
-                                armor_value = int(bracket[5].split(":")[1])
-                                damage = bracket[4]
-                                parts = [stat_display] if stat_display else []
-                                parts.append(f"AV:{armor_value}")
-                                if damage != "none":
-                                    parts.append(f"Dmg:{damage}")
-                                display_str = f"{item} ({', '.join(parts)})"
-                                print(f"{idx}. {display_str}")
-                                break
+                        g = next(g for g in gear if g["name"] == item)
+                        stats = g["stats"]
+                        stat_display = ", ".join([f"+{val} {stat[:3].capitalize()}" for stat, val in stats.items() if val > 0])
+                        armor_value = g["armor_value"]
+                        damage = g["damage"]
+                        parts = [stat_display] if stat_display else []
+                        parts.append(f"AV:{armor_value}")
+                        if damage:
+                            parts.append(f"Dmg:{damage}")
+                        display_str = f"{item} ({', '.join(parts)})"
+                        print(f"{idx}. {display_str}")
                     print(f"{len(compatible_items) + 1}. Remove")
                     print(f"{len(compatible_items) + 2}. Back")
                     time.sleep(0.5)
                     gear_choice = input("Selection: ")
+                    
                     try:
                         gear_idx = int(gear_choice) - 1
                         if gear_idx == len(compatible_items):  # Remove
@@ -145,22 +144,15 @@ def inventory_menu(player):
                             continue
                         elif 0 <= gear_idx < len(compatible_items):
                             new_item = compatible_items[gear_idx]
+                            g = next(g for g in gear if g["name"] == new_item)
                             if player.equipment[selected_slot]:
                                 old_item = player.equipment[selected_slot][0]
                                 player.inventory.append(old_item)
                                 for stat, val in player.equipment[selected_slot][1].items():
                                     player.stats[stat] -= val
-                            for g in gear:
-                                parts = g.split()
-                                if " ".join(parts[:-1]) == new_item:
-                                    bracket = parts[-1].strip("[]").split()
-                                    stats = parse_stats(bracket[3], is_consumable=False)
-                                    scaling_stat = bracket[2]
-                                    armor_value = int(bracket[5].split(":")[1])
-                                    player.equipment[selected_slot] = (new_item, stats, scaling_stat, armor_value)
-                                    for stat, val in stats.items():
-                                        player.stats[stat] += val
-                                    break
+                            player.equipment[selected_slot] = (new_item, g["stats"], g["modifier"], g["armor_value"])
+                            for stat, val in g["stats"].items():
+                                player.stats[stat] += val
                             player.inventory.remove(new_item)
                             print(f"Equipped {new_item} to {selected_slot}.")
                             time.sleep(0.5)
@@ -176,55 +168,70 @@ def inventory_menu(player):
             except ValueError:
                 print("Invalid input!")
                 time.sleep(0.5)
-        
         elif choice == "2":
             break
         else:
             print("Invalid choice!")
             time.sleep(0.5)
 
+
 def award_treasure_chest(player):
-    treasures = load_file("treasures.txt")
+    treasures = load_json("treasures.json")
     chest_type = random.choices(["unlocked", "locked", "magical"], weights=[70, 20, 10], k=1)[0]
     print(f"\nYou find a {chest_type} treasure chest!")
     time.sleep(0.5)
 
     if chest_type == "unlocked":
-        items = random.sample(treasures, random.randint(1, 2))
-        gold = random.randint(10, 25)
-        player.inventory.extend(items)
-        player.gold += gold
-        print(f"You open it and find: {', '.join(items)} and {gold} gold!")
+        valid_treasures = [(t["name"], t["drop_rate"]) for t in treasures if t["drop_rate"] > 0]
+        if valid_treasures:
+            items = random.choices([t[0] for t in valid_treasures], weights=[t[1] for t in valid_treasures], k=random.randint(1, 2))
+            gold = random.randint(10, 25)
+            player.inventory.extend(items)
+            player.gold += gold
+            print(f"You open it and find: {', '.join(items)} and {gold} gold!")
+        else:
+            print("The chest is empty!")
         time.sleep(0.5)
-
     elif chest_type == "locked":
         if random.random() < player.stats["A"] * 0.05:
-            items = random.sample(treasures, random.randint(1, 3))
-            gold = random.randint(15, 30)
-            player.inventory.extend(items)
-            player.gold += gold
-            print(f"You pick the lock and find: {', '.join(items)} and {gold} gold!")
-            time.sleep(0.5)
+            valid_treasures = [(t["name"], t["drop_rate"]) for t in treasures if t["drop_rate"] > 0]
+            if valid_treasures:
+                items = random.choices([t[0] for t in valid_treasures], weights=[t[1] for t in valid_treasures], k=random.randint(1, 3))
+                gold = random.randint(15, 30)
+                player.inventory.extend(items)
+                player.gold += gold
+                print(f"You pick the lock and find: {', '.join(items)} and {gold} gold!")
+            else:
+                print("You pick the lock, but the chest is empty!")
         else:
             print("The lock holds firm—you leave empty-handed.")
-            time.sleep(0.5)
-
+        time.sleep(0.5)
     elif chest_type == "magical":
         if random.random() < player.stats["I"] * 0.05:
-            items = random.sample(treasures, random.randint(2, 4))
-            gold = random.randint(20, 40)
-            player.inventory.extend(items)
-            player.gold += gold
-            print(f"You dispel the ward and find: {', '.join(items)} and {gold} gold!")
-            time.sleep(0.5)
+            valid_treasures = [(t["name"], t["drop_rate"]) for t in treasures if t["drop_rate"] > 0]
+            if valid_treasures:
+                items = random.choices([t[0] for t in valid_treasures], weights=[t[1] for t in valid_treasures], k=random.randint(2, 4))
+                gold = random.randint(20, 40)
+                player.inventory.extend(items)
+                player.gold += gold
+                print(f"You dispel the ward and find: {', '.join(items)} and {gold} gold!")
+            else:
+                print("You dispel the ward, but the chest is empty!")
         else:
             damage = player.max_hp * 0.1
             player.hp -= damage
             print(f"The ward backfires, dealing {round(damage, 1)} damage!")
-            time.sleep(0.5)
+        time.sleep(0.5)
+
 
 def main():
-    if os.path.exists("save.txt"):
+    if getattr(sys, 'frozen', False):  # Match player.py's path logic
+        base_path = os.path.dirname(sys.executable)
+    else:
+        base_path = os.path.dirname(__file__)
+    save_path = os.path.join(base_path, "save.json")
+
+    if os.path.exists(save_path):
         print("1. New Game | 2. Load Game")
         time.sleep(0.5)
         choice = input("Selection: ")
@@ -233,8 +240,8 @@ def main():
                 player = load_game()
                 print(f"Welcome back, {player.name}!")
                 time.sleep(0.5)
-            except:
-                print("Save file corrupted! Starting new game.")
+            except Exception as e:
+                print(f"Failed to load save: {e}. Starting new game.")
                 time.sleep(0.5)
                 choice = "1"
         else:
@@ -253,11 +260,10 @@ def main():
             class_type = input("Selection: ")
         player = Player(name, class_type)
         print(f"Welcome, {player.name} the {'Warrior' if class_type == '1' else 'Mage' if class_type == '2' else 'Rogue'}!")
-        if player.skills:  # Only print if skills were assigned in __init__
+        if player.skills:
             print(f"Skills unlocked: {', '.join(player.skills)}")
         time.sleep(0.5)
-        
-    # Autosave after player setup (new or loaded)
+    
     save_game(player)
     print("Game autosaved!")
     time.sleep(0.5)
@@ -298,8 +304,8 @@ def main():
             time.sleep(0.5)
             max_encounters = random.randint(2, 10)
             boss_fight = False
-            encounter_count = 0  # Total attempts (combat + events)
-            combat_count = 0     # Only combat encounters
+            encounter_count = 0
+            combat_count = 0
             completed_encounters = 0
             treasure_inventory = []
             adventure = True
@@ -334,7 +340,6 @@ def main():
                 encounter_count += 1
                 Encounters = []
 
-                # Random event or combat
                 if random.randint(1, 100) <= event_chance:
                     max_encounters = random_event(player, encounter_count, max_encounters)
                 else:
@@ -353,30 +358,36 @@ def main():
                     if Encounters and "Victory" in Encounters[-1]:
                         completed_encounters += 1
                         drop_item = None
-                        gear = load_file("gear.txt")
-                        consumables = load_file("consumables.txt")
+                        gear = load_json("gear.json")
+                        consumables = load_json("consumables.json")
                         valid_drops = []
 
-                        for g in gear:
-                            level_range, drop_chance, is_rare = parse_gear_drop_info(g)
-                            if level_range and player.level >= level_range[0] and player.level <= level_range[1] and (not is_rare or boss_fight):
-                                valid_drops.append((g.split()[0], drop_chance))
+                        for item in gear:
+                            if (player.level >= item["level_range"]["min"] and 
+                                player.level <= item["level_range"]["max"] and 
+                                item["drop_rate"] > 0 and 
+                                (not item["boss_only"] or boss_fight)):
+                                valid_drops.append((item["name"], item["drop_rate"]))
 
-                        from items import parse_consumable
-                        for c in consumables:
-                            consumable = parse_consumable(c)
-                            if consumable and player.level >= consumable["level_range"][0] and player.level <= consumable["level_range"][1]:
-                                if not consumable["is_rare"] or boss_fight:
-                                    valid_drops.append((consumable["name"], consumable["drop_rate"]))
+                        for item in consumables:
+                            if (player.level >= item["level_range"]["min"] and 
+                                player.level <= item["level_range"]["max"] and 
+                                item["drop_rate"] > 0 and 
+                                (not item["boss_only"] or boss_fight)):
+                                valid_drops.append((item["name"], item["drop_rate"]))
+
+                        print(f"Player Level: {player.level}")
+                        print(f"Valid Drops: {valid_drops}")
 
                         if valid_drops and random.random() < 0.25:
-                            drop_item = random.choices(
-                                [item[0] for item in valid_drops],
-                                weights=[item[1] for item in valid_drops],
-                                k=1
-                            )[0]
+                            items = [item[0] for item in valid_drops]
+                            weights = [item[1] for item in valid_drops]
+                            drop_item = random.choices(items, weights=weights, k=1)[0]
                             player.inventory.append(drop_item)
                             print(f"\nYou found a {drop_item}!")
+                            time.sleep(0.5)
+                        else:
+                            print("\nNo item dropped this time.")
                             time.sleep(0.5)
 
                         if random.random() < 0.15 or (boss_fight and random.random() < 0.5):
@@ -388,7 +399,6 @@ def main():
                         adventure = False
                         break
 
-                # Prompt only if HP < 50% of max after combat
                 if combat_count > 0 and player.hp < player.max_hp / 2 and adventure:
                     print(f"\nYou've fought {combat_count} battles in the {location}. HP: {round(player.hp, 1)}/{player.max_hp}")
                     print("Continue adventure? 1 for Yes | 2 for No")
@@ -405,7 +415,7 @@ def main():
             if adventure is False and "FleeAdventure" not in Encounters:
                 print(f"\nAdventure complete! Returning to town with {len(treasure_inventory)} treasure items from {completed_encounters} victories.")
                 time.sleep(0.5)
-                if choice != "2":  # Only award chests if not manually ending early
+                if choice != "2":
                     for _ in range(len(treasure_inventory)):
                         award_treasure_chest(player)
             
@@ -424,13 +434,11 @@ def main():
             print(f"\nStats: S:{player.stats['S']} A:{player.stats['A']} I:{player.stats['I']} W:{player.stats['W']} L:{player.stats['L']}")
             print(f"Level: {player.level} | XP: {player.exp}/{player.max_exp}")
             
-            # Calculate Attack DPS
             from combat import get_weapon_damage_range
             min_dmg, max_dmg = get_weapon_damage_range(player)
             attack_dps = (min_dmg + max_dmg) / 2
             print(f"Attack DPS: {round(attack_dps, 1)} (avg weapon damage per turn)")
             
-            # Calculate Skill DPS
             skills = load_file("skills.txt")
             total_skill_dps = 0
             skill_count = 0
@@ -442,7 +450,7 @@ def main():
                 if len(parts) != 8:
                     continue
                 class_type, level_req, name, base_dmg, effect, mp_cost, duration, stat = parts
-                if name in player.skills:  # Only count unlocked skills
+                if name in player.skills:
                     base_dmg = int(base_dmg)
                     mp_cost = int(mp_cost)
                     duration = int(duration)
@@ -454,16 +462,14 @@ def main():
                             scaled_dmg = base_dmg + int(player.stats[stat] * 1.0)
                         elif effect == "damage_over_time":
                             scaled_dmg = base_dmg + int(player.stats[stat] * 0.2)
-                        # "heal" excluded from DPS
                     
                     if effect == "direct_damage" and duration == 0:
-                        dps = scaled_dmg  # One-time damage
+                        dps = scaled_dmg
                     elif effect in ["damage_bonus", "damage_over_time"]:
-                        # Spread damage over duration + MP recovery turns
-                        total_turns = max(1, mp_cost) + duration  # Approximate MP recharge
+                        total_turns = max(1, mp_cost) + duration
                         dps = (scaled_dmg * duration) / total_turns if duration > 0 else 0
                     else:
-                        dps = 0  # Heal or invalid effect
+                        dps = 0
                     
                     total_skill_dps += dps
                     skill_count += 1
@@ -495,6 +501,7 @@ def main():
         else:
             print("Invalid choice!")
             time.sleep(0.5)
+
 
 if __name__ == "__main__":
     main()

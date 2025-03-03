@@ -2,7 +2,7 @@ import json
 import sys
 import os
 import math
-from utils import load_file, parse_stats
+from utils import load_json, load_file, parse_stats
 
 class Player:
     def __init__(self, name, class_type):
@@ -22,7 +22,7 @@ class Player:
         self.tavern_buff = None
         self.rage_turns = 0
         self.event_cooldowns = {"treasure": 0, "merchant": 0, "trap": 0, "friendly": 0, "curse": 0, "lost": 0}
-        self.skills = []  # Ordered list of unlocked skills
+        self.skills = []
         self.skill_effects = {}
 
         if class_type == "1":  # Warrior
@@ -32,41 +32,37 @@ class Player:
         elif class_type == "3":  # Rogue
             self.stats = {"S": 2, "A": 3, "I": 1, "W": 1, "L": 2}
         
-        gear = load_file("gear.txt")
+        gear = load_json("gear.json")
         starting_gear = {
             "1": ["Warrior Cap", "Warrior Vest", "Warrior Blade"],
             "2": ["Mage Cap", "Mage Gown", "Mage Wand"],
             "3": ["Rogue Pants", "Rogue Gloves", "Rogue Boots", "Rogue Shirt", "Rogue Knife"]
         }
-        for item in starting_gear[class_type]:
+        for item_name in starting_gear[class_type]:
             for g in gear:
-                name_part, bracket_part = g.split('[', 1)
-                gear_name = name_part.strip()
-                if gear_name == item:
-                    bracket = bracket_part.strip("]").split()
-                    slot = bracket[1]
-                    scaling_stat = bracket[2]
-                    stats_str = bracket[3]
-                    armor_value = int(bracket[5].split(":")[1])
-                    stats = parse_stats(stats_str, is_consumable=False)
-                    self.equipment[slot] = (item, stats, scaling_stat, armor_value)
+                if g["name"] == item_name:
+                    slot = g["slot"]
+                    scaling_stat = g["modifier"]
+                    stats = g["stats"]
+                    armor_value = g["armor_value"]
+                    self.equipment[slot] = (item_name, stats, scaling_stat, armor_value)
                     for stat, val in stats.items():
                         self.stats[stat] += val
                     break
             else:
-                print(f"Warning: Starting gear '{item}' not found in gear.txt!")
+                print(f"Warning: Starting gear '{item_name}' not found in gear.json!")
         
         self.max_hp = 10 + 2 * self.stats["S"]
         self.hp = self.max_hp
         self.max_mp = 3 * self.stats["W"] if class_type == "2" else 2 * self.stats["W"]
         self.mp = self.max_mp
 
-        # Assign only Level 1 skills at creation
+        # Skills (still using text for now)
         skills = load_file("skills.txt")
         for skill_line in skills:
             parts = skill_line[1:-1].split()
             class_type_skill, level_req, name = parts[0], int(parts[1]), parts[2]
-            if class_type_skill == self.class_type and level_req == 1 and name not in self.skills:  # Only Level 1
+            if class_type_skill == self.class_type and level_req == 1 and name not in self.skills:
                 if len(self.skills) < 15:
                     self.skills.append(name)
                     print(f"Starting skill unlocked: {name}")
@@ -113,22 +109,29 @@ class Player:
                 total_av += base_av + scaling_bonus
         return min(total_av, 100)
 
-    def apply_xp(self):
-        self.exp += self.pending_xp
-        self.pending_xp = 0
-        while self.exp >= self.max_exp:
-            self.level += 1
-            self.exp -= self.max_exp
-            self.max_exp = int(10 * (self.level ** 1.5))
-            self.stat_points += 1
-            print(f"{self.name} leveled up to {self.level}! You have {self.stat_points} stat points to allocate.")
-            skills = load_file("skills.txt")
-            for skill_line in skills:
-                parts = skill_line[1:-1].split()
-                class_type, level, name = parts[0], int(parts[1]), parts[2]
-                if class_type == self.class_type and level == self.level and name not in self.skills:
-                    self.skills.append(name)
-                    print(f"You’ve unlocked the {name} skill!")
+def apply_xp(self):
+    self.exp += self.pending_xp
+    self.pending_xp = 0
+    while self.exp >= self.max_exp:
+        self.level += 1
+        self.exp -= self.max_exp
+        self.max_exp = int(10 * (self.level ** 1.5))
+        self.stat_points += 1
+        print(f"{self.name} leveled up to {self.level}! You have {self.stat_points} stat points to allocate.")
+        skills = load_file("skills.txt")  # Still text-based
+        for skill_line in skills:
+            parts = skill_line[1:-1].split()
+            class_type_skill, level_req, name = parts[0], int(parts[1]), parts[2]
+            if (class_type_skill == self.class_type and 
+                level_req <= self.level and 
+                name not in self.skills and 
+                len(self.skills) < 15):
+                self.skills.append(name)
+                print(f"You’ve unlocked the {name} skill!")
+        self.max_hp = 10 + 2 * self.stats["S"]
+        self.hp = self.max_hp
+        self.max_mp = 3 * self.stats["W"] if self.class_type == "2" else 2 * self.stats["W"]
+        self.mp = self.max_mp
 
     def allocate_stat(self):
         if self.stat_points > 0:

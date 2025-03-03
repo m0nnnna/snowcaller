@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Gold Coin",
+    "drop_rate": 0.1,
+    "gold": 5,
+    "boss_only": false
+  },
+  {
+    "name": "Silver Goblet",
+    "drop_rate": 0.1,
+    "gold": 5,
+    "boss_only": false
+  },
+  {
+    "name": "Bronze Statue",
+    "drop_rate": 0.1,
+    "gold": 5,
+    "boss_only": false
+  },
+  {
+    "name": "Rusty Crown",
+    "drop_rate": 0.1,
+    "gold": 5,
+    "boss_only": false
+  },
+  {
+    "name": "Old Necklace",
+    "drop_rate": 0.1,
+    "gold": 5,
+    "boss_only": false
+  },
+  {
+    "name": "Faded Gem",
+    "drop_rate": 0.1,
+    "gold": 5,
+    "boss_only": false
+  },
+  {
+    "name": "Tarnished Ring",
+    "drop_rate": 0.1,
+    "gold": 5,
+    "boss_only": false
+  },
+  {
+    "name": "Dusty Relic",
+    "drop_rate": 0.1,
+    "gold": 5,
+    "boss_only": false
+  },
+  {
+    "name": "Ancient Vase",
+    "drop_rate": 0.1,
+    "gold": 5,
+    "boss_only": false
+  },
+  {
+    "name": "Worn Tapestry",
+    "drop_rate": 0.1,
+    "gold": 5,
+    "boss_only": false
+  }
+]
