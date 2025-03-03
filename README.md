@@ -1,24 +1,3 @@
-Snowcaller
-Snowcaller is a text-based RPG built in Python, immersing players in a frozen world of adventure, danger, and lore. Step into the boots of a hero in a realm shaped by ancient wars, where the Guild offers quests to slay monsters, uncover treasures, and forge your legend.
-Features
-Dynamic Combat: Engage in turn-based battles with a variety of monsters, using weapons, skills, and items. Dodge, crit, and strategize to survive!
-
-Quest System: Accept up to 5 quests from the Adventurers' Guild, track progress, and turn them in for rewards. Complete quests to unlock new challenges.
-
-Rich Lore: Dive into the world with an intro story and optional quest lore, stored in JSON for easy expansion.
-
-Character Progression: Choose from Warrior, Mage, or Rogue classes, level up, and allocate stats to customize your playstyle.
-
-Exploration: Venture into randomized locations (e.g., Forest Cave, Mountain Village) with variable encounters and rare boss fights.
-
-JSON-Driven Data: Monsters, gear, quests, and lore are managed via JSON files for modularity and ease of editing.
-
-Getting Started
-Clone the Repository:
-
-$git clone https://github.com/m0nnnna/snowcaller.git
-$cd snowcaller
-
 $# Snowcaller
 
 **Snowcaller** is a text-based RPG crafted in Python, set in a frozen realm of epic quests and ancient mysteries. Become a hero guided by the Guild, battling monsters, collecting loot, and unraveling the lore of a world shaped by ice and fire.
