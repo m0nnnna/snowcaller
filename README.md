@@ -70,20 +70,22 @@ Guild
 0. Go back
 
 **Files**
-game.py
-combat.py
-player.py
-items.py
-shop.py
-tavern.py
-events.py
-utils.py
-gear.json
-consumables.json
-monsters.json
-lore.json
-quest.json
-treasures.json
-shop.txt
-skills.txt
-locations.txt
+1. game.py: the main game loop and link to all other files 
+2. combat.py: controls the combat and encounters 
+3. player.py: controls all information about the player.
+4.items.py: controls how items get used
+5. shop.py: allows the player to purchase and sell items
+6. tavern.py: controls players getting buffs and healing
+7. events.py: controls the random events that happen during adventures
+8. utils.py: controls the basic parse features
+9. gear.json: controls what gear is available to the player including starting items
+10. consumables.json: controls what usable items do 
+11. monsters.json: controls what mobs are available
+12. lore.json: controls flavor text
+13. quest.json: controls what quests are available
+14. treasures.json: control random loot
+15. shop.txt: allows the listing of items - Note due to the change to .json this might need work
+16. skills.txt: controls available skills
+17. locations.txt: controls available locations 
+
+Love Snowcaller? Fork it, tweak it, or add your own flair! Submit pull requests with new features, or expand the world by editing the JSON files—no coding needed for new monsters, skills, items, gear, quests, or lore.
