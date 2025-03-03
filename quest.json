@@ -1,0 +1,49 @@
+{
+  "quests": [
+    {
+      "quest_name": "Goblin Cleanup",
+      "quest_level": 1,
+      "quest_description": "The village is overrun with goblins. Clear them out.",
+      "quest_objective": "Kill 5 Goblins",
+      "target_monster": "Goblin",
+      "kill_count_required": 5,
+      "quest_reward": "50 gold, Rusty Sword",
+      "steps": [
+        "Speak to the village elder",
+        "Hunt goblins in the forest",
+        "Return to the elder"
+      ],
+      "next_quest": "Kobold Trouble"
+    },
+    {
+      "quest_name": "Kobold Trouble",
+      "quest_level": 2,
+      "quest_description": "Kobolds are stealing supplies. Stop them.",
+      "quest_objective": "Kill 3 Kobolds",
+      "target_monster": "Kobold",
+      "kill_count_required": 3,
+      "quest_reward": "60 gold, Kobold Dagger",
+      "steps": [
+        "Get the contract from the guild",
+        "Track kobolds in the caves",
+        "Report back"
+      ],
+      "next_quest": null
+    },
+    {
+      "quest_name": "Dragon Slayer",
+      "quest_level": 90,
+      "quest_description": "A dragon threatens the realm. Slay it.",
+      "quest_objective": "Kill 1 Dragon",
+      "target_monster": "Dragon",
+      "kill_count_required": 1,
+      "quest_reward": "1000 gold, Dragon Scale Armor",
+      "steps": [
+        "Seek the dragon’s lair",
+        "Defeat the Dragon",
+        "Claim your prize"
+      ],
+      "next_quest": null
+    }
+  ]
+}

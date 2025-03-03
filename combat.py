@@ -1,5 +1,6 @@
 import random
 import time
+import json
 from utils import load_file, parse_stats
 from items import use_item
 
@@ -15,197 +16,59 @@ def get_weapon_damage_range(player):
                 stat = parts[7]
                 damage_bonus = base_dmg + (int(player.stats[stat] * 0.5) if stat != "none" else 0)
                 break
+    
     if weapon:
-        weapon_name, stats, scaling_stat, armor_value = weapon  # Unpack the tuple
-        for g in load_file("gear.txt"):
-            if '[' in g:
-                gear_name, bracket_part = g.split('[', 1)
-                gear_name = gear_name.strip()
-                bracket = bracket_part.rstrip(']').split()
-                if gear_name == weapon_name:
-                    if bracket[-1] == "[R]":
-                        bracket.pop()
-                    damage = bracket[4]  # e.g., "1-3" or "none"
-                    if damage != "none":
-                        try:
-                            min_dmg, max_dmg = map(float, damage.split("-"))
-                            # Sum scaling from all stats in the item
-                            stat_bonus = 0
-                            for stat, value in stats.items():
-                                if value > 0:  # Only scale if the stat has a bonus
-                                    stat_bonus += player.stats[stat] * 0.5
-                            return (min_dmg + stat_bonus + damage_bonus, max_dmg + stat_bonus + damage_bonus)
-                        except ValueError:
-                            pass  # Silently fall back if parsing fails
+        weapon_name, stats, modifier, armor_value = weapon
+        with open("gear.json", "r") as file:
+            gear_data = json.load(file)
+        
+        weapon_data = next((g for g in gear_data if g["name"] == weapon_name and g["slot"] == "main_hand"), None)
+        if weapon_data and weapon_data["damage"]:
+            try:
+                min_dmg, max_dmg = map(float, weapon_data["damage"].split("-"))
+                stat_bonus = 0
+                for stat, value in stats.items():
+                    if value > 0:
+                        stat_bonus += player.stats[stat] * 0.5
+                return (min_dmg + stat_bonus + damage_bonus, max_dmg + stat_bonus + damage_bonus)
+            except (ValueError, AttributeError):
+                pass
+    
     return (1 + damage_bonus, 2 + damage_bonus)
 
-def parse_monster(monster_line):
-    parts = monster_line.split()
-    if len(parts) < 5:
-        print(f"Warning: Invalid monster format: '{monster_line}'")
-        return {"name": "Unknown", "stats": {"S": 1, "A": 1, "I": 1, "W": 1, "L": 1}, "level_range": (1, 1), "hp": 10, "mp": 2, "min_dmg": 1, "max_dmg": 2, "gold_chance": 0.5, "spawn_chance": 1.0, "armor_value": 0}
+def load_monster_from_json(monster_name=None, boss_fight=False):
+    with open("monster.json", "r") as file:
+        monsters = json.load(file)["monsters"]
     
-    name_parts = []
-    stats_index = None
-    for i, part in enumerate(parts):
-        if part.startswith("S") and len(part) >= 10:
-            stats_index = i
-            break
-        name_parts.append(part)
-    name = " ".join(name_parts).strip("[]")
-    
-    if stats_index is None or stats_index + 3 >= len(parts):
-        print(f"Warning: No valid stats or incomplete data in '{monster_line}'")
-        return {"name": name, "stats": {"S": 1, "A": 1, "I": 1, "W": 1, "L": 1}, "level_range": (1, 1), "hp": 10, "mp": 2, "min_dmg": 1, "max_dmg": 2, "gold_chance": 0.5, "spawn_chance": 1.0, "armor_value": 0}
-    
-    stats_str = parts[stats_index]
-    level_range = parts[stats_index + 1]
-    damage_range = parts[stats_index + 2]
-    
-    spawn_chance_part = None
-    gold_chance = None
-    armor_value = 0
-    if len(parts) > stats_index + 3:
-        if parts[stats_index + 3].endswith("%") and not parts[stats_index + 3].startswith("G:"):
-            spawn_chance_part = parts[stats_index + 3]
-            gold_chance = parts[stats_index + 4] if len(parts) > stats_index + 4 else "G:50%"
-        else:
-            gold_chance = parts[stats_index + 3]
-        if len(parts) > stats_index + 4 and parts[stats_index + 4].startswith("AV:"):
-            armor_value = parts[stats_index + 4]
-        elif len(parts) > stats_index + 5 and parts[stats_index + 5].startswith("AV:"):
-            armor_value = parts[stats_index + 5]
-
-    stats = parse_stats(stats_str, is_consumable=False)
-    min_level, max_level = map(int, level_range[2:].split("-"))
-    min_dmg, max_dmg = map(float, damage_range[2:].split("-"))
-    
-    if spawn_chance_part and spawn_chance_part.endswith("%"):
-        try:
-            spawn_chance = float(spawn_chance_part[:-1]) / 100
-        except ValueError as e:
-            print(f"Error parsing spawn chance '{spawn_chance_part}' in '{monster_line}': {e}. Using default 1.0.")
-            spawn_chance = 1.0
+    if monster_name:
+        monster = next((m for m in monsters if m["name"] == monster_name), None)
+        if not monster:
+            print(f"Warning: Monster '{monster_name}' not found in monster.json. Using fallback.")
+            monster = monsters[0]
     else:
-        spawn_chance = 1.0
+        pool = [m for m in monsters if m["rare"] == boss_fight]
+        if not pool:
+            print(f"Warning: No {'rare' if boss_fight else 'regular'} monsters found. Using full pool.")
+            pool = monsters
+        monster = random.choices(pool, weights=[m["spawn_chance"] for m in pool], k=1)[0]
     
-    try:
-        if not gold_chance.startswith("G:") or gold_chance[-1] != "%":
-            raise ValueError("Invalid gold chance format")
-        gold_chance_value = gold_chance[2:-1]
-        if not gold_chance_value:
-            raise ValueError("Gold chance is empty")
-        gold_chance = float(gold_chance_value) / 100
-    except (ValueError, IndexError) as e:
-        print(f"Error parsing gold chance '{gold_chance}' in '{monster_line}': {e}. Using default 0.5.")
-        gold_chance = 0.5
-    
-    try:
-        if armor_value and armor_value.startswith("AV:"):
-            armor_value = int(armor_value[3:])
-            if not (0 <= armor_value <= 100):
-                raise ValueError("Armor value must be between 0 and 100")
-        else:
-            armor_value = 0
-    except (ValueError, IndexError) as e:
-        print(f"Error parsing armor value '{armor_value}' in '{monster_line}': {e}. Using default 0.")
-        armor_value = 0
+    return monster
 
-    hp = 10 + 2 * stats["S"]
-    mp = 2 * stats["W"]
+def combat(player, boss_fight=False, monster_name=None):
+    monster_stats = load_monster_from_json(monster_name, boss_fight)
     
-    return {
-        "name": name,
-        "stats": stats,
-        "level_range": (min_level, max_level),
-        "hp": hp,
-        "mp": mp,
-        "min_dmg": min_dmg,
-        "max_dmg": max_dmg,
-        "gold_chance": gold_chance,
-        "spawn_chance": spawn_chance,
-        "armor_value": armor_value  # New field
-    }
-
-def combat(player, boss_fight=False):
-    monsters = load_file("monsters.txt")
+    level = random.randint(monster_stats["level_range"]["min"], monster_stats["level_range"]["max"])
+    level_scale = 1 + (level - 1) * 0.1 if monster_stats["rare"] else 1 + (level - 1) * 0.05
+    monster_hp = random.uniform(monster_stats["hp_range"]["min"], monster_stats["hp_range"]["max"]) * level_scale
+    monster_mp = 2 * monster_stats["stats"]["W"] * level_scale
+    monster_min_dmg = monster_stats["damage_range"]["min"] * level_scale
+    monster_max_dmg = monster_stats["damage_range"]["max"] * level_scale
     
-    boss_monsters = []
-    regular_monsters = []
-    special_monsters = []  # New list for special monsters
-    is_boss_section = False
-    is_special_section = False
-    for monster in monsters:
-        if monster.startswith("# Boss Monsters"):
-            is_boss_section = True
-            is_special_section = False
-        elif monster.startswith("# Regular Monsters"):
-            is_boss_section = False
-            is_special_section = False
-        elif monster.startswith("# Special Monsters"):
-            is_boss_section = False
-            is_special_section = True
-        elif monster.strip():
-            if is_boss_section:
-                boss_monsters.append(monster)
-            elif is_special_section:
-                special_monsters.append(monster)
-            else:
-                regular_monsters.append(monster)
-    
-    monster_pool = boss_monsters if boss_fight else regular_monsters
-    if not monster_pool:
-        print(f"Warning: No {'boss' if boss_fight else 'regular'} monsters found!")
-        monster_pool = ["[Fallback] S1A1I1W1L1 L:1-1 D:1-2 G:50%]"]
-    
-    parsed_monsters = [parse_monster(m) for m in monster_pool]
-    valid_monsters = [m for m in parsed_monsters if m["level_range"][0] <= player.level <= m["level_range"][1]]
-    
-    if not valid_monsters:
-        print(f"No suitable {'boss' if boss_fight else 'regular'} monsters for level {player.level}. Using fallback.")
-        valid_monsters = [parse_monster(monster_pool[0])]
-    
-    if not boss_fight:  # Only apply special monster chance for regular encounters
-        if random.random() < 0.01:  # 1% chance for a special monster to spawn
-            if not special_monsters:
-                print("Warning: No special monsters defined! Falling back to regular monster.")
-                monster = random.choices(
-                    valid_monsters,
-                    weights=[m["spawn_chance"] for m in valid_monsters],
-                    k=1
-                )[0]
-            else:
-                parsed_specials = [parse_monster(m) for m in special_monsters]
-                monster = random.choices(
-                    parsed_specials,
-                    weights=[m["spawn_chance"] for m in parsed_specials],
-                    k=1
-                )[0]
-        else:
-            # Existing random.choices logic for regular monsters
-            monster = random.choices(
-                valid_monsters,
-                weights=[m["spawn_chance"] for m in valid_monsters],
-                k=1
-            )[0]
-    else:
-        # For boss fights, use random.choice as before
-        monster = random.choice(valid_monsters)
-    
-    monster_stats = monster
-    level = random.randint(monster_stats["level_range"][0], monster_stats["level_range"][1])
-    
-    level_scale = 1 + (level - 1) * 0.05 if not boss_fight else 1 + (level - 1) * 0.1
-    monster_hp = monster_stats["hp"] * level_scale
-    monster_mp = monster_stats["mp"] * level_scale
-    monster_min_dmg = monster_stats["min_dmg"] * level_scale
-    monster_max_dmg = monster_stats["max_dmg"] * level_scale
-    
-    if boss_fight:
+    if monster_stats["rare"] or boss_fight:
         monster_hp *= 1.5
         monster_min_dmg *= 1.2
         monster_max_dmg *= 1.2
-        name = "Boss " + monster_stats["name"]
+        name = "Boss " + monster_stats["name"] if not monster_stats["rare"] else monster_stats["name"]
     else:
         name = monster_stats["name"]
     
@@ -221,7 +84,6 @@ def combat(player, boss_fight=False):
                     print(f"{skill_name} effect has worn off!")
                     time.sleep(0.5)
 
-        # Calculate active damage bonus from skill effects
         bonus_display = ""
         skills = load_file("skills.txt")
         total_dmg_bonus = 0
@@ -244,7 +106,7 @@ def combat(player, boss_fight=False):
             bonus_display = f" | Bonus: +{total_dmg_bonus} dmg ({', '.join([f'{k} {v}' for k, v in player.skill_effects.items()])})"
 
         print(f"\n{monster_stats['name']}: {round(monster_hp, 1)} HP | {player.name}: {round(player.hp, 1)}/{player.max_hp} HP, {player.mp}/{player.max_mp} MP{bonus_display}")
-        print("1. Attack | 2. Item | 3. Flee | 4. Skill")
+        print("1. Attack | 2. Item | 3. Skills | 4. Flee")  # Updated order
         time.sleep(0.5)
         choice = input("Selection: ")
 
@@ -296,17 +158,7 @@ def combat(player, boss_fight=False):
                 time.sleep(0.5)
                 continue
 
-        elif choice == "3":
-            flee_chance = 0.5 + (player.stats["A"] - monster_stats["stats"]["A"]) * 0.05
-            if random.random() < flee_chance:
-                print("You flee successfully, ending your adventure!")
-                time.sleep(0.5)
-                return "FleeAdventure"
-            else:
-                print("You fail to flee!")
-                time.sleep(0.5)
-
-        elif choice == "4":
+        elif choice == "3":  # Skills moved to 3
             if not player.skills:
                 print("No skills available!")
                 time.sleep(0.5)
@@ -326,10 +178,9 @@ def combat(player, boss_fight=False):
                     skills = load_file("skills.txt")
                     skill_found = False
                     for skill in skills:
-                        # Strip comments and extra whitespace
-                        skill_data = skill.split('#')[0].strip()  # Take only text before '#'
+                        skill_data = skill.split('#')[0].strip()
                         if not skill_data.startswith('[') or not skill_data.endswith(']'):
-                            continue  # Skip invalid or empty lines
+                            continue
                         parts = skill_data[1:-1].strip().split()
                         if len(parts) != 8:
                             print(f"Warning: Invalid skill format: {skill_data}")
@@ -382,6 +233,16 @@ def combat(player, boss_fight=False):
                 time.sleep(0.5)
             continue
 
+        elif choice == "4":  # Flee moved to 4
+            flee_chance = 0.5 + (player.stats["A"] - monster_stats["stats"]["A"]) * 0.05
+            if random.random() < flee_chance:
+                print("You flee successfully, ending your adventure!")
+                time.sleep(0.5)
+                return "FleeAdventure"
+            else:
+                print("You fail to flee!")
+                time.sleep(0.5)
+
         if monster_hp > 0:
             dodge_chance = player.stats["A"] * 0.02
             damage = random.uniform(monster_min_dmg, monster_max_dmg)
@@ -394,7 +255,6 @@ def combat(player, boss_fight=False):
                 print(f"{name} deals {round(reduced_damage, 1)} damage to you (reduced from {round(damage, 1)} by armor)!")
             time.sleep(0.5)
 
-            # Damage over time effects
             for skill_name, turns in list(player.skill_effects.items()):
                 if turns > 0 and "damage_over_time" in skill_name.lower():
                     skills = load_file("skills.txt")
@@ -412,11 +272,11 @@ def combat(player, boss_fight=False):
     if player.hp <= 0:
         return "Defeat"
     elif monster_hp <= 0:
-        xp = level * 10 * (1.5 if boss_fight else 1)
-        gold = random.randint(level * 2, level * 5) * (2 if boss_fight else 1)
+        xp = level * 10 * (1.5 if monster_stats["rare"] or boss_fight else 1)
+        gold = random.randint(level * 2, level * 5) * (2 if monster_stats["rare"] or boss_fight else 1)
         if random.random() < monster_stats["gold_chance"]:
             player.gold += gold
         player.pending_xp += xp
         print(f"\nVictory! Gained {xp} XP and {gold} gold!")
         time.sleep(0.5)
-        return "Victory"
+        return f"Victory against {monster_stats['name']}"
