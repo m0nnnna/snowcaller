@@ -81,7 +81,7 @@ Add a new entry with name, spawn_chance, description, and outcomes.
 Define outcomes (e.g., "item", "quest", "heal") with appropriate fields.
 
 Example: "Hidden Cache" event giving gear or gold:
-```python
+```json
 {
     "name": "hidden_cache",
     "spawn_chance": 15,
@@ -120,7 +120,7 @@ Add a new quest with required fields: quest_name, quest_level, quest_description
 Link it to a monster in monster.json.
 
 Example: "Slay the Shadow Beast" quest:
-```python
+```json
 {
     "quest_name": "Slay the Shadow Beast",
     "quest_level": 10,
@@ -148,7 +148,7 @@ Add a new monster with fields: name, stats, level_range, damage_range, spawn_cha
 Set spawn_chance to 0 for quest bosses.
 
 Example: "Shadow Beast" (quest boss):
-```python
+```json
 {
     "name": "Shadow Beast",
     "stats": {"S": 6, "A": 4, "I": 3, "W": 4, "L": 2},
@@ -164,7 +164,7 @@ Example: "Shadow Beast" (quest boss):
 ```
 
 Example: "Goblin Scout" (regular monster):
-```python
+```json
 {
     "name": "Goblin Scout",
     "stats": {"S": 2, "A": 3, "I": 1, "W": 1, "L": 2},
@@ -188,7 +188,7 @@ Stats (S, A, I, W, L) affect combat behavior.
 4. Adding New Gear, Treasures, or Consumables
 
 Gear (gear.json):
-```python
+```json
 {
     "name": "Shadow Cloak",
     "slot": "chest",
@@ -203,12 +203,12 @@ Gear (gear.json):
 ```
 
 Treasures (treasures.json):
-```python
+```json
 {"name": "Silver Ring", "drop_rate": 40}
 ```
 
 Consumables (consumables.json):
-```python
+```json
 {"name": "Mana Elixir", "level_range": {"min": 5, "max": 15}, "drop_rate": 15, "boss_only": false}
 ```
 Notes:
