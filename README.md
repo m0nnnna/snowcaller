@@ -21,7 +21,7 @@
    ```bash
    git clone https://github.com/m0nnnna/snowcaller.git
    cd snowcaller-main
-2. **Launch the Game**"
+2. **Launch the Game**
    ```bash
    python game.py
 3. **Install python 3.x**
@@ -209,7 +209,17 @@ Treasures (treasures.json):
 
 Consumables (consumables.json):
 ```json
-{"name": "Mana Elixir", "level_range": {"min": 5, "max": 15}, "drop_rate": 15, "boss_only": false}
+  {
+    "name": "Minor Health Potion",
+    "level_range": {"min": 1, "max": 10},
+    "type": "HP",
+    "value": 20,
+    "stat": null,
+    "duration": 0,
+    "drop_rate": 0.05,
+    "gold": 10,
+    "boss_only": false
+  },
 ```
 Notes:
 Use in events (e.g., "source": "gear.json") or quest rewards.
