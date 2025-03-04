@@ -81,7 +81,7 @@ Add a new entry with name, spawn_chance, description, and outcomes.
 Define outcomes (e.g., "item", "quest", "heal") with appropriate fields.
 
 Example: "Hidden Cache" event giving gear or gold:
-'''bash
+```python
 {
     "name": "hidden_cache",
     "spawn_chance": 15,
@@ -100,6 +100,7 @@ Example: "Hidden Cache" event giving gear or gold:
         }
     ]
 }
+```
 
 Notes:
 "spawn_chance": Adjusts likelihood (total weights don’t need to sum to 100).
@@ -107,8 +108,6 @@ Notes:
 "weight": Relative chance among outcomes if multiple are listed.
 
 Add "choice_prompt" and "requires_choice": true for player decisions (e.g., "1. Open | 2. Leave").
-
-
 
 2. Adding a New Quest
 
@@ -121,7 +120,7 @@ Add a new quest with required fields: quest_name, quest_level, quest_description
 Link it to a monster in monster.json.
 
 Example: "Slay the Shadow Beast" quest:
-'''bash
+```python
 {
     "quest_name": "Slay the Shadow Beast",
     "quest_level": 10,
@@ -130,7 +129,7 @@ Example: "Slay the Shadow Beast" quest:
     "kill_count_required": 1,
     "quest_reward": "50 gold, Shadow Cloak"
 }
-
+```
 Notes:
 "target_monster": Must match a "name" in monster.json.
 
@@ -149,7 +148,7 @@ Add a new monster with fields: name, stats, level_range, damage_range, spawn_cha
 Set spawn_chance to 0 for quest bosses.
 
 Example: "Shadow Beast" (quest boss):
-'''bash
+```python
 {
     "name": "Shadow Beast",
     "stats": {"S": 6, "A": 4, "I": 3, "W": 4, "L": 2},
@@ -162,9 +161,10 @@ Example: "Shadow Beast" (quest boss):
     "rare": true,
     "notes": "Quest boss for Slay the Shadow Beast."
 }
+```
 
 Example: "Goblin Scout" (regular monster):
-'''bash
+```python
 {
     "name": "Goblin Scout",
     "stats": {"S": 2, "A": 3, "I": 1, "W": 1, "L": 2},
@@ -176,6 +176,7 @@ Example: "Goblin Scout" (regular monster):
     "hp_range": {"min": 10, "max": 15},
     "rare": false
 }
+```
 
 Notes:
 "spawn_chance": 0 = quest boss, full level_range.
@@ -187,7 +188,7 @@ Stats (S, A, I, W, L) affect combat behavior.
 4. Adding New Gear, Treasures, or Consumables
 
 Gear (gear.json):
-'''bash
+```python
 {
     "name": "Shadow Cloak",
     "slot": "chest",
@@ -199,15 +200,17 @@ Gear (gear.json):
     "drop_rate": 5,
     "boss_only": true
 }
+```
 
 Treasures (treasures.json):
-'''bash
+```python
 {"name": "Silver Ring", "drop_rate": 40}
+```
 
 Consumables (consumables.json):
-'''bash
+```python
 {"name": "Mana Elixir", "level_range": {"min": 5, "max": 15}, "drop_rate": 15, "boss_only": false}
-
+```
 Notes:
 Use in events (e.g., "source": "gear.json") or quest rewards.
 
