@@ -20,7 +20,7 @@
 1. **Clone the Repository**:
    ```bash
    git clone https://github.com/m0nnnna/snowcaller.git
-   cd snowcallerpython game.py
+   cd snowcallerpython
 2. **Launch the Game**"
    ```bash
    python game.py
