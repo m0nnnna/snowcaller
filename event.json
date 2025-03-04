@@ -1,0 +1,83 @@
+[
+    {
+        "name": "treasure",
+        "spawn_chance": 20,
+        "description": "You spot a glint beneath some roots—a forgotten stash!",
+        "outcomes": [
+            {
+                "type": "item",
+                "source": "treasures.json",
+                "count": {"min": 1, "max": 3},
+                "weight": 100
+            },
+            {
+                "type": "gold",
+                "amount": {"min": 10, "max": 20},
+                "weight": 100
+            }
+        ]
+    },
+    {
+        "name": "merchant",
+        "spawn_chance": 15,
+        "description": "A cloaked figure emerges from the mist, offering an item.",
+        "choice_prompt": "1. Buy | 2. Pass",
+        "outcomes": [
+            {
+                "type": "merchant",
+                "source": ["gear.json", "consumables.json"],
+                "exclude_slots": ["main_hand", "off_hand"],
+                "price_field": "drop_rate",  // Using drop_rate as base price for simplicity
+                "price_modifiers": [0.8, 1.5],
+                "requires_choice": true,
+                "weight": 100
+            }
+        ]
+    },
+    {
+        "name": "quest_giver",
+        "spawn_chance": 10,
+        "description": "A weary traveler begs for your help with a task.",
+        "choice_prompt": "1. Accept | 2. Decline",
+        "outcomes": [
+            {
+                "type": "quest",
+                "source": "quest.json",
+                "conditions": {"max_active_quests": 5},
+                "requires_choice": true,
+                "weight": 100
+            }
+        ]
+    },
+    {
+    "name": "mystical_shrine",
+    "spawn_chance": 12,
+    "description": "A glowing shrine hums with energy...",
+    "choice_prompt": "1. Touch | 2. Ignore",
+    "outcomes": [
+        {
+            "type": "heal",
+            "amount": {"min": 0.1, "max": 0.2},  // Percentage of max_hp
+            "requires_choice": true,
+            "weight": 50
+        },
+        {
+            "type": "damage",
+            "amount": {"min": 0.05, "max": 0.15},  // Percentage of max_hp
+            "requires_choice": true,
+            "weight": 50
+        },
+    {
+        "name": "lost",
+        "spawn_chance": 10,
+        "description": "The trail twists—where are you now? One more encounter ahead!",
+        "outcomes": [
+            {
+                "type": "extend_encounters",
+                "amount": 1,
+                "max_limit": 10,
+                "weight": 100
+            }
+        ]
+    }
+]

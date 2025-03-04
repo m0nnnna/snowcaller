@@ -1,1 +1,1 @@
-pyinstaller --onefile --add-data "skills.txt;." --add-data "gear.txt;." --add-data "monsters.txt;." --add-data "treasures.txt;." --add-data "locations.txt;." --add-data "consumables.txt;." game.py
+pyinstaller --onefile --add-data "skills.txt;." --add-data "gear.json;." --add-data "monster.json;." --add-data "treasures.json;." --add-data "locations.txt;." --add-data "consumables.json;." --add-data "event.json;." game.py

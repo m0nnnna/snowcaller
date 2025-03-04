@@ -5,7 +5,7 @@ a = Analysis(
     ['game.py'],
     pathex=[],
     binaries=[],
-    datas=[('skills.txt', '.'), ('gear.txt', '.'), ('monsters.txt', '.'), ('treasures.txt', '.'), ('locations.txt', '.'), ('consumables.txt', '.')],
+    datas=[('skills.txt', '.'), ('gear.json', '.'), ('monster.json', '.'), ('treasures.json', '.'), ('locations.txt', '.'), ('consumables.json', '.'), ('event.json', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

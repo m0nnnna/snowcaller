@@ -36,7 +36,7 @@ def get_weapon_damage_range(player):
     
     return (1 + damage_bonus, 2 + damage_bonus)
 
-def load_monster_from_json(monster_name=None, boss_fight=False):
+def load_monster_from_json(monster_name=None, boss_fight=False, player_level=None):
     with open("monster.json", "r") as file:
         monsters = json.load(file)["monsters"]
     
@@ -55,9 +55,20 @@ def load_monster_from_json(monster_name=None, boss_fight=False):
     return monster
 
 def combat(player, boss_fight=False, monster_name=None):
-    monster_stats = load_monster_from_json(monster_name, boss_fight)
+    monster_stats = load_monster_from_json(monster_name, boss_fight, player.level)
     
-    level = random.randint(monster_stats["level_range"]["min"], monster_stats["level_range"]["max"])
+    # Quest bosses (spawn_chance == 0) ignore player level restriction
+    is_quest_boss = monster_stats["spawn_chance"] == 0
+    
+    # Set level range: restrict to ±2 of player level unless it's a quest boss
+    if not is_quest_boss:
+        min_level = max(monster_stats["level_range"]["min"], player.level - 2)
+        max_level = min(monster_stats["level_range"]["max"], player.level + 2)
+    else:
+        min_level = monster_stats["level_range"]["min"]
+        max_level = monster_stats["level_range"]["max"]
+    
+    level = random.randint(min_level, max_level)
     level_scale = 1 + (level - 1) * 0.1 if monster_stats["rare"] else 1 + (level - 1) * 0.05
     monster_hp = random.uniform(monster_stats["hp_range"]["min"], monster_stats["hp_range"]["max"]) * level_scale
     monster_mp = 2 * monster_stats["stats"]["W"] * level_scale

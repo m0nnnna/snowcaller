@@ -1,128 +1,152 @@
 import random
 import time
-from utils import load_file
+import json
+from utils import load_json  # Assuming this exists in utils.py
+
+def execute_outcome(player, outcome, max_encounters):
+    """Handle a single outcome based on its type."""
+    outcome_type = outcome["type"]
+
+    if outcome_type == "item":
+        source = outcome["source"]
+        items = load_json(source)
+        valid_items = [i for i in items if i.get("drop_rate", 0) > 0]
+        if not valid_items:
+            return "No items available!"
+        count = random.randint(outcome["count"]["min"], outcome["count"]["max"])
+        selected_items = random.choices(
+            valid_items,
+            weights=[i["drop_rate"] for i in valid_items],
+            k=min(count, len(valid_items))
+        )
+        item_names = [i["name"] for i in selected_items]
+        player.inventory.extend(item_names)
+        return f"Found: {', '.join(item_names)}"
+
+    elif outcome_type == "gold":
+        amount = random.randint(outcome["amount"]["min"], outcome["amount"]["max"])
+        player.gold += amount
+        return f"Gained {amount} gold"
+
+    elif outcome_type == "merchant":
+        sources = outcome["source"]
+        exclude_slots = outcome.get("exclude_slots", [])
+        all_items = []
+        for src in sources:
+            items = load_json(src)
+            all_items.extend([i for i in items if not any(slot in i.get("slot", "") for slot in exclude_slots)])
+        if not all_items:
+            return "Merchant has nothing to sell!"
+        item = random.choice(all_items)
+        name = item["name"]
+        price_field = outcome.get("price_field", "drop_rate")
+        try:
+            base_price = int(item.get(price_field, 10))  # Default to 10 if missing
+        except (ValueError, TypeError):
+            base_price = 10
+        price = int(base_price * random.choice(outcome["price_modifiers"]))
+        if not outcome.get("requires_choice", False):
+            return f"Merchant offers {name} for {price} gold (logic error: choice required)"
+        choice = input("Selection: ")
+        if choice == "1" and player.gold >= price:
+            player.gold -= price
+            player.inventory.append(name)
+            return f"Purchased {name} for {price} gold"
+        elif choice == "1":
+            return "Not enough gold!"
+        return "You pass by the merchant"
+
+    elif outcome_type == "quest":
+        quests = load_json(outcome["source"])
+        with open("save.json", "r") as f:
+            player_data = json.load(f)
+        active_quests = player_data.get("active_quests", [])
+        completed_quests = player_data.get("completed_quests", [])
+        if len(active_quests) >= outcome["conditions"]["max_active_quests"]:
+            return "Too many active quests!"
+        available_quests = [
+            q for q in quests
+            if q["quest_name"] not in [aq["quest_name"] for aq in active_quests]
+            and q["quest_name"] not in completed_quests
+            and player.level >= q["quest_level"]
+        ]
+        if not available_quests:
+            return "No suitable quests available."
+        quest = random.choice(available_quests)
+        if not outcome.get("requires_choice", False):
+            return f"Quest {quest['quest_name']} offered (logic error: choice required)"
+        choice = input("Selection: ")
+        if choice == "1":
+            active_quests.append({"quest_name": quest["quest_name"], "kill_count": 0})
+            player_data["active_quests"] = active_quests
+            with open("save.json", "w") as f:
+                json.dump(player_data, f, indent=4)
+            return f"Accepted quest: {quest['quest_name']}"
+        return "You decline the quest"
+
+    elif outcome_type == "extend_encounters":
+        max_encounters = min(max_encounters + outcome["amount"], outcome["max_limit"])
+        return f"Encounters extended to {max_encounters}"
+
+    elif outcome_type == "heal":
+        heal = player.max_hp * random.uniform(outcome["amount"]["min"], outcome["amount"]["max"])
+        player.hp = min(player.hp + heal, player.max_hp)
+        return f"Healed for {round(heal, 1)} HP"
+
+    elif outcome_type == "damage":
+        damage = player.max_hp * random.uniform(outcome["amount"]["min"], outcome["amount"]["max"])
+        player.hp -= damage
+        return f"Took {round(damage, 1)} damage"
+
+    return "Outcome not implemented!"
 
 def random_event(player, encounter_count, max_encounters):
+    """Trigger a random event from event.json."""
     print(f"\nDistance traveled: {encounter_count}/{max_encounters}")
     time.sleep(0.5)
 
-    # Define base options and weights
-    all_options = ["treasure", "merchant", "trap", "friendly", "curse", "lost"]
-    base_weights = [20, 15, 15, 15, 10, 10]  # CHANGED: "lost" from 25 to 10
+    # Load events
+    events = load_json("event.json")
 
     # Filter out events on cooldown
-    available_options = []
-    available_weights = []
-    for opt, weight in zip(all_options, base_weights):
-        if player.event_cooldowns[opt] == 0:
-            available_options.append(opt)
-            available_weights.append(weight)
+    available_events = [
+        e for e in events if player.event_cooldowns.get(e["name"], 0) == 0
+    ]
+    if not available_events:
+        for e in events:
+            player.event_cooldowns[e["name"]] = 0
+        available_events = events
 
-    # If no events are available, reset cooldowns and use all options
-    if not available_options:
-        for opt in all_options:
-            player.event_cooldowns[opt] = 0
-        available_options = all_options
-        available_weights = base_weights
+    # Pick an event
+    event = random.choices(
+        available_events,
+        weights=[e["spawn_chance"] for e in available_events],
+        k=1
+    )[0]
 
-    # Pick event from available pool
-    event = random.choices(available_options, weights=available_weights, k=1)[0]
-
-    # Set cooldowns (longer for "lost")
-    cooldown_duration = 3 if event == "lost" else 1
-    player.event_cooldowns[event] = cooldown_duration
+    # Set cooldown (customizable per event)
+    cooldown_duration = event.get("cooldown", 1)  # Default to 1 if not specified
+    player.event_cooldowns[event["name"]] = cooldown_duration
 
     # Decrement all cooldowns
     for opt in player.event_cooldowns:
         if player.event_cooldowns[opt] > 0:
             player.event_cooldowns[opt] -= 1
 
-    # Event logic
-    if event == "treasure":
-        treasures = load_file("treasures.txt")
-        items = random.sample(treasures, random.randint(1, 3))
-        gold = random.randint(10, 20)
-        player.inventory.extend(items)
-        player.gold += gold
-        print("You spot a glint beneath some roots—a forgotten stash!")
-        print(f"You find: {', '.join(items)} and {gold} gold!")
+    # Execute event
+    print(event["description"])
+    if "choice_prompt" in event:
+        print(event["choice_prompt"])
         time.sleep(0.5)
 
-    elif event == "merchant":
-        gear = load_file("gear.txt") + load_file("consumables.txt")
-        item = random.choice([g for g in gear if not any(i in g for i in ["main_hand", "off_hand"])])
-        name = " ".join(item.split()[:-1])  # Get full name, e.g., "Health Potion"
-        bracket = item.split()[-1].strip("[]").split()  # Parse bracket, e.g., "L:1-5 HP 10 none 0 5% 5"
-        
-        # Extract price (last element in bracket for both gear and consumables)
-        try:
-            base_price = int(bracket[-1])  # Price is the last number
-        except (IndexError, ValueError):
-            print(f"Warning: Could not parse price from '{item}', defaulting to 10")
-            base_price = 10
-        
-        price_mod = random.choice([0.8, 1.5])  # 20% discount or 50% markup
-        price = int(base_price * price_mod)
-        print(f"A cloaked figure emerges from the mist, offering {name} for {price} gold.")
-        print("1. Buy | 2. Pass")
-        time.sleep(0.5)
-        choice = input("Selection: ")
-        if choice == "1" and player.gold >= price:
-            player.gold -= price
-            player.inventory.append(name)
-            print(f"You purchase {name} for {price} gold!")
-            time.sleep(0.5)
-        elif choice == "1":
-            print("Not enough gold!")
-            time.sleep(0.5)
-        else:
-            print("You pass by the merchant.")
-            time.sleep(0.5)
+    outcomes = event["outcomes"]
+    if len(outcomes) > 1:
+        outcome = random.choices(outcomes, weights=[o["weight"] for o in outcomes], k=1)[0]
+    else:
+        outcome = outcomes[0]
 
-    elif event == "trap":
-        damage = player.max_hp * 0.1
-        if player.stats["A"] > 5 and random.random() < 0.5:
-            print("A twig snaps—a trap springs to life, but you dodge it!")
-            time.sleep(0.5)
-        else:
-            player.hp -= damage
-            print(f"A trap catches you off guard, dealing {round(damage, 1)} damage!")
-            time.sleep(0.5)
+    result = execute_outcome(player, outcome, max_encounters)
+    print(result)
+    time.sleep(0.5)
 
-    elif event == "friendly":
-        if random.random() < 0.5:
-            heal = player.max_hp * 0.2
-            player.hp = min(player.hp + heal, player.max_hp)
-            print(f"A kind stranger shares a tale and heals you for {round(heal, 1)} HP!")
-        else:
-            consumables = load_file("consumables.txt")
-            item = random.choice(consumables).split()[0]
-            player.inventory.append(item)
-            print(f"A kind stranger shares a tale and gives you a {item}!")
-        time.sleep(0.5)
-
-    elif event == "curse":
-        print("An eerie shrine whispers promises of power...")
-        print("1. Accept | 2. Decline")
-        time.sleep(0.5)
-        choice = input("Selection: ")
-        if choice == "1":
-            if random.random() < 0.5:
-                stat = random.choice(["S", "A", "I", "W", "L"])
-                player.stats[stat] += 2
-                print(f"The shrine blesses you with +2 {stat[:3].capitalize()}!")
-            else:
-                damage = player.max_hp * 0.1
-                player.hp -= damage
-                print(f"The shrine curses you, dealing {round(damage, 1)} damage!")
-            time.sleep(0.5)
-        else:
-            print("You leave the shrine untouched.")
-            time.sleep(0.5)
-
-    elif event == "lost":
-        max_encounters = min(max_encounters + 1, 10)
-        print("The trail twists—where are you now? One more encounter ahead!")
-        time.sleep(0.5)
-
-    return max_encounters  # Return updated max_encounters
+    return max_encounters

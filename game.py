@@ -325,7 +325,8 @@ def main():
                     monsters = json.load(file)["monsters"]
                 encounter_pool = []
                 for m in monsters:
-                    encounter_pool.extend([m] * m["spawn_chance"])
+                    if not m["rare"]:  # Exclude bosses
+                        encounter_pool.extend([m] * m["spawn_chance"])
                 
                 time.sleep(0.5)
                 max_encounters = random.randint(2, 10)
@@ -346,8 +347,8 @@ def main():
                             boss_choice = input("Selection: ")
                             if boss_choice == "1":
                                 boss_fight = True
-                                boss_monsters = [m for m in monsters if m["rare"]]
-                                boss = random.choice(boss_monsters) if boss_monsters else random.choice(monsters)
+                                boss_monsters = [m for m in monsters if m["rare"] and m["spawn_chance"] > 0]  # Exclude quest bosses
+                                boss = random.choice(boss_monsters) if boss_monsters else random.choice([m for m in monsters if not m["rare"]])  # Fallback to non-rare if no valid bosses
                                 result = combat(player, True, boss["name"])
                                 Encounters.append(result)
                                 if player.hp <= 0:
