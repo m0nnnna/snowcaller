@@ -59,7 +59,7 @@ def execute_outcome(player, outcome, max_encounters):
     elif outcome_type == "quest":
         quests = load_json(outcome["source"])
         with open("save.json", "r") as f:
-            player_data = json.load(f)
+            player_data = load_json("save.json")
         active_quests = player_data.get("active_quests", [])
         completed_quests = player_data.get("completed_quests", [])
         if len(active_quests) >= outcome["conditions"]["max_active_quests"]:
@@ -79,6 +79,7 @@ def execute_outcome(player, outcome, max_encounters):
         if choice == "1":
             active_quests.append({"quest_name": quest["quest_name"], "kill_count": 0})
             player_data["active_quests"] = active_quests
+            save_path = get_resource_path("save.json")
             with open("save.json", "w") as f:
                 json.dump(player_data, f, indent=4)
             return f"Accepted quest: {quest['quest_name']}"

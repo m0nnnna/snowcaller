@@ -8,7 +8,7 @@ from combat import combat
 from shop import shop_menu, parse_shop_item, calculate_price
 from tavern import tavern_menu
 from events import random_event
-from utils import load_json, load_file, parse_stats
+from utils import load_json, load_file, parse_stats, get_resource_path
 
 
 def load_json(file_path):
@@ -229,7 +229,7 @@ def main():
         base_path = os.path.dirname(sys.executable)
     else:
         base_path = os.path.dirname(__file__)
-    save_path = os.path.join(base_path, "save.json")
+    save_path = get_resource_path("save.json")
 
     if os.path.exists(save_path):
         print("1. New Game | 2. Load Game")
@@ -250,13 +250,17 @@ def main():
         choice = "1"
 
     if choice == "1":
-        with open("lore.json", "r") as file:
-            lore_data = json.load(file)["lore"]
-        intro_lore = next((l for l in lore_data if l["quest_name"] == "intro"), None)
-        if intro_lore:
-            print("\n=== Welcome to Snowcaller ===")
-            print(intro_lore["lore_text"])
-            time.sleep(2)  # Pause to let players read
+        lore_data = load_json("lore.json")  # Use load_json from utils
+        if not isinstance(lore_data, dict) or "lore" not in lore_data:
+            print("Error: Could not load lore.json or 'lore' key missing. Skipping intro.")
+            intro_lore = None
+        else:
+            intro_lore = next((l for l in lore_data["lore"] if l["quest_name"] == "intro"), None)
+            if intro_lore:
+                print("\n=== Welcome to Snowcaller ===")
+                print(intro_lore["lore_text"])
+                time.sleep(2)  # Pause to let players read
+        
             
         name = input("\nEnter your name: ")
         print("Select your class:")
@@ -285,7 +289,7 @@ def main():
 
         if choice == "1":
             with open("locations.txt", "r") as f:
-                lines = [line.strip() for line in f if line.strip()]
+                lines = load_file("locations.txt")
             
             main_areas = []
             sub_areas = []
@@ -322,7 +326,7 @@ def main():
 
             if adventure_type == "1":
                 with open("monster.json", "r") as file:
-                    monsters = json.load(file)["monsters"]
+                    monsters = load_json("monster.json")["monsters"]
                 encounter_pool = []
                 for m in monsters:
                     if not m["rare"]:  # Exclude bosses
@@ -454,10 +458,8 @@ def main():
                             award_treasure_chest(player)
 
             elif adventure_type == "2":
-                with open("quest.json", "r") as file:
-                    quests = json.load(file)["quests"]
-                with open("monster.json", "r") as file:
-                    monsters = json.load(file)["monsters"]
+                quests = load_json("quest.json")["quests"]
+                monsters = load_json("monster.json")["monsters"]
                 
                 print("\nActive Quests:")
                 for i, quest in enumerate(active_quests, 1):
@@ -573,11 +575,11 @@ def main():
 
 def guild_menu(player):
     with open("save.json", "r") as file:
-        player_data = json.load(file)
+        player_data = load_json("save.json")
     with open("quest.json", "r") as file:
-        quests = json.load(file)["quests"]
+        quests = load_json("quest.json")["quests"]
     with open("lore.json", "r") as file:
-        lore_data = json.load(file)["lore"]
+        lore_data = load_json("lore.json")["lore"]
     
     active_quests = player_data.get("active_quests", [])
     completed_quests = player_data.get("completed_quests", [])
@@ -647,8 +649,9 @@ def guild_menu(player):
                 completed_quests.append(quest_info["quest_name"])
                 player_data["active_quests"] = active_quests
                 player_data["completed_quests"] = completed_quests
-                with open("save.json", "w") as file:
-                    json.dump(player_data, file, indent=4)
+                save_path = get_resource_path("save.json")
+                with open(save_path, "w") as file:
+                    json.dump(data, file, indent=4)
                 time.sleep(0.5)
             else:
                 print(f"Quest '{quest_info['quest_name']}' not complete yet. Kills: {selected_quest['kill_count']}/{quest_info['kill_count_required']}")
@@ -656,7 +659,7 @@ def guild_menu(player):
 
 def update_kill_count(player_data, monster_name):
     with open("save.json", "r") as file:
-        data = json.load(file)
+        data = load_json("save.json")
     
     for quest in data.get("active_quests", []):
         with open("quest.json", "r") as q_file:

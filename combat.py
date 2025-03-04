@@ -38,7 +38,7 @@ def get_weapon_damage_range(player):
 
 def load_monster_from_json(monster_name=None, boss_fight=False, player_level=None):
     with open("monster.json", "r") as file:
-        monsters = json.load(file)["monsters"]
+        monsters = load_json("monster.json")["monsters"]
     
     if monster_name:
         monster = next((m for m in monsters if m["name"] == monster_name), None)
