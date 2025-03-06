@@ -21,10 +21,12 @@
    ```bash
    git clone https://github.com/m0nnnna/snowcaller.git
    cd snowcaller-main
-2. **Launch the Game**
+   ```
+2. **Install python 3.x**
+3. **Launch the Game**
    ```bash
    python game.py
-3. **Install python 3.x**
+   ```
 4. Begin Your Journey
 select "New Game" for an intro lore and character creation, or "Load Game" to pick up where you left off.
 
