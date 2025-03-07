@@ -232,7 +232,7 @@ Use in events (e.g., "source": "gear.json") or quest rewards.
 
 Inside of combat.py there is a line
 ```python
-xp_gain = level * 10  # XP calculation!
+xp = level * 1 * (1.5 if monster_stats["rare"] or boss_fight else 1)
 ```
 This will control the base XP and rate per level.
 

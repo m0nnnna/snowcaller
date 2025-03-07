@@ -23,6 +23,16 @@ def load_file(filename):
     file_path = os.path.join(base_path, filename)
     with open(file_path, "r") as f:
         return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+
+def load_art_file(filename):
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.dirname(__file__)
+    file_path = os.path.join(base_path, filename)
+    with open(file_path, "r") as f:
+        # Preserve all whitespace, optionally filter comments
+        return [line.rstrip('\n') for line in f if not line.startswith("#")]
         
 def get_resource_path(filename):
     """Get the correct path for a resource file, whether running as script or frozen executable."""

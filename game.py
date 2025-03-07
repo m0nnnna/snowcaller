@@ -9,7 +9,7 @@ from combat import combat
 from shop import shop_menu, parse_shop_item, calculate_price
 from tavern import tavern_menu
 from events import random_event
-from utils import load_json, load_file, parse_stats, get_resource_path
+from utils import load_json, load_file, load_art_file, parse_stats, get_resource_path
 
 def load_json(file_path):
     try:
@@ -250,7 +250,7 @@ def main():
         choice = "1"
 
     if choice == "1":
-        lore_data = load_json("lore.json")  # Use load_json from utils
+        lore_data = load_json("lore.json")
         if not isinstance(lore_data, dict) or "lore" not in lore_data:
             print("Error: Could not load lore.json or 'lore' key missing. Skipping intro.")
             intro_lore = None
@@ -259,9 +259,8 @@ def main():
             if intro_lore:
                 print("\n=== Welcome to Snowcaller ===")
                 print(intro_lore["lore_text"])
-                time.sleep(2)  # Pause to let players read
-        
-            
+                time.sleep(2)
+
         name = input("\nEnter your name: ")
         print("Select your class:")
         print("1. Warrior (High Strength) | 2. Mage (High Intelligence) | 3. Rogue (High Agility)")
@@ -270,12 +269,51 @@ def main():
         while class_type not in ["1", "2", "3"]:
             print("Invalid class! Choose 1, 2, or 3.")
             class_type = input("Selection: ")
+
+        # Define class-specific data
+        class_data = {
+            "1": {
+                "name": "Warrior",
+                "art_file": os.path.join(base_path, "art", "warrior.txt"),
+                "lore": "Forged in the crucible of battle, Warriors are the unyielding shield of Snowcaller. With strength as their blade and courage as their armor, they stand against the tides of chaos that threaten the realm."
+            },
+            "2": {
+                "name": "Mage",
+                "art_file": os.path.join(base_path, "art", "mage.txt"),
+                "lore": "Masters of the arcane, Mages wield the primal forces of ice and fire. In Snowcaller’s frozen wastes, their intellect unravels mysteries older than the mountains, bending the elements to their will."
+            },
+            "3": {
+                "name": "Rogue",
+                "art_file": os.path.join(base_path, "art", "rogue.txt"),
+                "lore": "Shadows of the frostbitten wilds, Rogues dance between life and death. With agility unmatched and cunning sharp as a dagger, they thrive in the unseen corners of Snowcaller, striking when least expected."
+            }
+        }
+
+        # Display ASCII art and lore for the selected class
+        selected_class = class_data[class_type]
+        print(f"\n=== You have chosen the {selected_class['name']} ===")
+        
+        # Load and display ASCII art
+        try:
+            art_lines = load_art_file(selected_class["art_file"])
+            print("\nClass Art:")
+            for line in art_lines:
+                print(line)  # Default print, adds its own newline
+        except Exception as e:
+             print(f"Error loading {selected_class['name']} art: {e}")
+             print(f"(Imagine a grand {selected_class['name']} here!)")
+        
+        # Display class lore
+        print(f"\n{selected_class['lore']}")
+        time.sleep(2)  # Pause to let the player read
+
+        # Proceed with player creation
         player = Player(name, class_type)
-        print(f"Welcome, {player.name} the {'Warrior' if class_type == '1' else 'Mage' if class_type == '2' else 'Rogue'}!")
+        print(f"Welcome, {player.name} the {selected_class['name']}!")
         if player.skills:
             print(f"Skills unlocked: {', '.join(player.skills)}")
         time.sleep(0.5)
-    
+
     save_game(player)
     print("Game autosaved!")
     time.sleep(0.5)
