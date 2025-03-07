@@ -21,8 +21,12 @@ def load_file(filename):
     else:
         base_path = os.path.dirname(__file__)
     file_path = os.path.join(base_path, filename)
-    with open(file_path, "r") as f:
-        return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+    try:
+        with open(file_path, "r") as f:
+            return f.read().splitlines()  # Returns list of lines
+    except Exception as e:
+        print(f"Error loading {file_path}: {e}")
+        return []  # Default for text files
 
 def load_art_file(filename):
     if getattr(sys, 'frozen', False):

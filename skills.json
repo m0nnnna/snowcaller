@@ -1,0 +1,64 @@
+{
+  "skills": [
+    {
+      "class_type": "1",
+      "level_req": 5,
+      "name": "Rage",
+      "base_dmg": 2,
+      "effect": "damage_bonus",
+      "mp_cost": 5,
+      "duration": 3,
+      "stat": "S"
+    },
+    {
+      "class_type": "2",
+      "level_req": 1,
+      "name": "Fireball",
+      "base_dmg": 5,
+      "effect": "direct_damage",
+      "mp_cost": 5,
+      "duration": 0,
+      "stat": "I"
+    },
+    {
+      "class_type": "2",
+      "level_req": 5,
+      "name": "Heal",
+      "base_dmg": 10,
+      "effect": "heal",
+      "mp_cost": 6,
+      "duration": 0,
+      "stat": "W"
+    },
+    {
+      "class_type": "3",
+      "level_req": 1,
+      "name": "Backstep",
+      "base_dmg": 2,
+      "effect": "damage_bonus",
+      "mp_cost": 1,
+      "duration": 3,
+      "stat": "A"
+    },
+    {
+      "class_type": "3",
+      "level_req": 5,
+      "name": "Backstab",
+      "base_dmg": 4,
+      "effect": "direct_damage",
+      "mp_cost": 5,
+      "duration": 0,
+      "stat": "A"
+    },
+    {
+      "class_type": "3",
+      "level_req": 10,
+      "name": "Poison",
+      "base_dmg": 1,
+      "effect": "damage_over_time",
+      "mp_cost": 5,
+      "duration": 3,
+      "stat": "I"
+    }
+  ]
+}

@@ -57,11 +57,9 @@ def execute_outcome(player, outcome, max_encounters):
         return "You pass by the merchant"
 
     elif outcome_type == "quest":
-        quests = load_json(outcome["source"])
-        with open("save.json", "r") as f:
-            player_data = load_json("save.json")
-        active_quests = player_data.get("active_quests", [])
-        completed_quests = player_data.get("completed_quests", [])
+        quests = load_json(outcome["source"])["quests"]  # Access "quests" list
+        active_quests = player.active_quests  # Use player.active_quests directly
+        completed_quests = player.completed_quests if hasattr(player, "completed_quests") else []  # Fallback
         if len(active_quests) >= outcome["conditions"]["max_active_quests"]:
             return "Too many active quests!"
         available_quests = [
@@ -78,10 +76,7 @@ def execute_outcome(player, outcome, max_encounters):
         choice = input("Selection: ")
         if choice == "1":
             active_quests.append({"quest_name": quest["quest_name"], "kill_count": 0})
-            player_data["active_quests"] = active_quests
-            save_path = get_resource_path("save.json")
-            with open("save.json", "w") as f:
-                json.dump(player_data, f, indent=4)
+            player.active_quests = active_quests  # Update player object
             return f"Accepted quest: {quest['quest_name']}"
         return "You decline the quest"
 

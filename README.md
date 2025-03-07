@@ -66,7 +66,7 @@ Guild
 13. quest.json: controls what quests are available
 14. treasures.json: control random loot
 15. shop.txt: allows the listing of items - Note due to the change to .json this might need work
-16. skills.txt: controls available skills
+16. skills.json: controls available skills
 17. locations.txt: controls available locations 
 
 Love Snowcaller? Fork it, tweak it, or add your own flair! Submit pull requests with new features, or expand the world by editing the JSON files—no coding needed for new monsters, skills, items, gear, quests, or lore.
@@ -227,6 +227,28 @@ Notes:
 Use in events (e.g., "source": "gear.json") or quest rewards.
 
 "drop_rate": Chance of dropping (used as weight in events).
+
+5. Skills
+
+Skills are of a given type and have many options.
+
+Here are the type of effects you can use:
+damage_bonus, direct_damage, heal, damage_over_time,
+
+Here is how a skill looks 
+```json
+    {
+      "class_type": "2",
+      "level_req": 1,
+      "name": "Fireball",
+      "base_dmg": 5,
+      "effect": "direct_damage",
+      "mp_cost": 5,
+      "duration": 0,
+      "stat": "I"
+    },
+```
+Class type 1 is warrior, 2 mage, 3 rogue.
 
 **XP Give**
 

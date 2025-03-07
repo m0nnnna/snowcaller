@@ -1,27 +1,24 @@
 import random
 import time
 import json
-from utils import load_file, load_json, parse_stats
+from utils import load_json, parse_stats  # Removed load_file since we’re not using skills.txt
 from items import use_item
 
 def get_weapon_damage_range(player):
     weapon = player.equipment.get("main_hand")
     damage_bonus = 0
     if "Rage" in player.skill_effects:
-        skills = load_file("skills.txt")
+        skills = load_json("skills.json")["skills"]
         for skill in skills:
-            parts = skill[1:-1].split()
-            if parts[2] == "Rage":
-                base_dmg = int(parts[3])
-                stat = parts[7]
+            if skill["name"] == "Rage":
+                base_dmg = skill["base_dmg"]
+                stat = skill["stat"]
                 damage_bonus = base_dmg + (int(player.stats[stat] * 0.5) if stat != "none" else 0)
                 break
     
     if weapon:
         weapon_name, stats, modifier, armor_value = weapon
-        with open("gear.json", "r") as file:
-            gear_data = json.load(file)
-        
+        gear_data = load_json("gear.json")  # Use load_json instead of with open
         weapon_data = next((g for g in gear_data if g["name"] == weapon_name and g["slot"] == "main_hand"), None)
         if weapon_data and weapon_data["damage"]:
             try:
@@ -37,8 +34,7 @@ def get_weapon_damage_range(player):
     return (1 + damage_bonus, 2 + damage_bonus)
 
 def load_monster_from_json(monster_name=None, boss_fight=False, player_level=None):
-    with open("monster.json", "r") as file:
-        monsters = load_json("monster.json")["monsters"]
+    monsters = load_json("monster.json")["monsters"]  # Use load_json instead of with open
     
     if monster_name:
         monster = next((m for m in monsters if m["name"] == monster_name), None)
@@ -57,16 +53,13 @@ def load_monster_from_json(monster_name=None, boss_fight=False, player_level=Non
 def combat(player, boss_fight=False, monster_name=None):
     monster_stats = load_monster_from_json(monster_name, boss_fight, player.level)
     
-    # Quest bosses (spawn_chance == 0) ignore player level restriction
     is_quest_boss = monster_stats["spawn_chance"] == 0
-    
-    # Set level range: restrict to ±2 of player level unless it's a quest boss
     if not is_quest_boss:
         base_min = monster_stats["level_range"]["min"]
         base_max = monster_stats["level_range"]["max"]
         min_level = max(base_min, player.level - 2)
         max_level = min(base_max, player.level + 2)
-        if min_level > max_level:  # Swap if inverted
+        if min_level > max_level:
             min_level, max_level = max_level, min_level
     else:
         min_level = monster_stats["level_range"]["min"]
@@ -91,6 +84,7 @@ def combat(player, boss_fight=False, monster_name=None):
     time.sleep(0.5)
 
     while monster_hp > 0 and player.hp > 0:
+        # Handle skill effect durations
         for skill_name, turns in list(player.skill_effects.items()):
             if turns > 0:
                 player.skill_effects[skill_name] -= 1
@@ -99,33 +93,29 @@ def combat(player, boss_fight=False, monster_name=None):
                     print(f"{skill_name} effect has worn off!")
                     time.sleep(0.5)
 
+        # Calculate damage bonus display
         bonus_display = ""
-        skills = load_file("skills.txt")
+        skills = load_json("skills.json")["skills"]
         total_dmg_bonus = 0
         for skill_name, turns in player.skill_effects.items():
             if turns > 0:
                 for skill in skills:
-                    skill_data = skill.split('#')[0].strip()
-                    if not skill_data.startswith('[') or not skill_data.endswith(']'):
-                        continue
-                    parts = skill_data[1:-1].strip().split()
-                    if len(parts) != 8:
-                        continue
-                    class_type, level_req, name, base_dmg, effect, mp_cost, duration, stat = parts
-                    if name == skill_name and effect == "damage_bonus":
-                        base_dmg = int(base_dmg)
+                    if skill["name"] == skill_name and skill["effect"] == "damage_bonus":
+                        base_dmg = skill["base_dmg"]
+                        stat = skill["stat"]
                         scaled_dmg = base_dmg + (int(player.stats[stat] * 0.5) if stat != "none" else 0)
                         total_dmg_bonus += scaled_dmg
                         break
         if total_dmg_bonus > 0:
             bonus_display = f" | Bonus: +{total_dmg_bonus} dmg ({', '.join([f'{k} {v}' for k, v in player.skill_effects.items()])})"
 
+        # Combat UI
         print(f"\n{monster_stats['name']}: {round(monster_hp, 1)} HP | {player.name}: {round(player.hp, 1)}/{player.max_hp} HP, {player.mp}/{player.max_mp} MP{bonus_display}")
-        print("1. Attack | 2. Item | 3. Skills | 4. Flee")  # Updated order
+        print("1. Attack | 2. Item | 3. Skills | 4. Flee")
         time.sleep(0.5)
         choice = input("Selection: ")
 
-        if choice == "1":
+        if choice == "1":  # Attack
             min_dmg, max_dmg = get_weapon_damage_range(player)
             dodge_chance = monster_stats["stats"]["A"] * 0.02
             crit_chance = player.stats["A"] * 0.02
@@ -145,7 +135,7 @@ def combat(player, boss_fight=False, monster_name=None):
                     print(f"You deal {round(reduced_damage, 1)} damage to {name}!")
             time.sleep(0.5)
 
-        elif choice == "2":
+        elif choice == "2":  # Item
             if not player.inventory:
                 print("No items available!")
                 time.sleep(0.5)
@@ -173,7 +163,7 @@ def combat(player, boss_fight=False, monster_name=None):
                 time.sleep(0.5)
                 continue
 
-        elif choice == "3":  # Skills moved to 3
+        elif choice == "3":  # Skills
             if not player.skills:
                 print("No skills available!")
                 time.sleep(0.5)
@@ -190,27 +180,21 @@ def combat(player, boss_fight=False, monster_name=None):
                     continue
                 if 1 <= skill_idx <= len(player.skills):
                     skill_name = player.skills[skill_idx - 1]
-                    skills = load_file("skills.txt")
+                    skills = load_json("skills.json")["skills"]
                     skill_found = False
                     for skill in skills:
-                        skill_data = skill.split('#')[0].strip()
-                        if not skill_data.startswith('[') or not skill_data.endswith(']'):
-                            continue
-                        parts = skill_data[1:-1].strip().split()
-                        if len(parts) != 8:
-                            print(f"Warning: Invalid skill format: {skill_data}")
-                            continue
-                        class_type, level_req, name, base_dmg, effect, mp_cost, duration, stat = parts
-                        if name == skill_name:
+                        if skill["name"] == skill_name:
                             skill_found = True
-                            mp_cost = int(mp_cost)
+                            mp_cost = skill["mp_cost"]
                             if player.mp < mp_cost:
                                 print("Not enough MP!")
                                 time.sleep(0.5)
                                 break
                             player.mp -= mp_cost
-                            base_dmg = int(base_dmg)
-                            duration = int(duration)
+                            base_dmg = skill["base_dmg"]
+                            duration = skill["duration"]
+                            effect = skill["effect"]
+                            stat = skill["stat"]
                             scaled_dmg = base_dmg
                             if stat != "none":
                                 if effect == "damage_bonus":
@@ -238,7 +222,7 @@ def combat(player, boss_fight=False, monster_name=None):
                             time.sleep(0.5)
                             break
                     if not skill_found:
-                        print(f"Skill '{skill_name}' not found in skills.txt!")
+                        print(f"Skill '{skill_name}' not found in skills.json!")
                         time.sleep(0.5)
                 else:
                     print("Invalid skill number!")
@@ -248,7 +232,7 @@ def combat(player, boss_fight=False, monster_name=None):
                 time.sleep(0.5)
             continue
 
-        elif choice == "4":  # Flee moved to 4
+        elif choice == "4":  # Flee
             flee_chance = 0.5 + (player.stats["A"] - monster_stats["stats"]["A"]) * 0.05
             if random.random() < flee_chance:
                 print("You flee successfully, ending your adventure!")
@@ -258,6 +242,7 @@ def combat(player, boss_fight=False, monster_name=None):
                 print("You fail to flee!")
                 time.sleep(0.5)
 
+        # Monster's turn
         if monster_hp > 0:
             dodge_chance = player.stats["A"] * 0.02
             damage = random.uniform(monster_min_dmg, monster_max_dmg)
@@ -270,20 +255,21 @@ def combat(player, boss_fight=False, monster_name=None):
                 print(f"{name} deals {round(reduced_damage, 1)} damage to you (reduced from {round(damage, 1)} by armor)!")
             time.sleep(0.5)
 
+            # Apply damage-over-time effects
             for skill_name, turns in list(player.skill_effects.items()):
-                if turns > 0 and "damage_over_time" in skill_name.lower():
-                    skills = load_file("skills.txt")
+                if turns > 0 and "damage_over_time" in skill["effect"]:  # Check effect type
+                    skills = load_json("skills.json")["skills"]
                     for skill in skills:
-                        parts = skill[1:-1].split()
-                        if parts[2] == skill_name:
-                            base_dmg = int(parts[3])
-                            stat = parts[7]
+                        if skill["name"] == skill_name:
+                            base_dmg = skill["base_dmg"]
+                            stat = skill["stat"]
                             dot_dmg = base_dmg + (int(player.stats[stat] * 0.2) if stat != "none" else 0)
                             monster_hp -= dot_dmg
                             print(f"{skill_name} deals {dot_dmg} damage to {name}!")
                             time.sleep(0.5)
                             break
 
+    # Combat resolution
     if player.hp <= 0:
         return "Defeat"
     elif monster_hp <= 0:

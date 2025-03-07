@@ -24,6 +24,8 @@ class Player:
         self.event_cooldowns = {"treasure": 0, "merchant": 0, "trap": 0, "friendly": 0, "curse": 0, "lost": 0}
         self.skills = []
         self.skill_effects = {}
+        self.active_quests = []
+        self.completed_quests = []
 
         if class_type == "1":  # Warrior
             self.stats = {"S": 3, "A": 1, "I": 1, "W": 2, "L": 1}
@@ -57,24 +59,15 @@ class Player:
         self.max_mp = 3 * self.stats["W"] if class_type == "2" else 2 * self.stats["W"]
         self.mp = self.max_mp
 
-        # Skills (still using text for now)
-        skills = load_file("skills.txt")
-        for skill_line in skills:
-            parts = skill_line[1:-1].split()
-            class_type_skill, level_req, name = parts[0], int(parts[1]), parts[2]
-            if class_type_skill == self.class_type and level_req == 1 and name not in self.skills:
-                if len(self.skills) < 15:
-                    self.skills.append(name)
-                    print(f"Starting skill unlocked: {name}")
-
-    def get_total_armor_value(self):
-        total_av = 0
-        for slot, item in self.equipment.items():
-            if item:
-                _, _, scaling_stat, base_av = item
-                scaling_bonus = self.stats[scaling_stat] * 0.5
-                total_av += base_av + scaling_bonus
-        return min(total_av, 100)
+        # Load skills from JSON
+        skills_data = load_json("skills.json")["skills"]
+        for skill in skills_data:
+            if (skill["class_type"] == self.class_type and 
+                skill["level_req"] == 1 and 
+                skill["name"] not in self.skills and 
+                len(self.skills) < 15):
+                self.skills.append(skill["name"])
+                print(f"Starting skill unlocked: {skill['name']}")
 
     def get_total_armor_value(self):
         total_av = 0
@@ -94,16 +87,14 @@ class Player:
             self.max_exp = int(10 * (self.level ** 1.5))
             self.stat_points += 1
             print(f"{self.name} leveled up to {self.level}! You have {self.stat_points} stat points to allocate.")
-            skills = load_file("skills.txt")  # Still text-based
-            for skill_line in skills:
-                parts = skill_line[1:-1].split()
-                class_type_skill, level_req, name = parts[0], int(parts[1]), parts[2]
-                if (class_type_skill == self.class_type and 
-                    level_req <= self.level and 
-                    name not in self.skills and 
+            skills_data = load_json("skills.json")["skills"]
+            for skill in skills_data:
+                if (skill["class_type"] == self.class_type and 
+                    skill["level_req"] <= self.level and 
+                    skill["name"] not in self.skills and 
                     len(self.skills) < 15):
-                    self.skills.append(name)
-                    print(f"You’ve unlocked the {name} skill!")
+                    self.skills.append(skill["name"])
+                    print(f"You’ve unlocked the {skill['name']} skill!")
             self.max_hp = 10 + 2 * self.stats["S"]
             self.hp = self.max_hp
             self.max_mp = 3 * self.stats["W"] if self.class_type == "2" else 2 * self.stats["W"]
@@ -136,13 +127,12 @@ class Player:
 
 def save_game(player):
     try:
-        if getattr(sys, 'frozen', False):  # Running as .exe
+        if getattr(sys, 'frozen', False):
             base_path = os.path.dirname(sys.executable)
-        else:  # Running as .py
+        else:
             base_path = os.path.dirname(__file__)
         save_path = os.path.join(base_path, "save.json")
 
-        # Prepare data to save
         save_data = {
             "name": player.name,
             "level": player.level,
@@ -167,11 +157,13 @@ def save_game(player):
             "tavern_buff": player.tavern_buff,
             "rage_turns": player.rage_turns,
             "skills": player.skills,
-            "skill_effects": player.skill_effects
+            "skill_effects": player.skill_effects,
+            "active_quests": player.active_quests,
+            "completed_quests": player.completed_quests
         }
 
         with open(save_path, "w") as f:
-            json.dump(save_data, f, indent=4)  # Use indent=4 for readability (optional)
+            json.dump(save_data, f, indent=4)
         print("Game saved successfully as save.json.")
     except Exception as e:
         print(f"Error saving game: {e}")
@@ -179,19 +171,16 @@ def save_game(player):
 
 def load_game():
     try:
-        if getattr(sys, 'frozen', False):  # Running as .exe
+        if getattr(sys, 'frozen', False):
             base_path = os.path.dirname(sys.executable)
-        else:  # Running as .py
+        else:
             base_path = os.path.dirname(__file__)
         save_path = os.path.join(base_path, "save.json")
 
         with open(save_path, "r") as f:
             save_data = json.load(f)
 
-        # Create a new player with name and class_type
         player = Player(save_data["name"], save_data["class_type"])
-
-        # Update all attributes from saved data
         player.level = save_data["level"]
         player.exp = save_data["exp"]
         player.max_exp = save_data["max_exp"]
@@ -214,12 +203,13 @@ def load_game():
         player.rage_turns = save_data["rage_turns"]
         player.skills = save_data["skills"]
         player.skill_effects = save_data["skill_effects"]
+        player.active_quests = save_data.get("active_quests", [])
+        player.completed_quests = save_data.get("completed_quests", []) 
 
-        # Recalculate derived stats (HP, MP) based on current stats
         player.max_hp = 10 + 2 * player.stats["S"]
-        player.hp = min(player.hp, player.max_hp)  # Ensure HP doesn’t exceed max
+        player.hp = min(player.hp, player.max_hp)
         player.max_mp = 3 * player.stats["W"] if player.class_type == "2" else 2 * player.stats["W"]
-        player.mp = min(player.mp, player.max_mp)  # Ensure MP doesn’t exceed max
+        player.mp = min(player.mp, player.max_mp)
 
         print("Game loaded successfully from save.json.")
         return player

@@ -223,6 +223,15 @@ def award_treasure_chest(player):
             print(f"The ward backfires, dealing {round(damage, 1)} damage!")
         time.sleep(0.5)
 
+def update_kill_count(player, monster_name):
+    quests = load_json("quest.json")["quests"]
+    
+    for quest in player.active_quests:
+        quest_info = next((q for q in quests if q["quest_name"] == quest["quest_name"]), None)
+        if quest_info and quest_info["target_monster"] == monster_name:
+            quest["kill_count"] = quest.get("kill_count", 0) + 1
+            print(f"Progress on '{quest['quest_name']}': {quest['kill_count']}/{quest_info['kill_count_required']} {monster_name}s killed.")
+    # No need to save here; game.py will save via save_game(player) after adventure
 
 def main():
     if getattr(sys, 'frozen', False):
@@ -326,8 +335,7 @@ def main():
         choice = input("Selection: ")
 
         if choice == "1":
-            with open("locations.txt", "r") as f:
-                lines = [line.strip() for line in f.readlines()]
+            lines = load_file("locations.txt")
             main_areas = []
             sub_areas = []
             current_section = None
@@ -345,15 +353,8 @@ def main():
             if not sub_areas:
                 sub_areas = ["Castle", "Cave", "Village"]
                 print("Warning: No sub areas loaded from locations.txt, using defaults.")
-            
-            main_area = random.choice(main_areas)
-            sub_area = random.choice(sub_areas)
-            location = f"{main_area} {sub_area}"
-            print(f"\nYou set out for the {location}!")
 
-            with open("save.json", "r") as file:
-                player_data = json.load(file)
-            active_quests = player_data.get("active_quests", [])
+            active_quests = player.active_quests
 
             if active_quests:
                 print("1. Random Adventure | 2. Quest Adventure")
@@ -362,8 +363,11 @@ def main():
                 adventure_type = "1"
 
             if adventure_type == "1":
-                with open("monster.json", "r") as file:
-                    monsters = load_json("monster.json")["monsters"]
+                main_area = random.choice(main_areas)
+                sub_area = random.choice(sub_areas)
+                location = f"{main_area} {sub_area}"
+                print(f"\nYou set out for the {location}!")
+                monsters = load_json("monster.json")["monsters"]  # Access the "monsters" list
                 encounter_pool = []
                 for m in monsters:
                     if not m["rare"]:  # Exclude bosses
@@ -407,7 +411,7 @@ def main():
                                     return
                                 if "Victory" in result:
                                     completed_encounters += 1
-                                    update_kill_count(player_data, result.split("against ")[1])
+                                    update_kill_count(player, result.split("against ")[1])
                             else:
                                 print("You avoid the boss and head back to town.")
                                 time.sleep(0.5)
@@ -437,7 +441,7 @@ def main():
 
                         if Encounters and "Victory" in Encounters[-1]:
                             completed_encounters += 1
-                            update_kill_count(player_data, monster["name"])
+                            update_kill_count(player, monster["name"])
                             drop_item = None
                             gear = load_json("gear.json")
                             consumables = load_json("consumables.json")
@@ -499,6 +503,7 @@ def main():
                     if choice != "2":
                         for _ in range(len(treasure_inventory)):
                             award_treasure_chest(player)
+                    save_game(player)
 
             elif adventure_type == "2":
                 quests = load_json("quest.json")["quests"]
@@ -526,7 +531,7 @@ def main():
                         time.sleep(1)
                         return
                     if "Victory" in result:
-                        update_kill_count(player_data, target_monster["name"])
+                        update_kill_count(player, target_monster["name"])
                     else:
                         print("You fled or failed the encounter. Quest progress unchanged.")
                         break
@@ -617,12 +622,11 @@ def main():
             time.sleep(0.5)
 
 def guild_menu(player):
-    player_data = load_json("save.json")
     quests = load_json("quest.json")["quests"]
     lore_data = load_json("lore.json")["lore"]
     
-    active_quests = player_data.get("active_quests", [])
-    completed_quests = player_data.get("completed_quests", [])
+    active_quests = player.active_quests  # Use player attribute
+    completed_quests = player.completed_quests if hasattr(player, "completed_quests") else []  # Fallback until player.py is updated
     
     print("\n=== Adventurers' Guild ===")
     print("1. Accept Quest | 2. Turn In Quest | 0. Return")
@@ -652,9 +656,7 @@ def guild_menu(player):
             if 1 <= int(quest_choice) <= len(available_quests):
                 selected_quest = available_quests[int(quest_choice) - 1]
                 active_quests.append({"quest_name": selected_quest["quest_name"], "kill_count": 0})
-                player_data["active_quests"] = active_quests
-                with open("save.json", "w") as file:
-                    json.dump(player_data, file, indent=4)
+                player.active_quests = active_quests  # Update player object
                 print(f"Accepted quest: {selected_quest['quest_name']}")
                 time.sleep(0.5)
                 
@@ -682,35 +684,22 @@ def guild_menu(player):
             selected_quest = active_quests[int(turn_in_choice) - 1]
             quest_info = next(q for q in quests if q["quest_name"] == selected_quest["quest_name"])
             if selected_quest["kill_count"] >= quest_info["kill_count_required"]:
-                player.gold += int(quest_info["quest_reward"].split()[0])
-                player.inventory.append(quest_info["quest_reward"].split(", ")[1])
+                reward_parts = quest_info["quest_reward"].split(", ")
+                gold_amount = int(reward_parts[0])
+                item_reward = reward_parts[1] if len(reward_parts) > 1 else None
+                player.gold += gold_amount
+                if item_reward:
+                    player.inventory.append(item_reward)
                 print(f"Quest '{quest_info['quest_name']}' completed! Reward: {quest_info['quest_reward']}")
                 active_quests.remove(selected_quest)
-                completed_quests.append(quest_info["quest_name"])
-                player_data["active_quests"] = active_quests
-                player_data["completed_quests"] = completed_quests
-                save_path = get_resource_path("save.json")
-                with open(save_path, "w") as file:
-                    json.dump(data, file, indent=4)
+                if not hasattr(player, "completed_quests"):
+                    player.completed_quests = []  # Initialize if not present
+                player.completed_quests.append(quest_info["quest_name"])
+                player.active_quests = active_quests  # Update player object
                 time.sleep(0.5)
             else:
                 print(f"Quest '{quest_info['quest_name']}' not complete yet. Kills: {selected_quest['kill_count']}/{quest_info['kill_count_required']}")
                 time.sleep(0.5)
-
-def update_kill_count(player_data, monster_name):
-    with open("save.json", "r") as file:
-        data = load_json("save.json")
-    
-    for quest in data.get("active_quests", []):
-        with open("quest.json", "r") as q_file:
-            quests = json.load(q_file)["quests"]
-            quest_info = next(q for q in quests if q["quest_name"] == quest["quest_name"])
-            if quest_info["target_monster"] == monster_name:
-                quest["kill_count"] = quest.get("kill_count", 0) + 1
-                print(f"Progress on '{quest['quest_name']}': {quest['kill_count']}/{quest_info['kill_count_required']} {monster_name}s killed.")
-    
-    with open("save.json", "w") as file:
-        json.dump(data, file, indent=4)
 
 if __name__ == "__main__":
     main()
