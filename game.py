@@ -617,12 +617,9 @@ def main():
             time.sleep(0.5)
 
 def guild_menu(player):
-    with open("save.json", "r") as file:
-        player_data = load_json("save.json")
-    with open("quest.json", "r") as file:
-        quests = load_json("quest.json")["quests"]
-    with open("lore.json", "r") as file:
-        lore_data = load_json("lore.json")["lore"]
+    player_data = load_json("save.json")
+    quests = load_json("quest.json")["quests"]
+    lore_data = load_json("lore.json")["lore"]
     
     active_quests = player_data.get("active_quests", [])
     completed_quests = player_data.get("completed_quests", [])
