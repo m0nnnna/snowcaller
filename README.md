@@ -227,3 +227,13 @@ Notes:
 Use in events (e.g., "source": "gear.json") or quest rewards.
 
 "drop_rate": Chance of dropping (used as weight in events).
+
+**XP Give**
+
+Inside of combat.py there is a line
+```python
+xp_gain = level * 10  # XP calculation!
+```
+This will control the base XP and rate per level.
+
+A value of 10 is 10 base and increased by 10 per level a level 3 will be 30 XP.
