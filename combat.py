@@ -273,7 +273,7 @@ def combat(player, boss_fight=False, monster_name=None):
     if player.hp <= 0:
         return "Defeat"
     elif monster_hp <= 0:
-        xp = level * 1 * (1.5 if monster_stats["rare"] or boss_fight else 1)
+        xp = level * 2 * (1.5 if monster_stats["rare"] or boss_fight else 1)
         gold = random.randint(level * 2, level * 5) * (2 if monster_stats["rare"] or boss_fight else 1)
         if random.random() < monster_stats["gold_chance"]:
             player.gold += gold

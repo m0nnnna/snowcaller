@@ -28,7 +28,7 @@
    python game.py
    ```
 4. Begin Your Journey
-select "New Game" for an intro lore and character creation, or "Load Game" to pick up where you left off.
+select "New Game" for an intro lore and character creation, or "Load Game" to pick up where you left off. Make sure to full screen your terminal! 
 
 **Controls**
 Main Menu: Use 1-8 for:

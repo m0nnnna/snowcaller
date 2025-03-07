@@ -11,12 +11,21 @@
       "stat": "S"
     },
     {
+      "class_type": "1",
+      "level_req": "1",
+      "name": "Over Head Swing"
+      "base_dmg": 8,
+      "effect": "direct_damage",
+      "mp_cost": 2,
+      "duration": 0,
+      "stat": "S"
+    {
       "class_type": "2",
       "level_req": 1,
       "name": "Fireball",
       "base_dmg": 5,
       "effect": "direct_damage",
-      "mp_cost": 5,
+      "mp_cost": 1,
       "duration": 0,
       "stat": "I"
     },
@@ -26,7 +35,7 @@
       "name": "Heal",
       "base_dmg": 10,
       "effect": "heal",
-      "mp_cost": 6,
+      "mp_cost": 3,
       "duration": 0,
       "stat": "W"
     },

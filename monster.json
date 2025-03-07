@@ -4,10 +4,10 @@
       "name": "Goblin",
       "stats": {"S": 2, "A": 2, "I": 1, "W": 1, "L": 1},
       "level_range": {"min": 1, "max": 3},
-      "damage_range": {"min": 5, "max": 8},
+      "damage_range": {"min": 3, "max": 8},
       "spawn_chance": 25,
       "gold_chance": 10,
-      "armor_value": 20,
+      "armor_value": 15,
       "hp_range": {"min": 12, "max": 15.1},
       "rare": false,
       "notes": "Easy starter, minor AV added."
@@ -19,8 +19,8 @@
       "damage_range": {"min": 6, "max": 9},
       "spawn_chance": 15,
       "gold_chance": 35,
-      "armor_value": 25,
-      "hp_range": {"min": 9, "max": 15},
+      "armor_value": 20,
+      "hp_range": {"min": 9, "max": 12},
       "rare": false,
       "notes": "Agile, low damage, higher gold chance."
     },
