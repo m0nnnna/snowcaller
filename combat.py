@@ -1,7 +1,7 @@
 import random
 import time
 import json
-from utils import load_file, parse_stats
+from utils import load_file, load_json, parse_stats
 from items import use_item
 
 def get_weapon_damage_range(player):
@@ -62,8 +62,12 @@ def combat(player, boss_fight=False, monster_name=None):
     
     # Set level range: restrict to ±2 of player level unless it's a quest boss
     if not is_quest_boss:
-        min_level = max(monster_stats["level_range"]["min"], player.level - 2)
-        max_level = min(monster_stats["level_range"]["max"], player.level + 2)
+        base_min = monster_stats["level_range"]["min"]
+        base_max = monster_stats["level_range"]["max"]
+        min_level = max(base_min, player.level - 2)
+        max_level = min(base_max, player.level + 2)
+        if min_level > max_level:  # Swap if inverted
+            min_level, max_level = max_level, min_level
     else:
         min_level = monster_stats["level_range"]["min"]
         max_level = monster_stats["level_range"]["max"]

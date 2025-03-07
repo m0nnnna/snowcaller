@@ -3,13 +3,13 @@ import sys
 import time
 import random
 import json
+import importlib
 from player import Player, save_game, load_game
 from combat import combat
 from shop import shop_menu, parse_shop_item, calculate_price
 from tavern import tavern_menu
 from events import random_event
 from utils import load_json, load_file, parse_stats, get_resource_path
-
 
 def load_json(file_path):
     try:
@@ -289,8 +289,7 @@ def main():
 
         if choice == "1":
             with open("locations.txt", "r") as f:
-                lines = load_file("locations.txt")
-            
+                lines = [line.strip() for line in f.readlines()]
             main_areas = []
             sub_areas = []
             current_section = None
@@ -330,8 +329,14 @@ def main():
                 encounter_pool = []
                 for m in monsters:
                     if not m["rare"]:  # Exclude bosses
-                        encounter_pool.extend([m] * m["spawn_chance"])
-                
+                        min_monster_level = m["level_range"]["min"]
+                        max_monster_level = m["level_range"]["max"]
+                        if (min_monster_level <= player.level + 2 and max_monster_level >= player.level - 2):
+                            encounter_pool.extend([m] * m["spawn_chance"])
+                if not encounter_pool:
+                    print("Warning: No suitable monsters found for your level. Using fallback.")
+                    encounter_pool = [m for m in monsters if not m["rare"]][:1]  # Fallback to first non-rare
+
                 time.sleep(0.5)
                 max_encounters = random.randint(2, 10)
                 boss_fight = False
@@ -403,19 +408,19 @@ def main():
                             for item in gear:
                                 if (player.level >= item["level_range"]["min"] and 
                                     player.level <= item["level_range"]["max"] and 
-                                    item["drop_rate"] > 0 and 
-                                    (not item["boss_only"] or boss_fight)):
+                                    item.get("drop_rate", 0) > 0 and
+                                    (not item.get("boss_only", False) or boss_fight)):
                                     valid_drops.append((item["name"], item["drop_rate"]))
 
                             for item in consumables:
                                 if (player.level >= item["level_range"]["min"] and 
                                     player.level <= item["level_range"]["max"] and 
-                                    item["drop_rate"] > 0 and 
+                                    item.get("drop_rate", 0) > 0 and  
                                     (not item["boss_only"] or boss_fight)):
                                     valid_drops.append((item["name"], item["drop_rate"]))
 
-                            print(f"Player Level: {player.level}")
-                            print(f"Valid Drops: {valid_drops}")
+ #                           print(f"Player Level: {player.level}")
+ #                           print(f"Valid Drops: {valid_drops}")
 
                             if valid_drops and random.random() < 0.25:
                                 items = [item[0] for item in valid_drops]
