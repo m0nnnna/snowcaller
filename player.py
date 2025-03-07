@@ -74,7 +74,7 @@ class Player:
         for slot, item in self.equipment.items():
             if item:
                 _, _, scaling_stat, base_av = item
-                scaling_bonus = self.stats[scaling_stat] * 0.5
+                scaling_bonus = self.stats[scaling_stat] * 0.1
                 total_av += base_av + scaling_bonus
         return min(total_av, 100)
 

@@ -222,7 +222,7 @@
     "modifier": "A",
     "stats": {"S": 0, "A": 1, "I": 0, "W": 0, "L": 0},
     "damage": null,
-    "armor_value": 4,
+    "armor_value": 0.5,
     "drop_rate": 0.0,
     "gold": 0,
     "boss_only": false
@@ -234,7 +234,7 @@
     "modifier": "A",
     "stats": {"S": 0, "A": 1, "I": 0, "W": 0, "L": 0},
     "damage": null,
-    "armor_value": 8,
+    "armor_value": 2,
     "drop_rate": 0.0,
     "gold": 0,
     "boss_only": false
@@ -258,7 +258,7 @@
     "modifier": "A",
     "stats": {"S": 0, "A": 1, "I": 0, "W": 0, "L": 0},
     "damage": null,
-    "armor_value": 5,
+    "armor_value": 1,
     "drop_rate": 0.0,
     "gold": 0,
     "boss_only": false
@@ -270,7 +270,7 @@
     "modifier": "A",
     "stats": {"S": 0, "A": 1, "I": 0, "W": 0, "L": 0},
     "damage": null,
-    "armor_value": 3,
+    "armor_value": 0.5,
     "drop_rate": 0.0,
     "gold": 0,
     "boss_only": false
@@ -282,7 +282,7 @@
     "modifier": "A",
     "stats": {"S": 0, "A": 1, "I": 0, "W": 0, "L": 0},
     "damage": null,
-    "armor_value": 3,
+    "armor_value": 0.5,
     "drop_rate": 0.0,
     "gold": 0,
     "boss_only": false
