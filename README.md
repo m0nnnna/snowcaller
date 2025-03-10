@@ -23,11 +23,22 @@
    cd snowcaller-main
    ```
 2. **Install python 3.x**
-3. **Launch the Game**
+3. **Install Requests package**
+This game has an automatic update feature you would need to ensure both python and git are installed on your system.
+For Windows 
+```bash
+python -m pip install requests
+```
+For Linux/macOS
+```bash
+pip install requests
+```
+This will allow the game to prompt you to update if a new commit is made.
+4. **Launch the Game**
    ```bash
    python game.py
    ```
-4. Begin Your Journey
+5. Begin Your Journey
 select "New Game" for an intro lore and character creation, or "Load Game" to pick up where you left off. Make sure to full screen your terminal! 
 
 **Controls**
