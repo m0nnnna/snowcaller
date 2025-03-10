@@ -1,8 +1,16 @@
 import random
 import time
 import json
-from utils import load_json, parse_stats  # Removed load_file since we’re not using skills.txt
+import os
+from utils import load_json, parse_stats
 from items import use_item
+
+def load_art(art_file):
+    art_path = os.path.join("art", art_file)
+    if os.path.exists(art_path):
+        with open(art_path, "r") as f:
+            return f.read()
+    return None  # Return None if file doesn’t exist, no error message
 
 def get_weapon_damage_range(player):
     weapon = player.equipment.get("main_hand")
@@ -18,7 +26,7 @@ def get_weapon_damage_range(player):
     
     if weapon:
         weapon_name, stats, modifier, armor_value = weapon
-        gear_data = load_json("gear.json")  # Use load_json instead of with open
+        gear_data = load_json("gear.json")
         weapon_data = next((g for g in gear_data if g["name"] == weapon_name and g["slot"] == "main_hand"), None)
         if weapon_data and weapon_data["damage"]:
             try:
@@ -34,7 +42,7 @@ def get_weapon_damage_range(player):
     return (1 + damage_bonus, 2 + damage_bonus)
 
 def load_monster_from_json(monster_name=None, boss_fight=False, player_level=None):
-    monsters = load_json("monster.json")["monsters"]  # Use load_json instead of with open
+    monsters = load_json("monster.json")["monsters"]
     
     if monster_name:
         monster = next((m for m in monsters if m["name"] == monster_name), None)
@@ -80,7 +88,13 @@ def combat(player, boss_fight=False, monster_name=None):
     else:
         name = monster_stats["name"]
     
-    print(f"\nA {name} appears! HP: {round(monster_hp, 1)}")
+    # Display monster appearance with optional art
+    print(f"\nA {name} appears!")
+    if "art_file" in monster_stats:
+        art = load_art(monster_stats["art_file"])
+        if art:  # Only print if art is successfully loaded
+            print(art)
+    print(f"HP: {round(monster_hp, 1)}")
     time.sleep(0.5)
 
     while monster_hp > 0 and player.hp > 0:
@@ -257,10 +271,10 @@ def combat(player, boss_fight=False, monster_name=None):
 
             # Apply damage-over-time effects
             for skill_name, turns in list(player.skill_effects.items()):
-                if turns > 0 and "damage_over_time" in skill["effect"]:  # Check effect type
+                if turns > 0:
                     skills = load_json("skills.json")["skills"]
                     for skill in skills:
-                        if skill["name"] == skill_name:
+                        if skill["name"] == skill_name and skill["effect"] == "damage_over_time":
                             base_dmg = skill["base_dmg"]
                             stat = skill["stat"]
                             dot_dmg = base_dmg + (int(player.stats[stat] * 0.2) if stat != "none" else 0)

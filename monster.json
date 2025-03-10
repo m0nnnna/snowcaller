@@ -10,7 +10,8 @@
       "armor_value": 15,
       "hp_range": {"min": 12, "max": 15.1},
       "rare": false,
-      "notes": "Easy starter, minor AV added."
+      "notes": "Easy starter, minor AV added.",
+      "art_file": "goblin.txt"
     },
     {
       "name": "Kobold",
@@ -22,7 +23,8 @@
       "armor_value": 20,
       "hp_range": {"min": 9, "max": 12},
       "rare": false,
-      "notes": "Agile, low damage, higher gold chance."
+      "notes": "Agile, low damage, higher gold chance.",
+      "art_file": "kobold.txt"
     },
     {
       "name": "Skeleton",
@@ -34,7 +36,8 @@
       "armor_value": 10,
       "hp_range": {"min": 14, "max": 15.4},
       "rare": false,
-      "notes": "Slightly tougher, minor AV."
+      "notes": "Slightly tougher, minor AV.",
+      "art_file": "skeleton.txt"
     },
     {
       "name": "Bandit",
@@ -46,7 +49,8 @@
       "armor_value": 5,
       "hp_range": {"min": 16, "max": 17.8},
       "rare": false,
-      "notes": "Early loot-focused foe."
+      "notes": "Early loot-focused foe.",
+      "art_file": "bandit.txt"
     },
     {
       "name": "Orc",
@@ -58,7 +62,8 @@
       "armor_value": 15,
       "hp_range": {"min": 16, "max": 18.3},
       "rare": false,
-      "notes": "Balanced early-mid threat."
+      "notes": "Balanced early-mid threat.",
+      "art_file": "orc.txt"
     },
     {
       "name": "Giant Rat",
@@ -70,7 +75,8 @@
       "armor_value": 0,
       "hp_range": {"min": 14, "max": 16},
       "rare": false,
-      "notes": "Fast, no armor, easy kill."
+      "notes": "Fast, no armor, easy kill.",
+      "art_file": "giantrat.txt"
     },
     {
       "name": "Troll",
@@ -82,7 +88,8 @@
       "armor_value": 20,
       "hp_range": {"min": 20, "max": 23.4},
       "rare": false,
-      "notes": "Mid-tier tank, higher gold."
+      "notes": "Mid-tier tank, higher gold.",
+      "art_file": "troll.txt"
     },
     {
       "name": "Harpy",
@@ -94,7 +101,8 @@
       "armor_value": 10,
       "hp_range": {"min": 14, "max": 16.4},
       "rare": false,
-      "notes": "Agile flyer, moderate threat."
+      "notes": "Agile flyer, moderate threat.",
+      "art_file": "harpy.txt"
     },
     {
       "name": "Zombie",
@@ -106,7 +114,8 @@
       "armor_value": 15,
       "hp_range": {"min": 18, "max": 21},
       "rare": false,
-      "notes": "Slow but durable."
+      "notes": "Slow but durable.",
+      "art_file": "zombie.txt"
     },
     {
       "name": "Wolf Pack",
@@ -118,7 +127,8 @@
       "armor_value": 5,
       "hp_range": {"min": 16, "max": 18.9},
       "rare": false,
-      "notes": "Fast, pack tactics, loot-focused."
+      "notes": "Fast, pack tactics, loot-focused.",
+      "art_file": "wolfp.txt"
     },
     {
       "name": "Orc Warrior",
@@ -130,7 +140,8 @@
       "armor_value": 25,
       "hp_range": {"min": 20, "max": 24.5},
       "rare": false,
-      "notes": "Stronger orc variant."
+      "notes": "Stronger orc variant.",
+      "art_file": "orcwarrior.txt"
     },
     {
       "name": "Cultist",
@@ -142,7 +153,8 @@
       "armor_value": 10,
       "hp_range": {"min": 14, "max": 17.5},
       "rare": false,
-      "notes": "Magic-focused, low HP."
+      "notes": "Magic-focused, low HP.",
+      "art_file": "cultist.txt"
     },
     {
       "name": "Golem",
@@ -154,7 +166,8 @@
       "armor_value": 30,
       "hp_range": {"min": 22, "max": 28},
       "rare": false,
-      "notes": "Tanky, high AV."
+      "notes": "Tanky, high AV.",
+      "art_file": "golem.txt"
     },
     {
       "name": "Minotaur",
@@ -166,7 +179,8 @@
       "armor_value": 25,
       "hp_range": {"min": 24, "max": 30},
       "rare": false,
-      "notes": "Strong melee threat."
+      "notes": "Strong melee threat.",
+      "art_file": "minotaur.txt"
     },
     {
       "name": "Specter",
@@ -178,7 +192,8 @@
       "armor_value": 15,
       "hp_range": {"min": 16, "max": 21},
       "rare": false,
-      "notes": "Magical, elusive."
+      "notes": "Magical, elusive.",
+      "art_file": "specter.txt"
     },
     {
       "name": "Goblin Chieftain",
@@ -190,7 +205,8 @@
       "armor_value": 20,
       "hp_range": {"min": 25.5, "max": 29.1},
       "rare": true,
-      "notes": "Early boss, manageable with starting gear."
+      "notes": "Early boss, manageable with starting gear.",
+      "art_file": "goblinchieftain.txt"
     },
     {
       "name": "Ogre King",
@@ -202,7 +218,8 @@
       "armor_value": 25,
       "hp_range": {"min": 33, "max": 39},
       "rare": true,
-      "notes": "Mid-tier, slight L tweak for loot."
+      "notes": "Mid-tier, slight L tweak for loot.",
+      "art_file": "ogreking.txt"
     },
     {
       "name": "Demon Lord",
@@ -214,7 +231,8 @@
       "armor_value": 30,
       "hp_range": {"min": 39, "max": 46.5},
       "rare": true,
-      "notes": "Strong mid-tier, unchanged."
+      "notes": "Strong mid-tier, unchanged.",
+      "art_file": "demonlord.txt"
     },
     {
       "name": "Necromancer",
@@ -226,7 +244,8 @@
       "armor_value": 25,
       "hp_range": {"min": 30, "max": 39},
       "rare": true,
-      "notes": "Magic boss, mid-high tier."
+      "notes": "Magic boss, mid-high tier.",
+      "art_file": "necromancer.txt"
     },
     {
       "name": "Ancient Wyrm",
@@ -238,7 +257,8 @@
       "armor_value": 40,
       "hp_range": {"min": 63, "max": 81},
       "rare": true,
-      "notes": "High-tier, balanced as is."
+      "notes": "High-tier, balanced as is.",
+      "art_file": "ancientwyrm.txt"
     },
     {
       "name": "Hydra",
@@ -250,7 +270,8 @@
       "armor_value": 35,
       "hp_range": {"min": 51, "max": 63},
       "rare": true,
-      "notes": "Multi-headed beast, high-tier."
+      "notes": "Multi-headed beast, high-tier.",
+      "art_file": "hydra.txt"
     },
     {
       "name": "Dragon",
@@ -262,7 +283,8 @@
       "armor_value": 30,
       "hp_range": {"min": 30, "max": 37},
       "rare": true,
-      "notes": "Rare, unbeatable early."
+      "notes": "Rare, unbeatable early.",
+      "art_file": "dragon.txt"
     }
   ]
 }
