@@ -17,7 +17,7 @@ class Player:
         self.class_type = class_type
         self.pending_xp = 0
         self.stat_points = 0
-        self.gold = 0
+        self.gold = 100
         self.shop_stock = {}
         self.tavern_buff = None
         self.rage_turns = 0
