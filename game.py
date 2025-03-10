@@ -11,229 +11,29 @@ from tavern import tavern_menu
 from events import random_event
 from utils import load_json, load_file, load_art_file, parse_stats, get_resource_path
 
-def load_json(file_path):
-    try:
-        with open(file_path, 'r') as f:
-            return json.load(f)
-    except Exception as e:
-        print(f"Error loading {file_path}: {e}")
-        return []
+# Add the current directory to sys.path to find update.py
+sys.path.append(os.path.dirname(__file__))
 
+# Import the update checker
+try:
+    from update import check_for_updates
+except ImportError:
+    def check_for_updates():
+        pass  # Dummy function if update.py is missing
+    print("Warning: update.py not found. Skipping update checks.")
 
-def parse_gear_drop_info(gear_line):
-    parts = gear_line.split()
-    if not parts or not parts[-1].startswith("[") or not parts[-1].endswith("]"):
-        return (1, 1), 0.0, False
-    
-    name = " ".join(parts[:-1])
-    bracket_str = parts[-1][1:-1]
-    bracket = bracket_str.split()
-    
-    is_rare = False
-    if bracket and bracket[-1] == "[R]":
-        bracket.pop()
-        is_rare = True
-    
-    if len(bracket) != 9:  # Expect 9 elements: L:1-10, slot, scaling_stat, stats, damage, AV:value, drop_rate, gold
-        print(f"Warning: Invalid gear format: {gear_line}")
-        return (1, 1), 0.0, False
-    
-    try:
-        level_part, slot, scaling_stat, stats, damage, armor_part, drop_rate, gold, _ = bracket
-        min_level, max_level = map(int, level_part[2:].split("-"))
-        
-        if not armor_part.startswith("AV:"):
-            raise ValueError("Invalid armor value format")
-        armor_value = int(armor_part[3:])
-        
-        if not drop_rate.endswith("%"):
-            raise ValueError("Invalid drop rate format")
-        drop_chance = float(drop_rate[:-1]) / 100
-        
-        if scaling_stat not in ["S", "A", "I", "W", "L"]:
-            raise ValueError("Invalid scaling stat format")
-        
-        return (min_level, max_level), drop_chance, is_rare
-    except (ValueError, IndexError) as e:
-        print(f"Error parsing gear '{gear_line}': {e}. Using defaults.")
-        return (1, 1), 0.0, False
-
-
-def display_inventory(player):
-    gear = load_json("gear.json")
-    standard_items = [item for item in player.inventory if not any(item == g["name"] for g in gear)]
-    print("\nStandard Items:", ", ".join(standard_items) if standard_items else "No standard items in inventory!")
-    
-    print("Equipment:")
-    for slot, item in player.equipment.items():
-        if item:
-            item_name, stats, scaling_stat, armor_value = item
-            stat_display = ", ".join([f"+{val} {stat[:3].capitalize()}" for stat, val in stats.items() if val > 0])
-            damage = next((g["damage"] for g in gear if g["name"] == item_name), "none")
-            parts = [stat_display] if stat_display else []
-            parts.append(f"AV:{armor_value}")
-            if damage != "none":
-                parts.append(f"Dmg:{damage}")
-            display_str = f"{item_name} ({', '.join(parts)})"
-            print(f"{slot.capitalize()}: {display_str}")
-        else:
-            print(f"{slot.capitalize()}: None")
-
-
-def inventory_menu(player):
-    gear = load_json("gear.json")
-    while True:
-        display_inventory(player)
-        print("\n1. Change Gear | 2. Back")
-        time.sleep(0.5)
-        choice = input("Selection: ")
-        
-        if choice == "1":
-            print("\nSelect slot to change:")
-            slots = list(player.equipment.keys())
-            for idx, slot in enumerate(slots, 1):
-                print(f"{idx}. {slot.capitalize()}")
-            time.sleep(0.5)
-            slot_choice = input("Selection (or 0 to back): ")
-            
-            if slot_choice == "0":
-                continue
-            try:
-                slot_idx = int(slot_choice) - 1
-                if 0 <= slot_idx < len(slots):
-                    selected_slot = slots[slot_idx]
-                    compatible_items = [item for item in player.inventory if any(g["name"] == item and g["slot"] == selected_slot for g in gear)]
-                    if not compatible_items and not player.equipment[selected_slot]:
-                        print("No compatible gear for this slot!")
-                        time.sleep(0.5)
-                        continue
-                    
-                    print(f"\nAvailable gear for {selected_slot.capitalize()}:")
-                    for idx, item in enumerate(compatible_items, 1):
-                        g = next(g for g in gear if g["name"] == item)
-                        stats = g["stats"]
-                        stat_display = ", ".join([f"+{val} {stat[:3].capitalize()}" for stat, val in stats.items() if val > 0])
-                        armor_value = g["armor_value"]
-                        damage = g["damage"]
-                        parts = [stat_display] if stat_display else []
-                        parts.append(f"AV:{armor_value}")
-                        if damage:
-                            parts.append(f"Dmg:{damage}")
-                        display_str = f"{item} ({', '.join(parts)})"
-                        print(f"{idx}. {display_str}")
-                    print(f"{len(compatible_items) + 1}. Remove")
-                    print(f"{len(compatible_items) + 2}. Back")
-                    time.sleep(0.5)
-                    gear_choice = input("Selection: ")
-                    
-                    try:
-                        gear_idx = int(gear_choice) - 1
-                        if gear_idx == len(compatible_items):  # Remove
-                            if player.equipment[selected_slot]:
-                                old_item = player.equipment[selected_slot][0]
-                                player.inventory.append(old_item)
-                                for stat, val in player.equipment[selected_slot][1].items():
-                                    player.stats[stat] -= val
-                                player.equipment[selected_slot] = None
-                                print(f"Removed {old_item} from {selected_slot}.")
-                                time.sleep(0.5)
-                            else:
-                                print("Nothing equipped in this slot!")
-                                time.sleep(0.5)
-                        elif gear_idx == len(compatible_items) + 1:  # Back
-                            continue
-                        elif 0 <= gear_idx < len(compatible_items):
-                            new_item = compatible_items[gear_idx]
-                            g = next(g for g in gear if g["name"] == new_item)
-                            if player.equipment[selected_slot]:
-                                old_item = player.equipment[selected_slot][0]
-                                player.inventory.append(old_item)
-                                for stat, val in player.equipment[selected_slot][1].items():
-                                    player.stats[stat] -= val
-                            player.equipment[selected_slot] = (new_item, g["stats"], g["modifier"], g["armor_value"])
-                            for stat, val in g["stats"].items():
-                                player.stats[stat] += val
-                            player.inventory.remove(new_item)
-                            print(f"Equipped {new_item} to {selected_slot}.")
-                            time.sleep(0.5)
-                        else:
-                            print("Invalid selection!")
-                            time.sleep(0.5)
-                    except ValueError:
-                        print("Invalid input!")
-                        time.sleep(0.5)
-                else:
-                    print("Invalid slot!")
-                    time.sleep(0.5)
-            except ValueError:
-                print("Invalid input!")
-                time.sleep(0.5)
-        elif choice == "2":
-            break
-        else:
-            print("Invalid choice!")
-            time.sleep(0.5)
-
-
-def award_treasure_chest(player):
-    treasures = load_json("treasures.json")
-    chest_type = random.choices(["unlocked", "locked", "magical"], weights=[70, 20, 10], k=1)[0]
-    print(f"\nYou find a {chest_type} treasure chest!")
-    time.sleep(0.5)
-
-    if chest_type == "unlocked":
-        valid_treasures = [(t["name"], t["drop_rate"]) for t in treasures if t["drop_rate"] > 0]
-        if valid_treasures:
-            items = random.choices([t[0] for t in valid_treasures], weights=[t[1] for t in valid_treasures], k=random.randint(1, 2))
-            gold = random.randint(10, 25)
-            player.inventory.extend(items)
-            player.gold += gold
-            print(f"You open it and find: {', '.join(items)} and {gold} gold!")
-        else:
-            print("The chest is empty!")
-        time.sleep(0.5)
-    elif chest_type == "locked":
-        if random.random() < player.stats["A"] * 0.05:
-            valid_treasures = [(t["name"], t["drop_rate"]) for t in treasures if t["drop_rate"] > 0]
-            if valid_treasures:
-                items = random.choices([t[0] for t in valid_treasures], weights=[t[1] for t in valid_treasures], k=random.randint(1, 3))
-                gold = random.randint(15, 30)
-                player.inventory.extend(items)
-                player.gold += gold
-                print(f"You pick the lock and find: {', '.join(items)} and {gold} gold!")
-            else:
-                print("You pick the lock, but the chest is empty!")
-        else:
-            print("The lock holds firm—you leave empty-handed.")
-        time.sleep(0.5)
-    elif chest_type == "magical":
-        if random.random() < player.stats["I"] * 0.05:
-            valid_treasures = [(t["name"], t["drop_rate"]) for t in treasures if t["drop_rate"] > 0]
-            if valid_treasures:
-                items = random.choices([t[0] for t in valid_treasures], weights=[t[1] for t in valid_treasures], k=random.randint(2, 4))
-                gold = random.randint(20, 40)
-                player.inventory.extend(items)
-                player.gold += gold
-                print(f"You dispel the ward and find: {', '.join(items)} and {gold} gold!")
-            else:
-                print("You dispel the ward, but the chest is empty!")
-        else:
-            damage = player.max_hp * 0.1
-            player.hp -= damage
-            print(f"The ward backfires, dealing {round(damage, 1)} damage!")
-        time.sleep(0.5)
-
-def update_kill_count(player, monster_name):
-    quests = load_json("quest.json")["quests"]
-    
-    for quest in player.active_quests:
-        quest_info = next((q for q in quests if q["quest_name"] == quest["quest_name"]), None)
-        if quest_info and quest_info["target_monster"] == monster_name:
-            quest["kill_count"] = quest.get("kill_count", 0) + 1
-            print(f"Progress on '{quest['quest_name']}': {quest['kill_count']}/{quest_info['kill_count_required']} {monster_name}s killed.")
-    # No need to save here; game.py will save via save_game(player) after adventure
+def get_resource_path(relative_path):
+    """Get absolute path to resource, works for dev and PyInstaller"""
+    if getattr(sys, 'frozen', False):
+        base_path = sys._MEIPASS
+    else:
+        base_path = os.path.dirname(__file__)
+    return os.path.join(base_path, relative_path)
 
 def main():
+    # Check for updates before anything else
+    check_for_updates()
+
     if getattr(sys, 'frozen', False):
         base_path = os.path.dirname(sys.executable)
     else:
@@ -307,14 +107,14 @@ def main():
             art_lines = load_art_file(selected_class["art_file"])
             print("\nClass Art:")
             for line in art_lines:
-                print(line)  # Default print, adds its own newline
+                print(line)
         except Exception as e:
-             print(f"Error loading {selected_class['name']} art: {e}")
-             print(f"(Imagine a grand {selected_class['name']} here!)")
+            print(f"Error loading {selected_class['name']} art: {e}")
+            print(f"(Imagine a grand {selected_class['name']} here!)")
         
         # Display class lore
         print(f"\n{selected_class['lore']}")
-        time.sleep(2)  # Pause to let the player read
+        time.sleep(2)
 
         # Proceed with player creation
         player = Player(name, class_type)
@@ -367,17 +167,17 @@ def main():
                 sub_area = random.choice(sub_areas)
                 location = f"{main_area} {sub_area}"
                 print(f"\nYou set out for the {location}!")
-                monsters = load_json("monster.json")["monsters"]  # Access the "monsters" list
+                monsters = load_json("monster.json")["monsters"]
                 encounter_pool = []
                 for m in monsters:
-                    if not m["rare"]:  # Exclude bosses
+                    if not m["rare"]:
                         min_monster_level = m["level_range"]["min"]
                         max_monster_level = m["level_range"]["max"]
                         if (min_monster_level <= player.level + 2 and max_monster_level >= player.level - 2):
                             encounter_pool.extend([m] * m["spawn_chance"])
                 if not encounter_pool:
                     print("Warning: No suitable monsters found for your level. Using fallback.")
-                    encounter_pool = [m for m in monsters if not m["rare"]][:1]  # Fallback to first non-rare
+                    encounter_pool = [m for m in monsters if not m["rare"]][:1]
 
                 time.sleep(0.5)
                 max_encounters = random.randint(2, 10)
@@ -398,8 +198,8 @@ def main():
                             boss_choice = input("Selection: ")
                             if boss_choice == "1":
                                 boss_fight = True
-                                boss_monsters = [m for m in monsters if m["rare"] and m["spawn_chance"] > 0]  # Exclude quest bosses
-                                boss = random.choice(boss_monsters) if boss_monsters else random.choice([m for m in monsters if not m["rare"]])  # Fallback to non-rare if no valid bosses
+                                boss_monsters = [m for m in monsters if m["rare"] and m["spawn_chance"] > 0]
+                                boss = random.choice(boss_monsters) if boss_monsters else random.choice([m for m in monsters if not m["rare"]])
                                 result = combat(player, True, boss["name"])
                                 Encounters.append(result)
                                 if player.hp <= 0:
@@ -460,9 +260,6 @@ def main():
                                     item.get("drop_rate", 0) > 0 and  
                                     (not item["boss_only"] or boss_fight)):
                                     valid_drops.append((item["name"], item["drop_rate"]))
-
- #                           print(f"Player Level: {player.level}")
- #                           print(f"Valid Drops: {valid_drops}")
 
                             if valid_drops and random.random() < 0.25:
                                 items = [item[0] for item in valid_drops]
@@ -620,86 +417,6 @@ def main():
         else:
             print("Invalid choice!")
             time.sleep(0.5)
-
-def guild_menu(player):
-    quests = load_json("quest.json")["quests"]
-    lore_data = load_json("lore.json")["lore"]
-    
-    active_quests = player.active_quests  # Use player attribute
-    completed_quests = player.completed_quests if hasattr(player, "completed_quests") else []  # Fallback until player.py is updated
-    
-    print("\n=== Adventurers' Guild ===")
-    print("1. Accept Quest | 2. Turn In Quest | 0. Return")
-    choice = input("Selection: ")
-
-    if choice == "1":
-        if len(active_quests) >= 5:
-            print("You’ve reached the maximum of 5 active quests.")
-            return
-        
-        available_quests = [
-            q for q in quests 
-            if player.level >= q["quest_level"] 
-            and q["quest_name"] not in [aq["quest_name"] for aq in active_quests] 
-            and q["quest_name"] not in completed_quests
-        ]
-        if not available_quests:
-            print("No new quests available.")
-        else:
-            print("\nAvailable Quests:")
-            for i, quest in enumerate(available_quests, 1):
-                print(f"{i}. {quest['quest_name']} (Level {quest['quest_level']})")
-                print(f"   {quest['quest_description']}")
-            quest_choice = input("Select a quest to accept (or 0 to return): ")
-            if quest_choice == "0":
-                return
-            if 1 <= int(quest_choice) <= len(available_quests):
-                selected_quest = available_quests[int(quest_choice) - 1]
-                active_quests.append({"quest_name": selected_quest["quest_name"], "kill_count": 0})
-                player.active_quests = active_quests  # Update player object
-                print(f"Accepted quest: {selected_quest['quest_name']}")
-                time.sleep(0.5)
-                
-                lore_entry = next((l for l in lore_data if l["quest_name"] == selected_quest["quest_name"]), None)
-                if lore_entry:
-                    lore_choice = input("Would you like to read the lore? (y/n): ").lower()
-                    if lore_choice == "y":
-                        print(f"\nLore for '{selected_quest['quest_name']}':")
-                        print(lore_entry["lore_text"])
-                        time.sleep(1)
-
-    elif choice == "2":
-        if not active_quests:
-            print("No active quests to turn in.")
-            return
-        
-        print("\nActive Quests:")
-        for i, quest in enumerate(active_quests, 1):
-            q = next(q for q in quests if q["quest_name"] == quest["quest_name"])
-            print(f"{i}. {quest['quest_name']} (Kills: {quest['kill_count']}/{q['kill_count_required']})")
-        turn_in_choice = input("Select a quest to turn in (or 0 to return): ")
-        if turn_in_choice == "0":
-            return
-        if 1 <= int(turn_in_choice) <= len(active_quests):
-            selected_quest = active_quests[int(turn_in_choice) - 1]
-            quest_info = next(q for q in quests if q["quest_name"] == selected_quest["quest_name"])
-            if selected_quest["kill_count"] >= quest_info["kill_count_required"]:
-                reward_parts = quest_info["quest_reward"].split(", ")
-                gold_amount = int(reward_parts[0])
-                item_reward = reward_parts[1] if len(reward_parts) > 1 else None
-                player.gold += gold_amount
-                if item_reward:
-                    player.inventory.append(item_reward)
-                print(f"Quest '{quest_info['quest_name']}' completed! Reward: {quest_info['quest_reward']}")
-                active_quests.remove(selected_quest)
-                if not hasattr(player, "completed_quests"):
-                    player.completed_quests = []  # Initialize if not present
-                player.completed_quests.append(quest_info["quest_name"])
-                player.active_quests = active_quests  # Update player object
-                time.sleep(0.5)
-            else:
-                print(f"Quest '{quest_info['quest_name']}' not complete yet. Kills: {selected_quest['kill_count']}/{quest_info['kill_count_required']}")
-                time.sleep(0.5)
 
 if __name__ == "__main__":
     main()
