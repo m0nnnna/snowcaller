@@ -45,7 +45,7 @@
       "level_range": {"min": 2, "max": 5},
       "damage_range": {"min": 2, "max": 4},
       "spawn_chance": 5,
-      "gold_chance": 60,
+      "gold_chance": 50,
       "armor_value": 5,
       "hp_range": {"min": 16, "max": 17.8},
       "rare": false,
