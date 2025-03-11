@@ -9,7 +9,7 @@ from combat import combat
 from shop import shop_menu, parse_shop_item, calculate_price
 from tavern import tavern_menu
 from events import random_event
-from utils import load_json, load_file, load_art_file, parse_stats, get_resource_path
+from utils import load_json, load_file, load_art_file, parse_stats, get_resource_path, save_json
 
 # Import the update checker
 try:
@@ -249,7 +249,8 @@ def award_treasure_chest(player):
         time.sleep(0.5)
 
 def update_kill_count(player, monster_name):
-    quests = load_json("quest.json")["quests"]
+    quests_data = load_json("quest.json")
+    quests = quests_data.get("quests", [])
     
     for quest in player.active_quests:
         quest_info = next((q for q in quests if q["quest_name"] == quest["quest_name"]), None)
@@ -263,17 +264,7 @@ def main():
         base_path = os.path.dirname(sys.executable)
     else:
         base_path = os.path.dirname(__file__)
-    save_path = get_resource_path("save.json")
-
-def main():
-    # Check for updates before anything else
-    check_for_updates()
-
-    if getattr(sys, 'frozen', False):
-        base_path = os.path.dirname(sys.executable)
-    else:
-        base_path = os.path.dirname(__file__)
-    save_path = get_resource_path("save.json")
+    save_path = os.path.join(base_path, "save.json")
 
     if os.path.exists(save_path):
         print("1. New Game | 2. Load Game")
@@ -291,7 +282,10 @@ def main():
         else:
             choice = "1"
     else:
+        print("No save file detected, forcing new game.")
         choice = "1"
+
+    check_for_updates()
 
     if choice == "1":
         lore_data = load_json("lore.json")
@@ -314,21 +308,25 @@ def main():
             print("Invalid class! Choose 1, 2, or 3.")
             class_type = input("Selection: ")
 
+        player = Player(name, class_type)
+        player.load_starting_data()
+        save_game(player)
+
         # Define class-specific data
         class_data = {
             "1": {
                 "name": "Warrior",
-                "art_file": os.path.join(base_path, "art", "warrior.txt"),
+                "art_file": "warrior.txt",
                 "lore": "Forged in the crucible of battle, Warriors are the unyielding shield of Snowcaller. With strength as their blade and courage as their armor, they stand against the tides of chaos that threaten the realm."
             },
             "2": {
                 "name": "Mage",
-                "art_file": os.path.join(base_path, "art", "mage.txt"),
+                "art_file": "mage.txt",
                 "lore": "Masters of the arcane, Mages wield the primal forces of ice and fire. In Snowcaller’s frozen wastes, their intellect unravels mysteries older than the mountains, bending the elements to their will."
             },
             "3": {
                 "name": "Rogue",
-                "art_file": os.path.join(base_path, "art", "rogue.txt"),
+                "art_file": "rogue.txt",
                 "lore": "Shadows of the frostbitten wilds, Rogues dance between life and death. With agility unmatched and cunning sharp as a dagger, they thrive in the unseen corners of Snowcaller, striking when least expected."
             }
         }
@@ -541,8 +539,10 @@ def main():
                     save_game(player)
 
             elif adventure_type == "2":
-                quests = load_json("quest.json")["quests"]
-                monsters = load_json("monster.json")["monsters"]
+                quests_data = load_json("quest.json")
+                monsters_data = load_json("monster.json")
+                quests = quests_data.get("quests", [])
+                monsters = monsters_data.get("monsters", [])
                 
                 print("\nActive Quests:")
                 for i, quest in enumerate(active_quests, 1):
@@ -657,11 +657,13 @@ def main():
             time.sleep(0.5)
 
 def guild_menu(player):
-    quests = load_json("quest.json")["quests"]
-    lore_data = load_json("lore.json")["lore"]
+    quests_data = load_json("quest.json")
+    lore_data = load_json("lore.json")
+    quests = quests_data.get("quests", [])
+    lore = lore_data.get("lore", [])
     
-    active_quests = player.active_quests  # Use player attribute
-    completed_quests = player.completed_quests if hasattr(player, "completed_quests") else []  # Fallback until player.py is updated
+    active_quests = player.active_quests
+    completed_quests = player.completed_quests if hasattr(player, "completed_quests") else []
     
     print("\n=== Adventurers' Guild ===")
     print("1. Accept Quest | 2. Turn In Quest | 0. Return")
@@ -688,20 +690,26 @@ def guild_menu(player):
             quest_choice = input("Select a quest to accept (or 0 to return): ")
             if quest_choice == "0":
                 return
-            if 1 <= int(quest_choice) <= len(available_quests):
-                selected_quest = available_quests[int(quest_choice) - 1]
-                active_quests.append({"quest_name": selected_quest["quest_name"], "kill_count": 0})
-                player.active_quests = active_quests  # Update player object
-                print(f"Accepted quest: {selected_quest['quest_name']}")
-                time.sleep(0.5)
-                
-                lore_entry = next((l for l in lore_data if l["quest_name"] == selected_quest["quest_name"]), None)
-                if lore_entry:
-                    lore_choice = input("Would you like to read the lore? (y/n): ").lower()
-                    if lore_choice == "y":
-                        print(f"\nLore for '{selected_quest['quest_name']}':")
-                        print(lore_entry["lore_text"])
-                        time.sleep(1)
+            try:
+                quest_index = int(quest_choice) - 1
+                if 0 <= quest_index < len(available_quests):
+                    selected_quest = available_quests[quest_index]
+                    active_quests.append({"quest_name": selected_quest["quest_name"], "kill_count": 0})
+                    player.active_quests = active_quests
+                    print(f"Accepted quest: {selected_quest['quest_name']}")
+                    time.sleep(0.5)
+                    
+                    lore_entry = next((l for l in lore if l["quest_name"] == selected_quest["quest_name"]), None)
+                    if lore_entry:
+                        lore_choice = input("Would you like to read the lore? (y/n): ").lower()
+                        if lore_choice == "y":
+                            print(f"\nLore for '{selected_quest['quest_name']}':")
+                            print(lore_entry["lore_text"])
+                            time.sleep(1)
+                else:
+                    print(f"Invalid selection. Choose between 1 and {len(available_quests)}.")
+            except ValueError:
+                print("Invalid input. Please enter a number.")
 
     elif choice == "2":
         if not active_quests:

@@ -1,25 +1,40 @@
 @echo off
 echo Cleaning old builds...
-rd /s /q dist 2>nul
-rd /s /q build 2>nul
-del /q *.spec 2>nul
-rd /s /q __pycache__ 2>nul
-for /d /r . %%d in (__pycache__) do @if exist "%%d" rd /s /q "%%d" 2>nul
+if exist dist rmdir /s /q dist
+if exist build rmdir /s /q build
+if exist *.spec del /q *.spec
+if exist __pycache__ rmdir /s /q __pycache__
+for /d /r . %%d in (__pycache__) do @if exist "%%d" rmdir /s /q "%%d"
 echo Building Snowcaller for Windows...
 
-:: Check if PyInstaller is installed
-pyinstaller --version >nul 2>&1
-if %ERRORLEVEL% NEQ 0 (
-    echo PyInstaller not found. Installing...
-    pip install pyinstaller
-    if %ERRORLEVEL% NEQ 0 (
-        echo Failed to install PyInstaller. Please install it manually with 'pip install pyinstaller'.
-        pause
+REM Check for Python
+where python >nul 2>&1
+if %ERRORLEVEL% neq 0 (
+    echo Python not found. Please install it from python.org and ensure it's in PATH.
+    exit /b 1
+)
+
+REM Create and activate virtual environment
+set VENV_DIR=venv
+if not exist "%VENV_DIR%" (
+    python -m venv "%VENV_DIR%"
+    if %ERRORLEVEL% neq 0 (
+        echo Failed to create virtual environment. Ensure venv module is available.
         exit /b 1
     )
 )
+call "%VENV_DIR%\Scripts\activate"
 
-:: Build the executable with all files
+REM Install dependencies
+pip install --upgrade pip
+pip install pyinstaller requests
+if %ERRORLEVEL% neq 0 (
+    echo Failed to install PyInstaller or requests.
+    call deactivate
+    exit /b 1
+)
+
+REM Build the executable
 pyinstaller --onefile ^
     --add-data "art;art" ^
     --add-data "consumables.json;." ^
@@ -28,15 +43,16 @@ pyinstaller --onefile ^
     --add-data "lore.json;." ^
     --add-data "monster.json;." ^
     --add-data "quest.json;." ^
-    --add-data "skills.txt;." ^
+    --add-data "skills.json;." ^
     --add-data "treasures.json;." ^
+    --hidden-import "requests" ^
     --name Snowcaller game.py
 
-:: Check if build succeeded
-if %ERRORLEVEL% EQU 0 (
+if %ERRORLEVEL% equ 0 (
     echo Build successful! Executable is in the 'dist' folder as 'Snowcaller.exe'.
+    call deactivate
 ) else (
     echo Build failed. Check the output above for errors.
+    call deactivate
+    exit /b 1
 )
-
-pause

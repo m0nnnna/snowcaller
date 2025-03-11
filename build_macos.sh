@@ -3,17 +3,33 @@ echo "Cleaning old builds..."
 rm -rf dist build *.spec __pycache__ */__pycache__
 echo "Building Snowcaller for macOS..."
 
-# Check if PyInstaller is installed
-if ! command -v pyinstaller >/dev/null 2>&1; then
-    echo "PyInstaller not found. Installing..."
-    pip3 install pyinstaller
+# Check for Python 3
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "Python 3 not found. Please install it (e.g., brew install python)."
+    exit 1
+fi
+
+# Create and activate virtual environment
+VENV_DIR="venv"
+if [ ! -d "$VENV_DIR" ]; then
+    python3 -m venv "$VENV_DIR"
     if [ $? -ne 0 ]; then
-        echo "Failed to install PyInstaller. Please install it manually with 'pip3 install pyinstaller'."
+        echo "Failed to create virtual environment. Install python3-venv (e.g., brew install python)."
         exit 1
     fi
 fi
+source "$VENV_DIR/bin/activate"
 
-# Build the executable with all files
+# Install dependencies
+pip install --upgrade pip
+pip install pyinstaller requests
+if [ $? -ne 0 ]; then
+    echo "Failed to install PyInstaller or requests."
+    deactivate
+    exit 1
+fi
+
+# Build the executable
 pyinstaller --onefile \
     --add-data "art:art" \
     --add-data "consumables.json:." \
@@ -22,36 +38,16 @@ pyinstaller --onefile \
     --add-data "lore.json:." \
     --add-data "monster.json:." \
     --add-data "quest.json:." \
-    --add-data "skills.txt:." \
+    --add-data "skills.json:." \
     --add-data "treasures.json:." \
+    --hidden-import "requests" \
     --name Snowcaller game.py
 
-# Check if build succeeded
 if [ $? -eq 0 ]; then
     echo "Build successful! Executable is in the 'dist' folder as 'Snowcaller'."
-    
-    # Optional: Create a .app bundle
-    echo "Creating macOS .app bundle..."
-    mkdir -p dist/Snowcaller.app/Contents/MacOS
-    mv dist/Snowcaller dist/Snowcaller.app/Contents/MacOS/
-    cat > dist/Snowcaller.app/Contents/Info.plist << EOL
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>CFBundleExecutable</key>
-    <string>Snowcaller</string>
-    <key>CFBundleIdentifier</key>
-    <string>com.m0nnnna.snowcaller</string>
-    <key>CFBundleName</key>
-    <string>Snowcaller</string>
-    <key>CFBundleVersion</key>
-    <string>1.0</string>
-</dict>
-</plist>
-EOL
-    echo "App bundle created at 'dist/Snowcaller.app'."
+    deactivate
 else
     echo "Build failed. Check the output above for errors."
+    deactivate
     exit 1
 fi
