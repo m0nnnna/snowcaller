@@ -34,6 +34,7 @@ For Linux/macOS
 pip install requests
 ```
 This will allow the game to prompt you to update if a new commit is made.
+
 4. **Launch the Game**
    ```bash
    python game.py
@@ -51,15 +52,12 @@ Main Menu: Use 1-8 for:
 6. Guild
 7. Save
 8. Quit
+
 Combat
 1. Attack
 2. Item
 3. Skills
 4. Flee
-Guild
-1. Accept Quests
-2. Turn them in
-0. Go back
 
 **Files**
 1. game.py: the main game loop and link to all other files 
@@ -217,7 +215,12 @@ Gear (gear.json):
 
 Treasures (treasures.json):
 ```json
-{"name": "Silver Ring", "drop_rate": 40}
+  {
+    "name": "Gold Coin",
+    "drop_rate": 0.1,
+    "gold": 5,
+    "boss_only": false
+  },
 ```
 
 Consumables (consumables.json):
