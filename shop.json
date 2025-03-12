@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "name": "Lockpick",
+      "level_range": [1, 10],
+      "category": "Item",
+      "stock": -1,
+      "price": 10
+    },
+    {
+      "name": "Magical Removal Scroll",
+      "level_range": [1, 10],
+      "category": "Item",
+      "stock": -1,
+      "price": 15
+    },
+    {
+      "name": "Minor Health Potion",
+      "level_range": [1, 5],
+      "category": "Consumables",
+      "stock": 5,
+      "price": 10
+    },
+    {
+      "name": "Warrior Blade",
+      "level_range": [1, 5],
+      "category": "Gear",
+      "stock": 3,
+      "price": 20
+    }
+  ]
+}
