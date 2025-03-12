@@ -9,7 +9,7 @@ def get_base_path():
         path = os.path.dirname(sys.executable)  # Use raw sys.executable
         return path
     path = os.path.dirname(os.path.abspath(__file__))
-    print(f"Base path (script): {path}")
+#    print(f"Base path (script): {path}")
     return path
 
 def setup_game_files():
@@ -46,7 +46,7 @@ def get_resource_path(filename, subfolder=None):
         full_path = os.path.join(base_path, subfolder, filename)
     else:
         full_path = os.path.join(base_path, filename)
-    print(f"Resource path for {filename}: {full_path}")  # Debug, no abspath
+#    print(f"Resource path for {filename}: {full_path}")  # Debug, no abspath
     return full_path  # Return raw path without abspath
 
 def load_json(filename):

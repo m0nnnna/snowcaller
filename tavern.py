@@ -109,7 +109,18 @@ class Tavern:
                 npc_data = json.load(f)
             dialogue_options = npc_data.get("dialogue", [])
         else:
-            print(f"Warning: No dialogue file found for {npc_name} at {npc_file}")
+            # Fallback: Try a known filename mapping
+            name_to_file = {
+                "Elara, the Fox": "elarathefox.json"
+            }
+            fallback_file = os.path.join("NPC", name_to_file.get(npc_name, f"{npc_name}.json"))
+            if os.path.exists(fallback_file):
+                with open(fallback_file, 'r') as f:
+                    npc_data = json.load(f)
+                dialogue_options = npc_data.get("dialogue", [])
+            else:
+                print(f"Warning: No dialogue file found for {npc_name} at {npc_file}")
+                npc_data = {}  # Define npc_data to avoid UnboundLocalError
 
         # Determine quest stage
         current_quest = npc.get("quest")
@@ -127,6 +138,9 @@ class Tavern:
                 stage = "quest_accepted"
             elif npc.get("quest_denied", False):
                 stage = "quest_denied"
+            dialogue = next((s for s in stages if s["stage"] == stage), None)
+        else:
+            dialogue = None
 
         # Check conditions
         room_condition = npc_data.get("room_condition", {})
@@ -139,9 +153,6 @@ class Tavern:
         show_romance = npc.get("living_with_player", False)
 
         # Get dialogue
-        dialogue = None
-        if quest_section:
-            dialogue = next((s for s in stages if s["stage"] == stage), None)
         if show_room_option:
             dialogue = room_dialogue["room"]
         elif show_invitation:
@@ -189,6 +200,173 @@ class Tavern:
                     npc["bond"] = bond + selected_reply["bond_change"]
                     if reply_choice == 0:  # Accept invitation
                         npc["living_with_player"] = True
+                    print(f"Bond with {npc_name} is now {npc['bond']}")
+            elif current_quest and current_quest not in completed_quests and current_quest not in active_quests:
+                if stage == "quest_start" and "replies" in dialogue:
+                    while True:  # Loop until accept or deny
+                        replies = dialogue["replies"]
+                        flavor_options = dialogue.get("flavor", [])
+                        npc["flavor_count"] = npc.get("flavor_count", 0)  # Track flavor progress
+                        available_flavor = []
+                        
+                        # Check for next flavor option
+                        if flavor_options and npc["flavor_count"] < len(flavor_options):
+                            next_flavor = next((f for f in flavor_options if f["option"] == f"3-{npc['flavor_count'] + 1}"), None)
+                            if next_flavor:
+                                available_flavor.append(next_flavor)
+                        
+                        # Display options: 1. Accept, 2. Deny, 3. Flavor (if available)
+                        for i, reply in enumerate(replies, 1):
+                            print(f"{i}. {reply['text']}")
+                        if available_flavor:
+                            print(f"3. {available_flavor[0]['text']}")
+                        
+                        reply_choice = int(input("Select reply: ")) - 1
+                        if reply_choice == 0:  # Accept quest
+                            selected_reply = replies[0]
+                            print(f"{npc_name}: {selected_reply['response']}")
+                            npc["bond"] = bond + selected_reply["bond_change"]
+                            quests = load_json("quest.json")["quests"]
+                            quest_data = next((q for q in quests if q["quest_name"] == current_quest), None)
+                            if quest_data:
+                                new_quest = {"quest_name": current_quest, "stages": [{"type": s["type"], "target_monster": s.get("target_monster"), "kill_count_required": s.get("kill_count_required", 0), "kill_count": 0, "target_item": s.get("target_item"), "item_count_required": s.get("item_count_required", 0), "item_count": 0} for s in quest_data["stages"]]}
+                                self.player.active_quests.append(new_quest)
+                                npc["quest_accepted"] = True
+                                dialogue = next((s for s in stages if s["stage"] == "quest_accepted"), None)
+                                if dialogue:
+                                    print(f"{npc_name}: {dialogue['text']}")
+                                save_game(self.player)
+                            break
+                        elif reply_choice == 1:  # Deny quest
+                            selected_reply = replies[1]
+                            print(f"{npc_name}: {selected_reply['response']}")
+                            npc["bond"] = bond + selected_reply["bond_change"]
+                            npc["quest_denied"] = True
+                            dialogue = next((s for s in stages if s["stage"] == "quest_denied"), None)
+                            if dialogue:
+                                print(f"{npc_name}: {dialogue['text']}")
+                            save_game(self.player)
+                            break
+                        elif reply_choice == 2 and available_flavor:  # Flavor option
+                            selected_flavor = available_flavor[0]
+                            print(f"{npc_name}: {selected_flavor['response']}")
+                            npc["bond"] = bond + selected_flavor["bond_change"]
+                            npc["flavor_count"] = npc["flavor_count"] + 1
+                            save_game(self.player)
+                            if npc["flavor_count"] < len(flavor_options):
+                                print("\nChoose again:")
+                            else:
+                                print("\nNo more questions to ask. Please decide:")
+                        else:
+                            print("Invalid choice, try again.")
+                else:
+                    print(f"{npc_name}: No new quests available right now.")
+            else:
+                print(f"{npc_name}: No new quests available right now.")
+        elif choice == "2":
+            if current_quest and current_quest in active_quests:
+                self.turn_in_quest(current_quest)
+                # Update completed_quests and re-evaluate stage
+                completed_quests = [q["quest_name"] for q in self.player.completed_quests]
+                if quest_section:  # Re-check stages after turn-in
+                    stages = quest_section["stages"]
+                    if current_quest in completed_quests:
+                        stage = "quest_complete"
+                    dialogue = next((s for s in stages if s["stage"] == stage), None)
+                    if dialogue:
+                        print(f"{npc_name}: {dialogue['text']}")
+                # Handle next quest
+                quests = load_json("quest.json")["quests"]
+                quest_data = next((q for q in quests if q["quest_name"] == current_quest), None)
+                if quest_data and quest_data.get("next_quest"):
+                    npc["quest"] = quest_data["next_quest"]
+                    npc["quest_accepted"] = False
+                    npc["quest_denied"] = False
+                save_game(self.player)
+            else:
+                print(f"{npc_name}: No active quest to turn in.")
+                talk_section = next((d for d in dialogue_options if "talk" in d), None)
+                if talk_section:
+                    talk_options = talk_section["talk"]
+                    available_options = []
+                    for i in range(1, 10):
+                        base_opt = str(i)
+                        highest_replace = None
+                        for opt in talk_options:
+                            if opt["option"].startswith(base_opt):
+                                bond_check = opt.get("bond_check", -1)
+                                if bond >= bond_check and (highest_replace is None or bond_check > highest_replace.get("bond_check", -1)):
+                                    highest_replace = opt
+                        if highest_replace:
+                            available_options.append(highest_replace)
+                        elif any(opt["option"] == base_opt for opt in talk_options):
+                            available_options.append(next(opt for opt in talk_options if opt["option"] == base_opt))
+                    print("Talk Options (0 to back):")
+                    for i, opt in enumerate(available_options, 1):
+                        print(f"{i}. {opt['text']}")
+                        for flavor in opt.get("flavor_text", []):
+                            print(f"   - {flavor}")
+                    print("0. Back")
+                    reply_choice = int(input("Select option: ")) - 1
+                    if 0 <= reply_choice < len(available_options):
+                        selected_opt = available_options[reply_choice]
+                        print(f"{npc_name}: {selected_opt['response']}")
+                        npc["bond"] = bond + selected_opt["bond_change"]
+                        print(f"Bond with {npc_name} is now {npc['bond']}")
+
+        elif choice == "3":
+            talk_section = next((d for d in dialogue_options if "talk" in d), None)
+            if talk_section:
+                talk_options = talk_section["talk"]
+                available_options = []
+                for i in range(1, 10):
+                    base_opt = str(i)
+                    highest_replace = None
+                    for opt in talk_options:
+                        if opt["option"].startswith(base_opt):
+                            bond_check = opt.get("bond_check", -1)
+                            if bond >= bond_check and (highest_replace is None or bond_check > highest_replace.get("bond_check", -1)):
+                                highest_replace = opt
+                    if highest_replace:
+                        available_options.append(highest_replace)
+                    elif any(opt["option"] == base_opt for opt in talk_options):
+                        available_options.append(next(opt for opt in talk_options if opt["option"] == base_opt))
+                print("Talk Options (0 to back):")
+                for i, opt in enumerate(available_options, 1):
+                    print(f"{i}. {opt['text']}")
+                    for flavor in opt.get("flavor_text", []):
+                        print(f"   - {flavor}")
+                print("0. Back")
+                reply_choice = int(input("Select option: ")) - 1
+                if 0 <= reply_choice < len(available_options):
+                    selected_opt = available_options[reply_choice]
+                    print(f"{npc_name}: {selected_opt['response']}")
+                    npc["bond"] = bond + selected_opt["bond_change"]
+                    print(f"Bond with {npc_name} is now {npc['bond']}")
+
+        elif choice == "4" and show_romance:
+            romance_section = next((d for d in dialogue_options if "romance" in d), None)
+            if romance_section:
+                romance_options = romance_section["romance"]
+                available_options = []
+                for opt in romance_options:
+                    base_opt = opt["option"].split("-")[0]
+                    bond_check = opt.get("bond_check", -1)
+                    if bond >= bond_check:
+                        # Only add if no higher replacement exists
+                        if not any(o["option"].startswith(base_opt + "-") and o.get("bond_check", -1) > bond_check and bond >= o.get("bond_check", -1) for o in romance_options):
+                            available_options.append(opt)
+                print("Romance Options (0 to back):")
+                for i, opt in enumerate(available_options, 1):
+                    print(f"{i}. {opt['text']}")
+                    for flavor in opt.get("flavor_text", []):
+                        print(f"   - {flavor}")
+                print("0. Back")
+                reply_choice = int(input("Select option: ")) - 1
+                if 0 <= reply_choice < len(available_options):
+                    selected_opt = available_options[reply_choice]
+                    print(f"{npc_name}: {selected_opt['response']}")
+                    npc["bond"] = bond + selected_opt["bond_change"]
                     print(f"Bond with {npc_name} is now {npc['bond']}")
             elif current_quest and current_quest not in completed_quests and current_quest not in active_quests:
                 quests = load_json("quest.json")["quests"]
@@ -493,10 +671,10 @@ class Tavern:
             print("No special NPCs are here yet!")
             return
         
-        special_npcs = [npc["name"] for npc in self.player.tavern_npcs]
+        special_npcs = self.player.tavern_npcs
         print("\nSpecial NPCs present:")
         for i, npc in enumerate(special_npcs[:9], 1):
-            print(f"{i}. {npc}")
+            print(f"{i}. {npc['name']}")
         print("0. Back")
         
         choice = input("Selection: ")

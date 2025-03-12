@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import builtins
 import random
 import json
 import importlib
@@ -11,6 +12,20 @@ from tavern import tavern_menu
 from events import random_event
 from utils import load_json, load_file, load_art_file, parse_stats, get_resource_path, save_json
 from commands import handle_command
+
+# Global sleep delay (in seconds)
+SLEEP_DELAY = 0.3
+
+# Store the original print function
+_original_print = builtins.print
+
+# Override print to include a delay
+def print(*args, **kwargs):
+    _original_print(*args, **kwargs)
+    time.sleep(SLEEP_DELAY)
+
+# Replace the built-in print with our version
+builtins.print = print
 
 # Import the update checker
 try:
@@ -111,7 +126,6 @@ def inventory_menu(player):
     while True:
         display_inventory(player)
         print("\n1. Change Gear | 2. Back")
-        time.sleep(0.5)
         choice = input("Selection: ")
         
         if choice == "1":
@@ -119,7 +133,6 @@ def inventory_menu(player):
             slots = list(player.equipment.keys())
             for idx, slot in enumerate(slots, 1):
                 print(f"{idx}. {slot.capitalize()}")
-            time.sleep(0.5)
             slot_choice = input("Selection (or 0 to back): ")
             
             if slot_choice == "0":
@@ -131,7 +144,6 @@ def inventory_menu(player):
                     compatible_items = [item for item in player.inventory if any(g["name"] == item and g["slot"] == selected_slot for g in gear)]
                     if not compatible_items and not player.equipment[selected_slot]:
                         print("No compatible gear for this slot!")
-                        time.sleep(0.5)
                         continue
                     
                     print(f"\nAvailable gear for {selected_slot.capitalize()}:")
@@ -149,7 +161,6 @@ def inventory_menu(player):
                         print(f"{idx}. {display_str}")
                     print(f"{len(compatible_items) + 1}. Remove")
                     print(f"{len(compatible_items) + 2}. Back")
-                    time.sleep(0.5)
                     gear_choice = input("Selection: ")
                     
                     try:
@@ -162,10 +173,8 @@ def inventory_menu(player):
                                     player.stats[stat] -= val
                                 player.equipment[selected_slot] = None
                                 print(f"Removed {old_item} from {selected_slot}.")
-                                time.sleep(0.5)
                             else:
                                 print("Nothing equipped in this slot!")
-                                time.sleep(0.5)
                         elif gear_idx == len(compatible_items) + 1:  # Back
                             continue
                         elif 0 <= gear_idx < len(compatible_items):
@@ -181,31 +190,24 @@ def inventory_menu(player):
                                 player.stats[stat] += val
                             player.inventory.remove(new_item)
                             print(f"Equipped {new_item} to {selected_slot}.")
-                            time.sleep(0.5)
                         else:
                             print("Invalid selection!")
-                            time.sleep(0.5)
                     except ValueError:
                         print("Invalid input!")
-                        time.sleep(0.5)
                 else:
                     print("Invalid slot!")
-                    time.sleep(0.5)
             except ValueError:
                 print("Invalid input!")
-                time.sleep(0.5)
         elif choice == "2":
             break
         else:
             print("Invalid choice!")
-            time.sleep(0.5)
 
 
 def award_treasure_chest(player):
     treasures = load_json("treasures.json")
     chest_type = random.choices(["unlocked", "locked", "magical"], weights=[70, 20, 10], k=1)[0]
     print(f"\nYou find a {chest_type} treasure chest!")
-    time.sleep(0.5)
 
     if chest_type == "unlocked":
         valid_treasures = [(t["name"], t["drop_rate"]) for t in treasures if t["drop_rate"] > 0]
@@ -217,7 +219,6 @@ def award_treasure_chest(player):
             print(f"You open it and find: {', '.join(items)} and {gold} gold!")
         else:
             print("The chest is empty!")
-        time.sleep(0.5)
     elif chest_type == "locked":
         if random.random() < player.stats["A"] * 0.05:
             valid_treasures = [(t["name"], t["drop_rate"]) for t in treasures if t["drop_rate"] > 0]
@@ -231,7 +232,6 @@ def award_treasure_chest(player):
                 print("You pick the lock, but the chest is empty!")
         else:
             print("The lock holds firm—you leave empty-handed.")
-        time.sleep(0.5)
     elif chest_type == "magical":
         if random.random() < player.stats["I"] * 0.05:
             valid_treasures = [(t["name"], t["drop_rate"]) for t in treasures if t["drop_rate"] > 0]
@@ -247,7 +247,7 @@ def award_treasure_chest(player):
             damage = player.max_hp * 0.1
             player.hp -= damage
             print(f"The ward backfires, dealing {round(damage, 1)} damage!")
-        time.sleep(0.5)
+
 
 def update_kill_count(player, monster_name):
     quests_data = load_json("quest.json")
@@ -272,19 +272,15 @@ def main():
 
     if os.path.exists(save_path):
         print("1. New Game | 2. Load Game")
-        time.sleep(0.5)
         choice = input("Selection: ").strip().lower()
         if handle_command(choice, None, commands_enabled):
-            print("Command executed. Please restart or load a game to continue.")
             return
         if choice == "2":
             try:
                 player = load_game()
                 print(f"Welcome back, {player.name}!")
-                time.sleep(0.5)
             except Exception as e:
                 print(f"Failed to load save: {e}. Starting new game.")
-                time.sleep(0.5)
                 choice = "1"
         else:
             choice = "1"
@@ -304,12 +300,10 @@ def main():
             if intro_lore:
                 print("\n=== Welcome to Snowcaller ===")
                 print(intro_lore["lore_text"])
-                time.sleep(2)
 
         name = input("\nEnter your name: ")
         print("Select your class:")
         print("1. Warrior (High Strength) | 2. Mage (High Intelligence) | 3. Rogue (High Agility)")
-        time.sleep(0.5)
         class_type = input("Selection: ")
         while class_type not in ["1", "2", "3"]:
             print("Invalid class! Choose 1, 2, or 3.")
@@ -355,22 +349,18 @@ def main():
         
         # Display class lore
         print(f"\n{selected_class['lore']}")
-        time.sleep(2)
 
         print(f"Welcome, {player.name} the {selected_class['name']}!")
         if player.skills:
             print(f"Skills unlocked: {', '.join(player.skills)}")
-        time.sleep(0.5)
 
     save_game(player)
     print("Game autosaved!")
-    time.sleep(0.5)
 
     while True:
         print(f"\n{'-' * 20} {player.name}: Level {player.level} {'-' * 20}")
         print(f"HP: {round(player.hp, 1)}/{player.max_hp} | MP: {player.mp}/{player.max_mp} | Gold: {player.gold}")
         print("1. Adventure | 2. Inventory | 3. Stats | 4. Shop | 5. Tavern | 6. Guild | 7. Save | 8. Quit")
-        time.sleep(0.5)
         choice = input("Selection: ").strip().lower()
         if handle_command(choice, player, commands_enabled):
             continue
@@ -420,7 +410,6 @@ def main():
                     print("Warning: No suitable monsters found for your level. Using fallback.")
                     encounter_pool = [m for m in monsters if not m["rare"]][:1]
 
-                time.sleep(0.5)
                 max_encounters = random.randint(2, 10)
                 boss_fight = False
                 encounter_count = 0
@@ -435,7 +424,6 @@ def main():
                         if encounter_count >= 8 and not boss_fight and random.random() < 0.25:
                             print(f"\nA powerful foe blocks your path! Fight the boss?")
                             print("1. Yes | 2. No")
-                            time.sleep(0.5)
                             boss_choice = input("Selection: ")
                             if boss_choice == "1":
                                 boss_fight = True
@@ -448,14 +436,12 @@ def main():
                                     if os.path.exists("save.txt"):
                                         os.remove("save.txt")
                                     print("Game Over.")
-                                    time.sleep(1)
                                     return
                                 if "Victory" in result:
                                     completed_encounters += 1
                                     update_kill_count(player, result.split("against ")[1])
                             else:
                                 print("You avoid the boss and head back to town.")
-                                time.sleep(0.5)
                             adventure = False
                             break
                         adventure = False
@@ -477,7 +463,6 @@ def main():
                             if os.path.exists("save.txt"):
                                 os.remove("save.txt")
                             print("Game Over.")
-                            time.sleep(1)
                             return
 
                         if Encounters and "Victory" in Encounters[-1]:
@@ -508,24 +493,20 @@ def main():
                                 drop_item = random.choices(items, weights=weights, k=1)[0]
                                 player.inventory.append(drop_item)
                                 print(f"\nYou found a {drop_item}!")
-                                time.sleep(0.5)
                             else:
                                 print("\nNo item dropped this time.")
-                                time.sleep(0.5)
 
                             if random.random() < 0.15 or (boss_fight and random.random() < 0.5):
                                 treasure_inventory.append("Treasure Chest")
 
                         elif Encounters and "FleeAdventure" in Encounters[-1]:
                             print(f"\nYou escaped the {location}, ending your adventure with {completed_encounters} victories.")
-                            time.sleep(0.5)
                             adventure = False
                             break
 
                     if combat_count > 0 and player.hp < player.max_hp / 2 and adventure:
                         print(f"\nYou've fought {combat_count} battles in the {location}. HP: {round(player.hp, 1)}/{player.max_hp}")
                         print("Continue adventure? 1 for Yes | 2 for No")
-                        time.sleep(0.5)
                         choice = input("Selection: ")
                         if choice == "2":
                             print(f"You decide to return to town with {completed_encounters} victories.")
@@ -533,11 +514,9 @@ def main():
                             break
                         elif choice != "1":
                             print("Invalid choice, continuing adventure.")
-                            time.sleep(0.5)
 
                 if adventure is False and "FleeAdventure" not in Encounters:
                     print(f"\nAdventure complete! Returning to town with {len(treasure_inventory)} treasure items from {completed_encounters} victories.")
-                    time.sleep(0.5)
                     if choice != "2":
                         for _ in range(len(treasure_inventory)):
                             award_treasure_chest(player)
@@ -572,7 +551,6 @@ def main():
                     location = quest_info["location"]
     
                 print(f"\nPursuing quest: {quest_info['quest_name']} at the {location}!")
-                time.sleep(0.5)
 
                 encounter_count = 0
                 max_encounters = 5  # Limit encounters
@@ -592,7 +570,6 @@ def main():
                                 if os.path.exists("save.json"):
                                     os.remove("save.json")
                                 print("Game Over.")
-                                time.sleep(1)
                                 return
                             if "Victory" not in result:
                                 print("You fled or failed the encounter.")
@@ -673,7 +650,6 @@ def main():
             print(f"Armor Value: {round(player.get_total_armor_value(), 1)}% (damage reduction)")
             if player.stat_points > 0:
                 player.allocate_stat()
-            time.sleep(0.5)
 
         elif choice == "4":
             shop_menu(player)
@@ -687,16 +663,13 @@ def main():
         elif choice == "7":
             save_game(player)
             print("Game saved!")
-            time.sleep(0.5)
 
         elif choice == "8":
             print("Goodbye!")
-            time.sleep(0.5)
             break
 
         else:
             print("Invalid choice!")
-            time.sleep(0.5)
 
 def guild_menu(player):
     quests_data = load_json("quest.json")
@@ -739,7 +712,6 @@ def guild_menu(player):
                     active_quests.append({"quest_name": selected_quest["quest_name"], "kill_count": 0})
                     player.active_quests = active_quests
                     print(f"Accepted quest: {selected_quest['quest_name']}")
-                    time.sleep(0.5)
                     
                     lore_entry = next((l for l in lore if l["quest_name"] == selected_quest["quest_name"]), None)
                     if lore_entry:
@@ -747,7 +719,6 @@ def guild_menu(player):
                         if lore_choice == "y":
                             print(f"\nLore for '{selected_quest['quest_name']}':")
                             print(lore_entry["lore_text"])
-                            time.sleep(1)
                 else:
                     print(f"Invalid selection. Choose between 1 and {len(available_quests)}.")
             except ValueError:
@@ -781,10 +752,8 @@ def guild_menu(player):
                     player.completed_quests = []
                 player.completed_quests.append(quest_info["quest_name"])
                 player.active_quests = active_quests
-                time.sleep(0.5)
             else:
                 print(f"Quest '{quest_info['quest_name']}' not complete yet. Kills: {selected_quest['kill_count']}/{quest_info['kill_count_required']}")
-                time.sleep(0.5)
 
 if __name__ == "__main__":
     main()

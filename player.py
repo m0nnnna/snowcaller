@@ -5,7 +5,7 @@ from utils import load_json, save_json
 
 class Player:
     def __init__(self, name, class_type):
-        print("Initializing Player...")
+#        print("Initializing Player...")
         self.name = name
         self.level = 1
         self.exp = 0
@@ -44,19 +44,19 @@ class Player:
         self.hp = self.max_hp
         self.max_mp = 3 * self.stats["W"] if class_type == "2" else 2 * self.stats["W"]
         self.mp = self.max_mp
-        print(f"Base stats: {self.stats}, HP: {self.hp}, MP: {self.mp}")
+#        print(f"Base stats: {self.stats}, HP: {self.hp}, MP: {self.mp}")
 
     def load_starting_data(self):
-        print("Entering load_starting_data...")
+        # print("Entering load_starting_data...")
         gear = load_json("gear.json")
-        print(f"Loaded gear.json: {len(gear)} items")
+        # print(f"Loaded gear.json: {len(gear)} items")
         starting_gear = {
             "1": ["Warrior Cap", "Warrior Vest", "Warrior Blade"],
             "2": ["Mage Cap", "Mage Gown", "Mage Wand"],
             "3": ["Rogue Pants", "Rogue Boots", "Rogue Shirt", "Rogue Knife"]
         }
         for item_name in starting_gear.get(self.class_type, []):
-            print(f"Looking for {item_name}...")
+            # print(f"Looking for {item_name}...")
             item = next((g for g in gear if g["name"] == item_name), None)
             if item:
                 slot = item["slot"]
@@ -66,9 +66,10 @@ class Player:
                 self.equipment[slot] = (item_name, stats, scaling_stat, armor_value)
                 for stat, val in stats.items():
                     self.stats[stat] += val
-                print(f"Equipped {item_name} to {slot}, Stats now: {self.stats}")
-            else:
-                print(f"Warning: Starting gear '{item_name}' not found in gear.json!")
+                # print(f"Equipped {item_name} to {slot}, Stats now: {self.stats}")
+            # Removed empty else block; uncomment below if you want to keep it
+            # else:
+            #     print(f"Warning: Starting gear '{item_name}' not found in gear.json!")
 
         self.max_hp = 10 + 2 * self.stats["S"]
         self.hp = self.max_hp
@@ -78,17 +79,17 @@ class Player:
 
         skills_data = load_json("skills.json")
         skills = skills_data.get("skills", [])
-        print(f"Loaded skills.json: {len(skills)} skills")
+       # print(f"Loaded skills.json: {len(skills)} skills")
         for skill in skills:
             if (skill.get("class_type") == self.class_type and 
                 skill.get("level_req") == 1 and 
                 skill.get("name") not in self.skills and 
                 len(self.skills) < 15):
                 self.skills.append(skill["name"])
-                print(f"Starting skill unlocked: {skill['name']}")
-        print(f"Final equipment: {self.equipment}")
-        print(f"Final skills: {self.skills}")
-        print(f"XP after load: exp={self.exp}, pending_xp={self.pending_xp}")
+               # print(f"Starting skill unlocked: {skill['name']}")
+       # print(f"Final equipment: {self.equipment}")
+       # print(f"Final skills: {self.skills}")
+       # print(f"XP after load: exp={self.exp}, pending_xp={self.pending_xp}")
 
     def update_kill_count(self, monster_name):
         quests = load_json("quest.json").get("quests", [])
@@ -223,18 +224,18 @@ def save_game(player):
     }
     base_path = os.path.dirname(__file__)
     save_path = os.path.join(base_path, "save.json")
-    print(f"Saving to: {save_path}")
+#    print(f"Saving to: {save_path}")
     try:
         with open(save_path, 'w') as f:
             json.dump(save_data, f, indent=4)
-        print("Game saved successfully as save.json.")
+#        print("Game saved successfully as save.json.")
     except Exception as e:
         print(f"Failed to save game: {e}")
 
 def load_game():
     base_path = os.path.dirname(__file__)
     save_path = os.path.join(base_path, "save.json")
-    print(f"Loading from: {save_path}")
+#    print(f"Loading from: {save_path}")
     if not os.path.exists(save_path):
         return None
     try:

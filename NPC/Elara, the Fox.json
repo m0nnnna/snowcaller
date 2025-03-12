@@ -10,28 +10,43 @@
             "stages": [
                 {
                     "stage": "quest_start",
-                    "text": "Thank you for finding me! I’m Elara. Kobolds stole my pendant, and I’m too scared to go after them alone. Will you help?",
+                    "text": "Thank you for finding me! I’m Elara. I thought I was done for stuck outside all alone. But now I have you! Say... you don't think you'd be up for helping me again would you? Kobolds stole my pendant, and I’m too scared to go after them alone. Will you please help?",
                     "replies": [
                         {
-                            "text": "Come with me to the tavern, and I’ll help you.",
-                            "response": "Really? Thank you! I’ll follow you there.",
+                            "text": "Of course. I'd be more than honored to go after your lost treasure.",
+                            "response": "Really?! Elara's ears twitch and her tail wags. Thank you so much! I'll be here waiting for you hero.",
                             "bond_change": 2
                         },
                         {
                             "text": "I can’t help you right now.",
                             "response": "Oh… I’ll wait here then, hoping someone else comes by.",
                             "bond_change": -1
+                        }
+                    ], 
+                    "flavor": [
+                        {
+                            "option": "3-1",
+                            "text": "Why’s this pendant important?",
+                            "response": "It was my mothers. Normally it gets passed down to the oldest daughter. However they had already taken her away. My mom gave it to me before she was also taken away...",
+                            "bond_change": 0
                         },
                         {
-                            "text": "Why’s this pendant important?",
-                            "response": "It was given to me by my parents—it’s all I have left of them.",
+                            "option": "3-2",
+                            "text": "They were taken away? Who had taken them?",
+                            "response": "Slave catchers. They raided our small camp. There was about 50 of us total. We ran as hard as we could but and ice storm hit us. That's when they got my sister...",
+                            "bond_change": 0
+                        },
+                        {
+                            "option": "3-3",
+                            "text": "What about your parents? What happened to them?",
+                            "response": "I'd really rather not talk about that...Please if you could get my pendant back it would mean the world to me.",
                             "bond_change": 1
                         }
                     ]
                 },
                 {
                     "stage": "quest_accepted",
-                    "text": "You’ve agreed to help! Please find my pendant soon—I’ll be waiting at the tavern."
+                    "text": "You truly are an amazing hero. No matter what you better come back."
                 },
                 {
                     "stage": "quest_denied",

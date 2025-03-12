@@ -111,7 +111,6 @@ def combat(player, boss_fight=False, monster_name=None):
         if art:
             print(art)
     print(f"HP: {round(monster_hp, 1)}")
-    time.sleep(0.5)
 
     while monster_hp > 0 and player.hp > 0:
         # Player skill effect durations
@@ -126,7 +125,6 @@ def combat(player, boss_fight=False, monster_name=None):
                             player_armor_bonus = 0
                         elif skill_name == "Nimble Step":
                             player_dodge_bonus = 0
-                    time.sleep(0.5)
 
         # Monster skill effect durations
         for skill_name, turns in list(monster_skill_effects.items()):
@@ -140,7 +138,6 @@ def combat(player, boss_fight=False, monster_name=None):
                             monster_armor_bonus = 0
                         elif skill_name == "Nimble Step":
                             monster_dodge_bonus = 0
-                    time.sleep(0.5)
 
         # Status effect durations
         for status, turns in list(player_status.items()):
@@ -149,7 +146,6 @@ def combat(player, boss_fight=False, monster_name=None):
                 if player_status[status] == 0:
                     del player_status[status]
                     print(f"Your {status} has lifted!")
-                    time.sleep(0.5)
 
         for status, turns in list(monster_status.items()):
             if turns > 0:
@@ -157,7 +153,6 @@ def combat(player, boss_fight=False, monster_name=None):
                 if monster_status[status] == 0:
                     del monster_status[status]
                     print(f"{name} wakes up from {status}!")
-                    time.sleep(0.5)
 
         # Player damage bonus display
         bonus_display = ""
@@ -179,7 +174,6 @@ def combat(player, boss_fight=False, monster_name=None):
         status_display = f" | Status: {', '.join([f'{k} {v}' for k, v in player_status.items()])}" if player_status else ""
         print(f"\n{monster_stats['name']}: {round(monster_hp, 1)} HP | {player.name}: {round(player.hp, 1)}/{player.max_hp} HP, {player.mp}/{player.max_mp} MP{bonus_display}{status_display}")
         print("1. Attack | 2. Item | 3. Skills | 4. Flee")
-        time.sleep(0.5)
         choice = input("Selection: ")
 
         if choice == "1":  # Attack
@@ -200,12 +194,10 @@ def combat(player, boss_fight=False, monster_name=None):
                     print(f"You deal {round(reduced_damage, 1)} damage to {name} (reduced from {round(damage, 1)} by armor)!")
                 else:
                     print(f"You deal {round(reduced_damage, 1)} damage to {name}!")
-            time.sleep(0.5)
 
         elif choice == "2":  # Item
             if not player.inventory:
                 print("No items available!")
-                time.sleep(0.5)
                 continue
             print("\nInventory:", ", ".join(player.inventory))
             item = input("Select item (or 'back'): ")
@@ -214,7 +206,6 @@ def combat(player, boss_fight=False, monster_name=None):
             if item in player.inventory:
                 if not use_item(player, item, monster_stats):
                     print(f"{item} cannot be used here!")
-                    time.sleep(0.5)
                     continue
                 if "effects" in monster_stats and monster_stats["effects"]:
                     for effect, turns in list(monster_stats["effects"].items()):
@@ -224,22 +215,18 @@ def combat(player, boss_fight=False, monster_name=None):
                             if monster_stats["effects"][effect] <= 0:
                                 del monster_stats["effects"][effect]
                 print(f"Used {item}!")
-                time.sleep(0.5)
             else:
                 print("Item not found!")
-                time.sleep(0.5)
                 continue
 
         elif choice == "3":  # Skills
             if not player.skills or player_status.get("curse", 0) > 0:
                 print("No skills available!" if not player.skills else "You are cursed and cannot use skills!")
-                time.sleep(0.5)
                 continue
             print("\nAvailable Skills:")
             for i, skill_name in enumerate(player.skills, 1):
                 print(f"{i}. {skill_name}")
             print("0. Back")
-            time.sleep(0.5)
             skill_choice = input("Select skill number (0 to back): ")
             try:
                 skill_idx = int(skill_choice)
@@ -255,7 +242,6 @@ def combat(player, boss_fight=False, monster_name=None):
                             mp_cost = skill["mp_cost"]
                             if player.mp < mp_cost:
                                 print("Not enough MP!")
-                                time.sleep(0.5)
                                 break
                             player.mp -= mp_cost
                             base_dmg = skill["base_dmg"]
@@ -309,28 +295,22 @@ def combat(player, boss_fight=False, monster_name=None):
                             elif effect == "curse":
                                 monster_status["curse"] = duration
                                 print(f"{skill_name} curses {name}, blocking skills for {duration} turns!")
-                            time.sleep(0.5)
                             break
                     if not skill_found:
                         print(f"Skill '{skill_name}' not found in skills.json!")
-                        time.sleep(0.5)
                 else:
                     print("Invalid skill number!")
-                    time.sleep(0.5)
             except ValueError as e:
                 print(f"ValueError occurred: {e}")
-                time.sleep(0.5)
             continue
 
         elif choice == "4":  # Flee
             flee_chance = 0.5 + (player.stats["A"] - monster_stats["stats"]["A"]) * 0.05
             if random.random() < flee_chance:
                 print("You flee successfully, ending your adventure!")
-                time.sleep(0.5)
                 return "FleeAdventure"
             else:
                 print("You fail to flee!")
-                time.sleep(0.5)
 
         # Monster's turn
         if monster_hp > 0:
@@ -341,7 +321,6 @@ def combat(player, boss_fight=False, monster_name=None):
                     print(f"{name} breaks free from sleep!")
                 else:
                     print(f"{name} is asleep and cannot act!")
-                time.sleep(0.5)
             elif monster_skills and monster_mp > 0 and not monster_status.get("curse", 0) > 0:
                 skills = load_json("skills.json")["skills"]
                 for skill in skills:
@@ -384,7 +363,6 @@ def combat(player, boss_fight=False, monster_name=None):
                         elif effect == "curse":
                             player_status["curse"] = duration
                             print(f"{name} uses {skill['name']}, cursing you and blocking skills for {duration} turns!")
-                        time.sleep(0.5)
                         break
                 else:
                     # Basic attack if no skill used
@@ -403,7 +381,6 @@ def combat(player, boss_fight=False, monster_name=None):
                         reduced_damage = damage * (1 - armor_reduction)
                         player.hp -= reduced_damage
                         print(f"{name} deals {round(reduced_damage, 1)} damage to you (reduced from {round(damage, 1)} by armor)!")
-                    time.sleep(0.5)
             else:
                 # Basic attack with skill bonus
                 dodge_chance = (player.stats["A"] * 0.02) + (player_dodge_bonus / 100)
@@ -421,7 +398,6 @@ def combat(player, boss_fight=False, monster_name=None):
                     reduced_damage = damage * (1 - armor_reduction)
                     player.hp -= reduced_damage
                     print(f"{name} deals {round(reduced_damage, 1)} damage to you (reduced from {round(damage, 1)} by armor)!")
-                time.sleep(0.5)
 
             # Apply monster damage-over-time effects to player
             for skill_name, turns in list(monster_skill_effects.items()):
@@ -433,7 +409,6 @@ def combat(player, boss_fight=False, monster_name=None):
                             dot_dmg = base_dmg + (int(monster_stats["stats"][stat] * 0.2) if stat != "none" else 0)
                             player.hp -= dot_dmg
                             print(f"{name}'s {skill_name} deals {dot_dmg} damage to you!")
-                            time.sleep(0.5)
                             break
 
             # Apply player effects: DOT and HOT to monster/player
@@ -450,7 +425,6 @@ def combat(player, boss_fight=False, monster_name=None):
                             elif skill["effect"] == "heal_over_time":
                                 player.hp = min(player.hp + scaled_dmg, player.max_hp)
                                 print(f"{skill_name} heals you for {scaled_dmg} HP!")
-                            time.sleep(0.5)
                             break
 
     # Combat resolution
@@ -521,7 +495,6 @@ def combat(player, boss_fight=False, monster_name=None):
                         trigger_npc_event(player, quest_data["npc_trigger"])
         
         print(f"\nVictory! Gained {xp} XP and {gold} gold!")
-        time.sleep(0.5)
         return f"Victory against {monster_stats['name']}"
 
 def trigger_npc_event(player, npc_name):
