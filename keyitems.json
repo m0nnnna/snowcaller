@@ -1,0 +1,52 @@
+{
+  "key_items": [
+    {
+      "name": "Dragon Scale",
+      "description": "A shimmering scale from a mighty dragon.",
+      "drop_from": "Dragon",
+      "drop_chance": 50,
+      "quest": "Dragon Slayer",
+      "npc_trigger": "Dragon Slayer"
+    },
+    {
+      "name": "Ancient Tome",
+      "description": "A dusty book with cryptic runes.",
+      "drop_from": "Kobold",
+      "drop_chance": 0,
+      "quest": "Lost Knowledge",
+      "npc_trigger": "Elara, the Fox"
+    },
+    {
+      "name": "Lucky Star Pendant",
+      "description": "A small item that beast folk tend to give to children.",
+      "drop_from": "Kobold",
+      "drop_chance": 80,
+      "quest": "Lost Pendant",
+      "npc_trigger": "Elara, the Fox"
+    },
+    {
+      "name": "Bloody torn clothes",
+      "description": "A small item that beast folk tend to give to children.",
+      "drop_from": "Frost Wolf",
+      "drop_chance": 80,
+      "quest": "The Sad Truth",
+      "npc_trigger": "Elara, the Fox"
+    },
+    {
+      "name": "Wolf Fang",
+      "description": "A sharp fang from a fearsome wolf.",
+      "drop_from": "Demon Wolf",
+      "drop_chance": 80,
+      "quest": "Beast Rumors",
+      "npc_trigger": "Beast Hunter"
+    },
+    {
+      "name": "Shadow Cloak",
+      "description": "A cloak woven from shadow essence.",
+      "drop_from": "Shadow Beast",
+      "drop_chance": 60,
+      "quest": "Shadow Hunt",
+      "npc_trigger": "Shadow Stalker"
+    }
+  ]
+}

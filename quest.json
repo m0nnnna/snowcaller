@@ -4,46 +4,228 @@
       "quest_name": "Goblin Cleanup",
       "quest_level": 1,
       "quest_description": "The village is overrun with goblins. Clear them out.",
-      "quest_objective": "Kill 5 Goblins",
-      "target_monster": "Goblin",
-      "kill_count_required": 5,
       "quest_reward": "50 gold, Rusty Sword",
+      "source": "guild",
+      "stages": [
+        {
+          "type": "kill",
+          "target_monster": "Goblin",
+          "kill_count_required": 5
+        }
+      ],
       "steps": [
         "Speak to the village elder",
         "Hunt goblins in the forest",
         "Return to the elder"
       ],
-      "next_quest": "Kobold Trouble"
+      "next_quest": null,
+      "npc_trigger": null
+    },
+    {
+      "quest_name": "Beast Rumors",
+      "quest_level": 1,
+      "quest_description": "Investigate rumors of a beast beneath the ice.",
+      "quest_reward": "100 gold, Ice Fang Amulet",
+      "source": "npc",
+      "stages": [
+        {
+          "type": "kill",
+          "target_monster": "Shadow Wolf",
+          "kill_count_required": 3
+        },
+        {
+          "type": "boss",
+          "target_monster": "Demon Wolf",
+          "kill_count_required": 1
+        },
+        {
+          "type": "collect",
+          "target_item": "Wolf Fang",
+          "item_count_required": 1
+        }
+      ],
+      "steps": [
+        "Talk to the Old Storyteller",
+        "Hunt Shadow Wolves in the icy caves",
+        "Face the Demon Wolf",
+        "Find a Wolf Fang",
+        "Report back"
+      ],
+      "next_quest": null,
+      "npc_trigger": "Beast Hunter"
     },
     {
       "quest_name": "Kobold Trouble",
       "quest_level": 2,
       "quest_description": "Kobolds are stealing supplies. Stop them.",
-      "quest_objective": "Kill 3 Kobolds",
-      "target_monster": "Kobold",
-      "kill_count_required": 3,
       "quest_reward": "60 gold, Kobold Dagger",
+      "source": "guild",
+      "stages": [
+        {
+          "type": "kill",
+          "target_monster": "Kobold",
+          "kill_count_required": 3
+        }
+      ],
       "steps": [
         "Get the contract from the guild",
         "Track kobolds in the caves",
         "Report back"
       ],
-      "next_quest": null
+      "next_quest": null,
+      "npc_trigger": null
+    },
+    {
+      "quest_name": "Shadow Hunt",
+      "quest_level": 3,
+      "quest_description": "Hunt a shadowy creature in the mountains.",
+      "quest_reward": "50 gold, Shadow Cloak",
+      "source": "npc",
+      "stages": [
+        {
+          "type": "kill",
+          "target_monster": "Shadow Beast",
+          "kill_count_required": 1
+        },
+        {
+          "type": "collect",
+          "target_item": "Shadow Cloak",
+          "item_count_required": 1
+        }
+      ],
+      "steps": [
+        "Meet the Mysterious Wanderer",
+        "Track the beast",
+        "Claim the Shadow Cloak",
+        "Return with proof"
+      ],
+      "next_quest": null,
+      "npc_trigger": "Shadow Stalker"
+    },
+    {
+      "quest_name": "Wolf Blade",
+      "quest_level": 5,
+      "quest_description": "Retrieve a lost blade from a wolf pack.",
+      "quest_reward": "40 gold, Mercenary Blade",
+      "source": "npc",
+      "stages": [
+        {
+          "type": "kill",
+          "target_monster": "Wolf",
+          "kill_count_required": 4
+        }
+      ],
+      "steps": [
+        "Speak to the Drunk Mercenary",
+        "Hunt wolves in the forest",
+        "Bring back the blade"
+      ],
+      "next_quest": null,
+      "npc_trigger": null
     },
     {
       "quest_name": "Dragon Slayer",
       "quest_level": 90,
-      "quest_description": "A dragon threatens the realm. Slay it.",
-      "quest_objective": "Kill 1 Dragon",
-      "target_monster": "Dragon",
-      "kill_count_required": 1,
+      "quest_description": "A dragon threatens the realm. Slay it and claim its scale.",
       "quest_reward": "1000 gold, Dragon Scale Armor",
+      "source": "guild",
+      "stages": [
+        {
+          "type": "boss",
+          "target_monster": "Dragon",
+          "kill_count_required": 1
+        },
+        {
+          "type": "collect",
+          "target_item": "Dragon Scale",
+          "item_count_required": 1
+        }
+      ],
       "steps": [
         "Seek the dragon’s lair",
         "Defeat the Dragon",
+        "Collect a Dragon Scale",
         "Claim your prize"
       ],
-      "next_quest": null
+      "next_quest": null,
+      "npc_trigger": "Dragon Slayer"
+    },
+    {
+      "quest_name": "Lost Pendant",
+      "quest_level": 2,
+      "quest_description": "Find Elara's Pendant.",
+      "quest_reward": "75 gold",
+      "source": "event",
+      "location": {
+        "main": "Mountain",
+        "sub": "Caves"
+      },
+      "stages": [
+        {
+          "type": "kill",
+          "target_monster": "Kobold",
+          "kill_count_required": 3
+        },
+        {
+          "type": "collect",
+          "target_item": "Lucky Star Pendant",
+          "item_count_required": 1
+        }
+      ],
+      "steps": [
+        "Encounter the Fox girl",
+        "Hunt kobolds in the caves",
+        "Find the Lost Pendant"
+      ],
+      "next_quest": "Fox Girl's Missing Family",
+      "npc_trigger": "Elara, the Fox"
+    },
+    {
+      "quest_name": "Fox Girl's Missing Family",
+      "quest_level": 3,
+      "quest_description": "Help Elara uncover the truth about her family.",
+      "quest_reward": "150 gold",
+      "source": "npc",
+      "stages": [
+        {
+          "type": "kill",
+          "target_monster": "Frost Wolf",
+          "kill_count_required": 3
+        },
+        {
+          "type": "boss",
+          "target_monster": "Frost Wolf Matriarch",
+          "kill_count_required": 1
+        }
+      ],
+      "steps": [
+        "Meet Elara at the tavern",
+        "Investigate where her family was lost at.",
+        "Return to Elara"
+      ],
+      "next_quest": "The Sad Truth",
+      "npc_trigger": "Elara, the Fox"
+    },
+    {
+      "quest_name": "The Sad Truth",
+      "quest_level": 5,
+      "quest_description": "After your adventures with Elara and finding the location of her parents you set out on this last mission.",
+      "quest_reward": "200 gold, Scholar’s Cloak",
+      "source": "npc",
+      "stages": [
+        {
+          "type": "collect",
+          "target_item": "Bloody torn clothes",
+          "item_count_required": 1
+        }
+      ],
+      "steps": [
+          "Consult Elara at the tavern",
+          "Gather frost crystals",
+          "Return to Elara"
+      ],
+      "next_quest": null,
+      "npc_trigger": "Elara, the Fox"
     }
   ]
 }

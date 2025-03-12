@@ -1,0 +1,264 @@
+{
+    "name": "Elara, the Fox",
+    "room_condition": {
+        "bond_required": 8,
+        "quest_completed": "The Sad Truth"
+    },
+    "dialogue": [
+        {
+            "quest": "Lost Pendant",
+            "stages": [
+                {
+                    "stage": "quest_start",
+                    "text": "Thank you for finding me! I’m Elara. Kobolds stole my pendant, and I’m too scared to go after them alone. Will you help?",
+                    "replies": [
+                        {
+                            "text": "Come with me to the tavern, and I’ll help you.",
+                            "response": "Really? Thank you! I’ll follow you there.",
+                            "bond_change": 2
+                        },
+                        {
+                            "text": "I can’t help you right now.",
+                            "response": "Oh… I’ll wait here then, hoping someone else comes by.",
+                            "bond_change": -1
+                        },
+                        {
+                            "text": "Why’s this pendant important?",
+                            "response": "It was given to me by my parents—it’s all I have left of them.",
+                            "bond_change": 1
+                        }
+                    ]
+                },
+                {
+                    "stage": "quest_accepted",
+                    "text": "You’ve agreed to help! Please find my pendant soon—I’ll be waiting at the tavern."
+                },
+                {
+                    "stage": "quest_denied",
+                    "text": "You didn’t want to help… I hope I can find someone else, but I’ll stay here for now."
+                },
+                {
+                    "stage": "pending",
+                    "text": "How’s it going with my pendant? Those Kobolds are tricky, aren’t they?"
+                },
+                {
+                    "stage": "quest_complete",
+                    "text": "You got it back! Thank you so much! Elara ties the pendant to her tail. I can’t believe you helped a beast folk like me.",
+                    "replies": [
+                        {
+                            "text": "I’d love to help more—where did your parents go?",
+                            "response": "You’re amazing! I can show you where the slavers took us.",
+                            "bond_change": 3
+                        },
+                        {
+                            "text": "That’s all I’m doing for you.",
+                            "response": "Oh… I hoped we’d continue, but thank you anyway.",
+                            "bond_change": -2
+                        },
+                        {
+                            "text": "What’s next?",
+                            "response": "I’d like to find my parents—can we check where the slavers were?",
+                            "bond_change": 1
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "talk": [
+                {
+                    "option": "1",
+                    "text": "How do you like the tavern?",
+                    "response": "It’s warm and cozy—much better than that campsite!",
+                    "bond_change": 1,
+                    "flavor_text": [
+                        "Elara’s tail flicks as she looks around.",
+                        "She seems more at ease here."
+                    ]
+                },
+                {
+                    "option": "1-1",
+                    "bond_check": 3,
+                    "text": "Do you miss your family?",
+                    "response": "Every day… but being here with you helps.",
+                    "bond_change": 2,
+                    "flavor_text": [
+                        "Her ears droop slightly.",
+                        "A soft sigh escapes her."
+                    ]
+                },
+                {
+                    "option": "1-2",
+                    "bond_check": 6,
+                    "text": "What was your home like?",
+                    "response": "Full of laughter and stories—before the slavers came.",
+                    "bond_change": 3,
+                    "flavor_text": [
+                        "Her eyes light up with memory.",
+                        "Then darken with sorrow."
+                    ]
+                },
+                {
+                    "option": "2",
+                    "text": "What do you think of the food here?",
+                    "response": "It’s tasty! I’ve never had bread this soft.",
+                    "bond_change": 1,
+                    "flavor_text": [
+                        "She nibbles on a piece of bread.",
+                        "Her tail wags slightly."
+                    ]
+                },
+                {
+                    "option": "3",
+                    "text": "Seen any good fights lately?",
+                    "response": "Oh, just some drunks last night—nothing exciting.",
+                    "bond_change": 0,
+                    "flavor_text": [
+                        "She shrugs casually.",
+                        "Her ears perk up at a distant shout."
+                    ]
+                },
+                {
+                    "option": "4",
+                    "text": "What’s your favorite story?",
+                    "response": "One about a fox who tricked a wolf—want to hear it?",
+                    "bond_change": 2,
+                    "flavor_text": [
+                        "She leans in, eyes sparkling.",
+                        "Her voice takes on a playful tone."
+                    ]
+                },
+                {
+                    "option": "5",
+                    "text": "How’s the pendant holding up?",
+                    "response": "It’s safe now, thanks to you. I check it every day.",
+                    "bond_change": 1,
+                    "flavor_text": [
+                        "She pats the pendant on her tail.",
+                        "A small smile crosses her face."
+                    ]
+                },
+                {
+                    "option": "6",
+                    "text": "Do you like the snow?",
+                    "response": "It’s pretty, but so cold! My fur barely keeps up.",
+                    "bond_change": 1,
+                    "flavor_text": [
+                        "She shivers dramatically.",
+                        "Then giggles at herself."
+                    ]
+                },
+                {
+                    "option": "7",
+                    "text": "What do you do for fun?",
+                    "response": "I weave little trinkets—want me to make you one?",
+                    "bond_change": 2,
+                    "flavor_text": [
+                        "She pulls out some thread.",
+                        "Her fingers move deftly."
+                    ]
+                },
+                {
+                    "option": "8",
+                    "text": "How do beast folk live?",
+                    "response": "In clans, usually—mine was small but tight-knit.",
+                    "bond_change": 1,
+                    "flavor_text": [
+                        "She gazes into the distance.",
+                        "Her voice softens."
+                    ]
+                },
+                {
+                    "option": "9",
+                    "text": "What’s your dream?",
+                    "response": "To find a home again… maybe with friends like you.",
+                    "bond_change": 3,
+                    "flavor_text": [
+                        "Her tail curls around her.",
+                        "She looks at you hopefully."
+                    ]
+                }
+            ]
+        },
+        {
+            "room": {
+                "stage": "room_unlocked",
+                "text": "You’ve been so kind, and we’ve been through so much. Can I stay with you here?",
+                "replies": [
+                    {
+                        "text": "Of course, I’d love that.",
+                        "response": "Thank you! A room together sounds cozy.",
+                        "bond_change": 3
+                    },
+                    {
+                        "text": "Not yet, let’s keep things as they are.",
+                        "response": "Oh, okay… I’ll wait then.",
+                        "bond_change": -1
+                    }
+                ]
+            }
+        },
+        {
+            "invitation": {
+                "stage": "invite_to_stay",
+                "text": "You have a room here, and we’ve grown close. Would you mind if I stayed with you?",
+                "replies": [
+                    {
+                        "text": "I’d love for you to stay with me.",
+                        "response": "Really? That makes me so happy—I feel at home with you.",
+                        "bond_change": 3
+                    },
+                    {
+                        "text": "I’m not ready for that yet.",
+                        "response": "Oh… I understand. Maybe another time?",
+                        "bond_change": -1
+                    }
+                ]
+            }
+        },
+        {
+            "romance": [
+                {
+                    "option": "1",
+                    "text": "You look lovely today.",
+                    "response": "Oh! Thank you… you make me blush.",
+                    "bond_change": 2,
+                    "flavor_text": [
+                        "Elara’s ears twitch shyly.",
+                        "Her tail brushes against you."
+                    ]
+                },
+                {
+                    "option": "2",
+                    "text": "Can I hold your hand?",
+                    "response": "Yes… I’d like that.",
+                    "bond_change": 3,
+                    "flavor_text": [
+                        "She hesitates, then takes your hand.",
+                        "Her grip is warm and gentle."
+                    ]
+                },
+                {
+                    "option": "3",
+                    "text": "What do you think of us?",
+                    "response": "I feel safe with you… maybe more than safe.",
+                    "bond_change": 2,
+                    "flavor_text": [
+                        "Her eyes meet yours softly.",
+                        "A nervous smile plays on her lips."
+                    ]
+                },
+                {
+                    "option": "4",
+                    "text": "Want to share a quiet evening?",
+                    "response": "Just us? That sounds perfect.",
+                    "bond_change": 2,
+                    "flavor_text": [
+                        "She leans closer, tail wagging.",
+                        "The room feels warmer somehow."
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -2,12 +2,11 @@
   "lore": [
     {
       "quest_name": "intro",
-      "lore_text": "In the realm of Snowcaller, a land carved by ice and fire, the echoes of ancient wars still whisper through the winds. Once, mighty empires clashed, their ruins now buried beneath frost and ash. The Guild rose from the chaos, a beacon for lost souls seeking purpose. You stand at its threshold, a wanderer in a world teetering on the edge of shadow. What tale will you weave in this frozen saga?"
+      "lore_text": "In the realm of Snowcaller, a land ravaged by ice, echoes of ancient wars whisper through the winds. Once, mighty empires clashed; their ruins now lie buried beneath frost and ash. Since the world froze over, monsters and other creatures have spread across the frozen wastes. You have journeyed far to reach Brighthaven, one of the last bastions where fame can be forged. What adventures await you? What secrets of the old world will you unearth?"
     },
-
     {
       "quest_name": "Goblin Cleanup",
-      "lore_text": "Long ago, the village of Eldwood thrived in peace, its fields golden with harvest. But then the goblins came—small, vicious creatures led by a cunning chieftain. They raided homes, stole livestock, and drove the villagers to despair. The elder, a weary man named Thane, once fought them off with a band of brave souls, but now he’s too old to wield a blade. He’s called upon the Guild, hoping a new hero will rise to cleanse the forest of this scourge."
+      "lore_text": "Long ago, the village of Eldwood thrived in peace, its fields among the last to bear a harvest. Then the goblins came—small, vicious creatures led by a cunning chieftain. They raided homes, stole livestock, and plunged the villagers into despair. The elder, a weary man named Thane, once repelled them with a band of brave souls, but age has robbed him of his sword arm. Now, he’s called upon the Guild, seeking a new hero to rid the land of this blight."
     },
     {
       "quest_name": "Kobold Trouble",

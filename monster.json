@@ -4,27 +4,29 @@
       "name": "Goblin",
       "stats": {"S": 2, "A": 2, "I": 1, "W": 1, "L": 1},
       "level_range": {"min": 1, "max": 3},
-      "damage_range": {"min": 3, "max": 8},
+      "damage_range": {"min": 2, "max": 4},
       "spawn_chance": 25,
       "gold_chance": 10,
-      "armor_value": 15,
+      "armor_value": 5,
       "hp_range": {"min": 12, "max": 15.1},
       "rare": false,
       "notes": "Easy starter, minor AV added.",
-      "art_file": "goblin.txt"
+      "art_file": "goblin.txt",
+      "skills": null
     },
     {
       "name": "Kobold",
-      "stats": {"S": 4, "A": 4, "I": 1, "W": 1, "L": 1},
+      "stats": {"S": 1, "A": 3, "I": 1, "W": 1, "L": 1},
       "level_range": {"min": 1, "max": 3},
-      "damage_range": {"min": 6, "max": 9},
+      "damage_range": {"min": 3, "max": 6},
       "spawn_chance": 15,
       "gold_chance": 35,
-      "armor_value": 20,
-      "hp_range": {"min": 9, "max": 12},
+      "armor_value": 5,
+      "hp_range": {"min": 8, "max": 10},
       "rare": false,
       "notes": "Agile, low damage, higher gold chance.",
-      "art_file": "kobold.txt"
+      "art_file": "kobold.txt",
+      "skills": null
     },
     {
       "name": "Skeleton",
@@ -37,7 +39,8 @@
       "hp_range": {"min": 14, "max": 15.4},
       "rare": false,
       "notes": "Slightly tougher, minor AV.",
-      "art_file": "skeleton.txt"
+      "art_file": "skeleton.txt",
+      "skills": null
     },
     {
       "name": "Bandit",
@@ -50,7 +53,8 @@
       "hp_range": {"min": 16, "max": 17.8},
       "rare": false,
       "notes": "Early loot-focused foe.",
-      "art_file": "bandit.txt"
+      "art_file": "bandit.txt",
+      "skills": null
     },
     {
       "name": "Orc",
@@ -63,7 +67,22 @@
       "hp_range": {"min": 16, "max": 18.3},
       "rare": false,
       "notes": "Balanced early-mid threat.",
-      "art_file": "orc.txt"
+      "art_file": "orc.txt",
+      "skills": null
+    },
+    {
+      "name": "Frost Wolf",
+      "stats": {"S": 3, "A": 6, "I": 1, "W": 2, "L": 1},
+      "level_range": {"min": 3, "max": 6},
+      "damage_range": {"min": 5, "max": 9},
+      "spawn_chance": 5,
+      "gold_chance": 50,
+      "armor_value": 15,
+      "hp_range": {"min": 16, "max": 18.3},
+      "rare": false,
+      "notes": "Frosty bois.",
+      "art_file": "frostwolf.txt",
+      "skills": null
     },
     {
       "name": "Giant Rat",
@@ -76,7 +95,8 @@
       "hp_range": {"min": 14, "max": 16},
       "rare": false,
       "notes": "Fast, no armor, easy kill.",
-      "art_file": "giantrat.txt"
+      "art_file": "giantrat.txt",
+      "skills": null
     },
     {
       "name": "Troll",
@@ -89,7 +109,8 @@
       "hp_range": {"min": 20, "max": 23.4},
       "rare": false,
       "notes": "Mid-tier tank, higher gold.",
-      "art_file": "troll.txt"
+      "art_file": "troll.txt",
+      "skills": null
     },
     {
       "name": "Harpy",
@@ -102,7 +123,8 @@
       "hp_range": {"min": 14, "max": 16.4},
       "rare": false,
       "notes": "Agile flyer, moderate threat.",
-      "art_file": "harpy.txt"
+      "art_file": "harpy.txt",
+      "skills": null
     },
     {
       "name": "Zombie",
@@ -115,7 +137,8 @@
       "hp_range": {"min": 18, "max": 21},
       "rare": false,
       "notes": "Slow but durable.",
-      "art_file": "zombie.txt"
+      "art_file": "zombie.txt",
+      "skills": null
     },
     {
       "name": "Wolf Pack",
@@ -128,7 +151,8 @@
       "hp_range": {"min": 16, "max": 18.9},
       "rare": false,
       "notes": "Fast, pack tactics, loot-focused.",
-      "art_file": "wolfp.txt"
+      "art_file": "wolfp.txt",
+      "skills": null
     },
     {
       "name": "Orc Warrior",
@@ -141,7 +165,8 @@
       "hp_range": {"min": 20, "max": 24.5},
       "rare": false,
       "notes": "Stronger orc variant.",
-      "art_file": "orcwarrior.txt"
+      "art_file": "orcwarrior.txt",
+      "skills": null
     },
     {
       "name": "Cultist",
@@ -154,7 +179,8 @@
       "hp_range": {"min": 14, "max": 17.5},
       "rare": false,
       "notes": "Magic-focused, low HP.",
-      "art_file": "cultist.txt"
+      "art_file": "cultist.txt",
+      "skills": null
     },
     {
       "name": "Golem",
@@ -167,7 +193,8 @@
       "hp_range": {"min": 22, "max": 28},
       "rare": false,
       "notes": "Tanky, high AV.",
-      "art_file": "golem.txt"
+      "art_file": "golem.txt",
+      "skills": null
     },
     {
       "name": "Minotaur",
@@ -180,7 +207,8 @@
       "hp_range": {"min": 24, "max": 30},
       "rare": false,
       "notes": "Strong melee threat.",
-      "art_file": "minotaur.txt"
+      "art_file": "minotaur.txt",
+      "skills": null
     },
     {
       "name": "Specter",
@@ -193,7 +221,8 @@
       "hp_range": {"min": 16, "max": 21},
       "rare": false,
       "notes": "Magical, elusive.",
-      "art_file": "specter.txt"
+      "art_file": "specter.txt",
+      "skills": null
     },
     {
       "name": "Goblin Chieftain",
@@ -206,7 +235,8 @@
       "hp_range": {"min": 25.5, "max": 29.1},
       "rare": true,
       "notes": "Early boss, manageable with starting gear.",
-      "art_file": "goblinchieftain.txt"
+      "art_file": "goblinchieftain.txt",
+      "skills": null
     },
     {
       "name": "Ogre King",
@@ -219,7 +249,22 @@
       "hp_range": {"min": 33, "max": 39},
       "rare": true,
       "notes": "Mid-tier, slight L tweak for loot.",
-      "art_file": "ogreking.txt"
+      "art_file": "ogreking.txt",
+      "skills": null
+    },
+    {
+      "name": "Frost Wolf Matriarch",
+      "stats": {"S": 8, "A": 8, "I": 5, "W": 5, "L": 4},
+      "level_range": {"min": 3, "max": 5},
+      "damage_range": {"min": 7.2, "max": 14.4},
+      "spawn_chance": 5,
+      "gold_chance": 75,
+      "armor_value": 60,
+      "hp_range": {"min": 39, "max": 46.5},
+      "rare": true,
+      "notes": "Strong mid-tier, unchanged.",
+      "art_file": "frostwolfmatriarch.txt",
+      "skills": null
     },
     {
       "name": "Demon Lord",
@@ -232,7 +277,8 @@
       "hp_range": {"min": 39, "max": 46.5},
       "rare": true,
       "notes": "Strong mid-tier, unchanged.",
-      "art_file": "demonlord.txt"
+      "art_file": "demonlord.txt",
+      "skills": null
     },
     {
       "name": "Necromancer",
@@ -245,7 +291,8 @@
       "hp_range": {"min": 30, "max": 39},
       "rare": true,
       "notes": "Magic boss, mid-high tier.",
-      "art_file": "necromancer.txt"
+      "art_file": "necromancer.txt",
+      "skills": null
     },
     {
       "name": "Ancient Wyrm",
@@ -258,7 +305,8 @@
       "hp_range": {"min": 63, "max": 81},
       "rare": true,
       "notes": "High-tier, balanced as is.",
-      "art_file": "ancientwyrm.txt"
+      "art_file": "ancientwyrm.txt",
+      "skills": null
     },
     {
       "name": "Hydra",
@@ -271,7 +319,8 @@
       "hp_range": {"min": 51, "max": 63},
       "rare": true,
       "notes": "Multi-headed beast, high-tier.",
-      "art_file": "hydra.txt"
+      "art_file": "hydra.txt",
+      "skills": null
     },
     {
       "name": "Dragon",
@@ -284,7 +333,8 @@
       "hp_range": {"min": 30, "max": 37},
       "rare": true,
       "notes": "Rare, unbeatable early.",
-      "art_file": "dragon.txt"
+      "art_file": "dragon.txt",
+      "skills": ["Fireball", "Roar"]
     }
   ]
 }

@@ -12,7 +12,7 @@
     },
     {
       "class_type": "1",
-      "level_req": "1",
+      "level_req": 1,
       "name": "Over Head Swing",
       "base_dmg": 8,
       "effect": "direct_damage",
@@ -67,6 +67,86 @@
       "base_dmg": 1,
       "effect": "damage_over_time",
       "mp_cost": 5,
+      "duration": 3,
+      "stat": "I"
+    },
+    {
+      "class_type": "monster",
+      "level_req": 1,
+      "name": "Fireball",
+      "base_dmg": 8,
+      "effect": "direct_damage",
+      "mp_cost": 5,
+      "duration": 0,
+      "stat": "I"
+    },
+    {
+      "class_type": "monster",
+      "level_req": 1,
+      "name": "Roar",
+      "base_dmg": 3,
+      "effect": "damage_bonus",
+      "mp_cost": 3,
+      "duration": 2,
+      "stat": "S"
+    },
+    {
+      "class_type": "monster",
+      "level_req": 1,
+      "name": "Bite",
+      "base_dmg": 6,
+      "effect": "direct_damage",
+      "mp_cost": 2,
+      "duration": 0,
+      "stat": "S"
+    },
+    {
+      "class_type": "2",
+      "level_req": 3,
+      "name": "Regeneration",
+      "base_dmg": 5,
+      "effect": "heal_over_time",
+      "mp_cost": 4,
+      "duration": 3,
+      "stat": "W"
+    },
+    {
+      "class_type": "1",
+      "level_req": 7,
+      "name": "Iron Skin",
+      "base_dmg": 20,
+      "effect": "armor_bonus",
+      "mp_cost": 6,
+      "duration": 3,
+      "stat": "S"
+    },
+    {
+      "class_type": "3",
+      "level_req": 8,
+      "name": "Nimble Step",
+      "base_dmg": 10,
+      "effect": "dodge_bonus",
+      "mp_cost": 5,
+      "duration": 3,
+      "stat": "A"
+    },
+    {
+      "class_type": "2",
+      "level_req": 10,
+      "name": "Sleep Spell",
+      "base_dmg": 0,
+      "effect": "sleep",
+      "mp_cost": 8,
+      "duration": 5,
+      "stat": "I"
+    },
+    {
+      "class_type": "monster",
+      "level_req": 1,
+      "name": "Curse",
+      "base_dmg": 0,
+      "effect": "curse",
+      "mp_cost": 6,
       "duration": 3,
       "stat": "I"
     }
