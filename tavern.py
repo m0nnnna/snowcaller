@@ -499,14 +499,21 @@ class Tavern:
             self.player.active_quests.append({
                 "quest_name": quest["quest_name"],
                 "stages": [
-                    {"type": s["type"], "target_monster": s.get("target_monster"), "kill_count": 0}
-                    if s["type"] in ["kill", "boss"] else
-                    {"type": s["type"], "target_item": s["target_item"], "item_count": 0}
-                    for s in quest["stages"]
+                   {
+                        "type": s["type"],
+                        "target_monster": s.get("target_monster"),
+                        "kill_count": 0,
+                        "kill_count_required": s.get("kill_count_required", 0)
+                    } if s["type"] in ["kill", "boss"] else {
+                        "type": s["type"],
+                        "target_item": s["target_item"],
+                        "item_count": 0,
+                        "item_count_required": s.get("item_count_required", 0)
+                    } for s in quest["stages"]
                 ]
             })
             print("Quest accepted!")
-            save_game(self.player)  # Persist state
+            save_game(self.player)
 
     def turn_in_quest(self, quest_name):
         if not quest_name:

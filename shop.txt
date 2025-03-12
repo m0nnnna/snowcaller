@@ -1,7 +1,1 @@
 # Shop Items
-Minor Health Potion [L:1-10 HP 20 none 10 5% 10]
-Minor Mana Potion [L:1-10 MP 10 none 10 5% 10]
-Health Potion [L:11-20 HP 20 none 10 4% 20]
-Mana Potion [L:11-20 MP 10 none 10 4% 20]
-Lockpick [L:0-100 10 25]
-Magical Removal Scroll [L:0-100 10 45]

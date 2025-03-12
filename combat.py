@@ -262,7 +262,7 @@ def combat(player, boss_fight=False, monster_name=None):
                                     scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
 
                             if effect == "damage_bonus":
-                                player.skill_effects[skill_name] = duration
+                                player.skill_effects[skill_name] = duration + 1
                                 print(f"{skill_name} activated! +{scaled_dmg} damage for {duration} turns.")
                             elif effect == "direct_damage":
                                 monster_hp -= scaled_dmg
@@ -433,8 +433,7 @@ def combat(player, boss_fight=False, monster_name=None):
     elif monster_hp <= 0:
         xp = level * 2 * (1.5 if monster_stats["rare"] or boss_fight else 1)
         gold = random.randint(level * 2, level * 5) * (2 if monster_stats["rare"] or boss_fight else 1)
-        if random.random() < monster_stats["gold_chance"] / 100:
-            player.gold += gold
+        player.gold += gold
         player.pending_xp += xp
         
         # Update quest kill counts

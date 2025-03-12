@@ -9,29 +9,41 @@ def get_base_path():
         path = os.path.dirname(sys.executable)  # Use raw sys.executable
         return path
     path = os.path.dirname(os.path.abspath(__file__))
-#    print(f"Base path (script): {path}")
+    # print(f"Base path (script): {path}")
     return path
 
 def setup_game_files():
-    """Install bundled files: JSON in base directory, art in art/ subdirectory."""
+    """Install bundled files: JSON in base directory, art and NPC in subdirectories."""
     base_path = get_base_path()
     art_path = os.path.join(base_path, "art")
+    npc_path = os.path.join(base_path, "NPC")  # New NPC directory
     os.makedirs(art_path, exist_ok=True)
+    os.makedirs(npc_path, exist_ok=True)  # Create NPC directory if it doesn’t exist
 
     if getattr(sys, 'frozen', False):
         bundled_path = sys._MEIPASS
         bundled_files = {
             "art": ["rogue.txt", "warrior.txt", "mage.txt", "kobold.txt", "goblin.txt", 
                     "skeleton.txt", "dragon.txt"],
-            "json": ["consumables.json", "gear.json", "locations.txt", "lore.json", 
-                     "monster.json", "quest.json", "skills.json", "treasures.json"]
+            "NPC": ["Elara, the Fox.json"],
+            "json": ["consumables.json", "event.json", "gear.json", "keyitems.json", "lore.json", 
+                     "monster.json", "npcs.json", "quest.json", "skills.json", "treasures.json", "locations.txt"]
         }
+        # Extract art files
         for art_file in bundled_files["art"]:
             src = os.path.join(bundled_path, "art", art_file)
             dst = os.path.join(art_path, art_file)
             if not os.path.exists(dst) and os.path.exists(src):
                 shutil.copy2(src, dst)
                 print(f"Installed {art_file} to {dst}")
+        # Extract NPC files
+        for npc_file in bundled_files["NPC"]:
+            src = os.path.join(bundled_path, "NPC", npc_file)
+            dst = os.path.join(npc_path, npc_file)
+            if not os.path.exists(dst) and os.path.exists(src):
+                shutil.copy2(src, dst)
+                print(f"Installed {npc_file} to {dst}")
+        # Extract JSON files
         for json_file in bundled_files["json"]:
             src = os.path.join(bundled_path, json_file)
             dst = os.path.join(base_path, json_file)
@@ -46,7 +58,7 @@ def get_resource_path(filename, subfolder=None):
         full_path = os.path.join(base_path, subfolder, filename)
     else:
         full_path = os.path.join(base_path, filename)
-#    print(f"Resource path for {filename}: {full_path}")  # Debug, no abspath
+    # print(f"Resource path for {filename}: {full_path}")  # Debug, no abspath
     return full_path  # Return raw path without abspath
 
 def load_json(filename):
@@ -87,7 +99,6 @@ def save_json(filename, data):
     except Exception as e:
         print(f"Error saving {file_path}: {e}")
         return False
-
 
 def parse_stats(stat_str, is_consumable=False):
     stats = {"S": 0, "A": 0, "I": 0, "W": 0, "L": 0}

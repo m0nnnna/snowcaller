@@ -7,7 +7,7 @@ import json
 import importlib
 from player import Player, save_game, load_game
 from combat import combat
-from shop import shop_menu, parse_shop_item, calculate_price
+from shop import shop_menu, calculate_price
 from tavern import tavern_menu
 from events import random_event
 from utils import load_json, load_file, load_art_file, parse_stats, get_resource_path, save_json
@@ -253,12 +253,21 @@ def update_kill_count(player, monster_name):
     quests_data = load_json("quest.json")
     quests = quests_data.get("quests", [])
     
+    if not quests:
+        print("Warning: No quests found in quest.json!")
+        return
+    
     for quest in player.active_quests:
         quest_info = next((q for q in quests if q["quest_name"] == quest["quest_name"]), None)
-        if quest_info and quest_info["target_monster"] == monster_name:
+        if quest_info is None:
+            print(f"Warning: Quest '{quest['quest_name']}' in active_quests not found in quest.json!")
+            continue
+        if "target_monster" not in quest_info:
+            print(f"Warning: Quest '{quest['quest_name']}' in quest.json missing 'target_monster' key!")
+            continue
+        if quest_info["target_monster"] == monster_name:
             quest["kill_count"] = quest.get("kill_count", 0) + 1
             print(f"Progress on '{quest['quest_name']}': {quest['kill_count']}/{quest_info['kill_count_required']} {monster_name}s killed.")
-    # No need to save here; game.py will save via save_game(player) after adventure
 
 def main():
     if getattr(sys, 'frozen', False):
@@ -536,9 +545,9 @@ def main():
                     progress = []
                     for stage in quest["stages"]:  # Use active_quest stages directly
                         if stage["type"] in ["kill", "boss"]:
-                            progress.append(f"Kills: {stage.get('kill_count', 0)}/{stage['kill_count_required']}")
+                            progress.append(f"Kills: {stage.get('kill_count', 0)}/{stage.get('kill_count_required', 0)}")
                         elif stage["type"] == "collect":
-                            progress.append(f"Items: {stage.get('item_count', 0)}/{stage['item_count_required']}")
+                            progress.append(f"Items: {stage.get('item_count', 0)}/{stage.get('item_count_required', 0)}")
                     print(f"{i}. {quest['quest_name']} ({', '.join(progress)})")
 
                 quest_choice = int(input("Select a quest: ")) - 1

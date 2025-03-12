@@ -6,6 +6,10 @@
       "quest_description": "The village is overrun with goblins. Clear them out.",
       "quest_reward": "50 gold, Rusty Sword",
       "source": "guild",
+      "location": {
+        "main": "Goblin",
+        "sub": "Camp"
+      },
       "stages": [
         {
           "type": "kill",
@@ -27,6 +31,10 @@
       "quest_description": "Investigate rumors of a beast beneath the ice.",
       "quest_reward": "100 gold, Ice Fang Amulet",
       "source": "npc",
+      "location": {
+        "main": "Beast",
+        "sub": "Cave"
+      },
       "stages": [
         {
           "type": "kill",
@@ -60,6 +68,10 @@
       "quest_description": "Kobolds are stealing supplies. Stop them.",
       "quest_reward": "60 gold, Kobold Dagger",
       "source": "guild",
+      "location": {
+        "main": "Kobold",
+        "sub": "Tunnel"
+      },
       "stages": [
         {
           "type": "kill",
@@ -81,6 +93,10 @@
       "quest_description": "Hunt a shadowy creature in the mountains.",
       "quest_reward": "50 gold, Shadow Cloak",
       "source": "npc",
+      "location": {
+        "main": "Shadow",
+        "sub": "Void"
+      },
       "stages": [
         {
           "type": "kill",
@@ -108,6 +124,10 @@
       "quest_description": "Retrieve a lost blade from a wolf pack.",
       "quest_reward": "40 gold, Mercenary Blade",
       "source": "npc",
+      "location": {
+        "main": "Hidden,Ice",
+        "sub": "Forest"
+      },
       "stages": [
         {
           "type": "kill",
@@ -129,6 +149,10 @@
       "quest_description": "A dragon threatens the realm. Slay it and claim its scale.",
       "quest_reward": "1000 gold, Dragon Scale Armor",
       "source": "guild",
+      "location": {
+        "main": "Last",
+        "sub": "Step"
+      },
       "stages": [
         {
           "type": "boss",
@@ -186,6 +210,10 @@
       "quest_description": "Help Elara uncover the truth about her family.",
       "quest_reward": "150 gold",
       "source": "npc",
+      "location": {
+        "main": "Frosted",
+        "sub": "Den"
+      },
       "stages": [
         {
           "type": "kill",
@@ -212,6 +240,10 @@
       "quest_description": "After your adventures with Elara and finding the location of her parents you set out on this last mission.",
       "quest_reward": "200 gold, Scholar’s Cloak",
       "source": "npc",
+      "location": {
+        "main": "Bloody",
+        "sub": "Clif"
+      },
       "stages": [
         {
           "type": "collect",

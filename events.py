@@ -124,7 +124,28 @@ def execute_outcome(player, outcome, max_encounters):
                 return "You fled or failed the fight."
         return f"Defeated {count} {outcome['monster']}(s)!"
 
-    return "Outcome not implemented!"
+    elif outcome["type"] == "dialogue":
+        if outcome.get("requires_choice", False):
+            print("Will you help? 1 for Yes | 2 for No")
+            time.sleep(0.5)
+            choice = input("Selection: ")
+            if choice == "1":
+                if "on_reply" in outcome and outcome["on_reply"].get("reply_index") == 0:
+                    on_reply = outcome["on_reply"]
+                    if on_reply["action"] == "add_tavern_npc":
+                        npc = on_reply["npc"]
+                        if "quest" in outcome:
+                            npc["quest"] = outcome["quest"]
+                        if not hasattr(player, "tavern_npcs"):
+                            player.tavern_npcs = []
+                        if npc["name"] not in [n["name"] for n in player.tavern_npcs]:
+                            player.tavern_npcs.append(npc)
+                            print(f"{npc['name']} has joined the tavern!")
+                            from player import save_game
+                            save_game(player)  # Save after adding NPC
+                return "You agree to help."
+            return "You decline to help."
+        return "Dialogue triggered without choice."
 
 def random_event(player, encounter_count, max_encounters):
     events = load_json("event.json")

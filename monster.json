@@ -11,7 +11,7 @@
       "hp_range": {"min": 12, "max": 15.1},
       "rare": false,
       "notes": "Easy starter, minor AV added.",
-      "art_file": "goblin.txt",
+      "art_file": ".goblin.txt",
       "skills": null
     },
     {
@@ -25,7 +25,7 @@
       "hp_range": {"min": 8, "max": 10},
       "rare": false,
       "notes": "Agile, low damage, higher gold chance.",
-      "art_file": "kobold.txt",
+      "art_file": ".kobold.txt",
       "skills": null
     },
     {
@@ -39,7 +39,7 @@
       "hp_range": {"min": 14, "max": 15.4},
       "rare": false,
       "notes": "Slightly tougher, minor AV.",
-      "art_file": "skeleton.txt",
+      "art_file": ".skeleton.txt",
       "skills": null
     },
     {
@@ -58,7 +58,7 @@
     },
     {
       "name": "Orc",
-      "stats": {"S": 3, "A": 2, "I": 1, "W": 2, "L": 1},
+      "stats": {"S": 4, "A": 2, "I": 1, "W": 2, "L": 1},
       "level_range": {"min": 3, "max": 6},
       "damage_range": {"min": 2, "max": 4},
       "spawn_chance": 5,
@@ -71,9 +71,23 @@
       "skills": null
     },
     {
+      "name": "Shadow Wolf",
+      "stats": {"S": 3, "A": 4, "I": 1, "W": 4, "L": 1},
+      "level_range": {"min": 2, "max": 5},
+      "damage_range": {"min": 5, "max": 11},
+      "spawn_chance": 5,
+      "gold_chance": 50,
+      "armor_value": 30,
+      "hp_range": {"min": 16, "max": 18.3},
+      "rare": false,
+      "notes": "Spoopy bois.",
+      "art_file": "shadowwolf.txt",
+      "skills": null
+    },
+    {
       "name": "Frost Wolf",
       "stats": {"S": 3, "A": 6, "I": 1, "W": 2, "L": 1},
-      "level_range": {"min": 3, "max": 6},
+      "level_range": {"min": 4, "max": 6},
       "damage_range": {"min": 5, "max": 9},
       "spawn_chance": 5,
       "gold_chance": 50,
@@ -250,6 +264,20 @@
       "rare": true,
       "notes": "Mid-tier, slight L tweak for loot.",
       "art_file": "ogreking.txt",
+      "skills": null
+    },
+    {
+      "name": "Demon Wolf",
+      "stats": {"S": 8, "A": 8, "I": 5, "W": 5, "L": 4},
+      "level_range": {"min": 3, "max": 5},
+      "damage_range": {"min": 7.2, "max": 14.4},
+      "spawn_chance": 5,
+      "gold_chance": 75,
+      "armor_value": 60,
+      "hp_range": {"min": 39, "max": 46.5},
+      "rare": true,
+      "notes": "Strong mid-tier, unchanged.",
+      "art_file": "frostwolfmatriarch.txt",
       "skills": null
     },
     {
