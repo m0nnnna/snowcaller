@@ -61,8 +61,8 @@
                     "text": "You got it back! Thank you so much! Elara ties the pendant to her tail. I can’t believe you helped a beast folk like me.",
                     "replies": [
                         {
-                            "text": "I’d love to help more—where did your parents go?",
-                            "response": "You’re amazing! I can show you where the slavers took us.",
+                            "text": "Of course. It was easy work for me.",
+                            "response": "You’re amazing! Elara jumps in joy smiling at you warmly.",
                             "bond_change": 3
                         },
                         {
@@ -71,8 +71,97 @@
                             "bond_change": -2
                         },
                         {
-                            "text": "What’s next?",
-                            "response": "I’d like to find my parents—can we check where the slavers were?",
+                            "text": "It was dangerous. I could've died.",
+                            "response": "But you kept your promise and came back.",
+                            "bond_change": 1
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "quest": "Fox Girl's Missing Family",
+            "stages": [
+                {
+                    "stage": "quest_start",
+                    "text": "Hello hero! Elara yells as you walk past her in the tavern. Thank you again for everything you've done. You and Elara spend some time together drinking. She speaks to you with a lower guard. You know... I'd do anything to see my parents again. She jokingly knudges you. What would you say to another adventure? We can try to track them down. ",
+                    "replies": [
+                        {
+                            "text": "Once the morning light hits we will look for them.",
+                            "response": "Elara sits somber at the thought of seeing her parents again. Hero, whatever you find out there please bring it back to me. ",
+                            "bond_change": 2
+                        },
+                        {
+                            "text": "Go out into the cold to look for the dead? No thanks.",
+                            "response": "Oh…",
+                            "bond_change": -2
+                        }
+                    ], 
+                    "flavor": [
+                        {
+                            "option": "3-1",
+                            "text": "Where were they last seen?",
+                            "response": "There was a Frosted Den we passed. We were being chased and they told me to keep running.",
+                            "bond_change": 0
+                        },
+                        {
+                            "option": "3-2",
+                            "text": "Do you think they're alive?",
+                            "response": "...I can only hope they are out there..",
+                            "bond_change": 0
+                        },
+                        {
+                            "option": "3-3",
+                            "text": "You slam down the final drink for the night. Elara! She is stunned by your outbrust loud enough for the entire Tavern to hear. I promise I will find them at any cost.",
+                            "response": "Elara looks as if she is about to cry. Most humans never even look Beast Folk in the the eyes. Never mind a human risking their own skin on such a foolish adventure. Hero...She clinges onto you with tears. Thank you.",
+                            "bond_change": 1
+                        }
+                    ]
+                },
+                {
+                    "stage": "quest_accepted",
+                    "text": "Thank you hero..."
+                },
+                {
+                    "stage": "quest_denied",
+                    "text": "It's okay...I am asking a lot..."
+                },
+                {
+                    "stage": "pending",
+                    "text": "Hero? Have you been to the Frosted Den?"
+                },
+                {
+                    "stage": "quest_complete",
+                    "text": "Hero...You're all scratched up and hurt. Did you run into any monsters? Please tell me everything. Elara proceeds to to try cleaning you off and applying bandages.",
+                    "replies": [
+                        {
+                            "text": "I made it here safely. Surely we can follow up our next lead.",
+                            "response": "Hero...Elara looks up at you with hope in her eyes. A new fight is coming.",
+                            "bond_change": 3
+                        },
+                        {
+                            "text": "That’s all I’m doing for you.",
+                            "response": "Oh… I hoped we’d continue, but thank you anyway.",
+                            "bond_change": -2
+                        }
+                    ],
+                    "flavor": [
+                        {
+                            "option": "3-1",
+                            "text": "Elara...I found wolves. The Frosted Den had a family of strong wolves that seem to have eaten everything made of meat within miles.",
+                            "response": "Oh hero. Elara blushes her face red at her Hero facing such a threat. Hero you have to promise me whenever you leave the safety of the city gates you will always return.",
+                            "bond_change": 0
+                        },
+                        {
+                            "option": "3-2",
+                            "text": "Of course Elara. I wouldn't dream of leaving you alone.",
+                            "response": "Oh Hero. Elara with a small smile clinges on her Hero. You faced great danger just for my peace of mind. Now we have a lead. But... given your current state. I couldn't ask anymore of you.",
+                            "bond_change": 0
+                        },
+                        {
+                            "option": "3-3",
+                            "text": "You ponder for a moment. You can see the weight on her heart the pain of not knowning the fate of her loved ones. Is it time to move on? Or could you see this out till the end? You meet her gaze. For now I rest, and we drink to a completed hunt.",
+                            "response": "Elara can see your attempt to make her smile. Rounds of ale for all. The ",
                             "bond_change": 1
                         }
                     ]
