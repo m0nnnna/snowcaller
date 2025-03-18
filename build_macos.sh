@@ -32,14 +32,18 @@ fi
 # Build the executable
 pyinstaller --onefile \
     --add-data "art:art" \
+    --add-data "NPC:NPC" \
     --add-data "consumables.json:." \
+    --add-data "event.json:." \
     --add-data "gear.json:." \
-    --add-data "locations.txt:." \
+    --add-data "keyitems.json:." \
     --add-data "lore.json:." \
     --add-data "monster.json:." \
+    --add-data "npcs.json:." \
     --add-data "quest.json:." \
     --add-data "skills.json:." \
     --add-data "treasures.json:." \
+    --add-data "locations.txt:." \
     --hidden-import "requests" \
     --name Snowcaller game.py
 
