@@ -147,13 +147,22 @@ def execute_outcome(player, outcome, max_encounters):
             return "You decline to help."
         return "Dialogue triggered without choice."
 
-def random_event(player, encounter_count, max_encounters):
+def random_event(player, max_encounters):
     events = load_json("event.json")
-    available_events = [e for e in events if e["level_range"]["min"] <= player.level <= e["level_range"]["max"] and player.event_cooldowns.get(e["name"], 0) == 0 and (not e.get("one_time", False) or not e.get("triggered", False))]
+    available_events = [
+        e for e in events 
+        if e["level_range"]["min"] <= player.level <= e["level_range"]["max"] 
+        and player.event_cooldowns.get(e["name"], 0) == 0 
+        and (not e.get("one_time", False) or not e.get("triggered", False))
+    ]
     if not available_events:
+        # Decrement event timers even if no event triggers
+        for event_name in player.event_timers:
+            player.event_timers[event_name] = max(0, player.event_timers[event_name] - 1)
         return max_encounters
+    
     event = random.choices(available_events, weights=[e["spawn_chance"] for e in available_events], k=1)[0]
-    player.event_cooldowns[event["name"]] = event.get("cooldown", 1)
+    player.event_timers[event["name"]] = event.get("cooldown", 1)
     if event.get("one_time", False) and not event.get("triggered", False):
         event["triggered"] = True
         with open(os.path.join(os.path.dirname(__file__), "event.json"), "w") as f:
@@ -162,16 +171,12 @@ def random_event(player, encounter_count, max_encounters):
     outcome = random.choices(event["outcomes"], weights=[o["weight"] for o in event["outcomes"]], k=1)[0]
     result = execute_outcome(player, outcome, max_encounters)
     print(result)
+    
+    # Decrement event timers after event
+    for event_name in player.event_timers:
+        player.event_timers[event_name] = max(0, player.event_timers[event_name] - 1)
+    
     return max_encounters
-    event = random.choices(
-        available_events,
-        weights=[e["spawn_chance"] for e in available_events],
-        k=1
-    )[0]
-
-    # Set cooldown
-    cooldown_duration = event.get("cooldown", 1)
-    player.event_cooldowns[event["name"]] = cooldown_duration
 
     # Mark one-time event as triggered
     if event.get("one_time", False) and not event.get("triggered", False):
@@ -181,10 +186,10 @@ def random_event(player, encounter_count, max_encounters):
         with open(event_path, "w") as f:
             json.dump(events, f, indent=4)
 
-    # Decrement cooldowns
-    for opt in player.event_cooldowns:
-        if player.event_cooldowns[opt] > 0:
-            player.event_cooldowns[opt] -= 1
+    # Decrement event timers
+    for opt in player.event_timers:
+        if player.event_timers[opt] > 0:
+            player.event_timers[opt] -= 1
 
     # Execute event
     print(event["description"])

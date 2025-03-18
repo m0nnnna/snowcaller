@@ -3,22 +3,42 @@
     {
       "class_type": "1",
       "level_req": 1,
-      "name": "Over Head Swing",
-      "base_dmg": 8,
-      "effect": "direct_damage",
+      "name": "Iron Skin",
+      "base_dmg": 20,
+      "effect": "armor_bonus",
       "mp_cost": 2,
-      "duration": 0,
+      "duration": 3,
       "stat": "S"
     },
     {
       "class_type": "1",
-      "level_req": 5,
+      "level_req": 3,
       "name": "Rage",
-      "base_dmg": 2,
+      "base_dmg": 3,
       "effect": "damage_bonus",
-      "mp_cost": 5,
+      "mp_cost": 4,
       "duration": 3,
       "stat": "S"
+    },
+    {
+      "name": "Bloodlust",
+      "mp_cost": 5,
+      "class_type": "1",
+      "level_req": 6,
+      "effects": [
+        {
+          "type": "direct_damage",
+          "base_dmg": 4,
+          "stat": "S",
+          "duration": 0
+        },
+        {
+          "type": "life-steal",
+          "base_dmg": 0,
+          "stat": "I",
+          "duration": 4
+        }
+      ]
     },
     {
       "class_type": "2",
@@ -32,33 +52,77 @@
     },
     {
       "class_type": "2",
-      "level_req": 5,
+      "level_req": 3,
       "name": "Heal",
       "base_dmg": 10,
       "effect": "heal",
-      "mp_cost": 3,
+      "mp_cost": 4,
       "duration": 0,
-      "stat": "W"
+      "stat": "I"
+    },
+    {
+      "name": "Vampiric Aura",
+      "mp_cost": 5,
+      "class_type": "2",
+      "level_req": 6,
+      "effects": [
+        {
+          "type": "life-steal",
+          "base_dmg": 0,
+          "stat": "I",
+          "duration": 5
+        }
+      ]
     },
     {
       "class_type": "3",
       "level_req": 1,
       "name": "Poison",
-      "base_dmg": 1,
+      "base_dmg": 1.2,
       "effect": "damage_over_time",
       "mp_cost": 1,
       "duration": 3,
       "stat": "A"
     },
     {
+      "name": "Instant Frost Shank",
+      "mp_cost": 2,
       "class_type": "3",
-      "level_req": 5,
-      "name": "Backstab",
-      "base_dmg": 4,
-      "effect": "direct_damage",
+      "level_req": 3,
+      "effects": [
+        {
+          "type": "direct_damage",
+          "base_dmg": 5,
+          "stat": "A",
+          "duration": 0
+        }
+      ]
+    },
+    {
+      "name": "Vampiric Backstab",
       "mp_cost": 5,
-      "duration": 0,
-      "stat": "A"
+      "class_type": "3",
+      "level_req": 6,
+      "effects": [
+        {
+          "type": "direct_damage",
+          "base_dmg": 2,
+          "stat": "A",
+          "duration": 0
+        },
+        {
+          "type": "damage_over_time",
+          "base_dmg": 2,
+          "stat": "A",
+          "duration": 3
+        },
+        {
+          "type": "life-steal",
+          "base_dmg": 0,
+          "stat": "I",
+          "duration": 3
+        }
+      ]
     },
     {
       "class_type": "monster",
@@ -99,16 +163,6 @@
       "mp_cost": 4,
       "duration": 3,
       "stat": "W"
-    },
-    {
-      "class_type": "1",
-      "level_req": 7,
-      "name": "Iron Skin",
-      "base_dmg": 20,
-      "effect": "armor_bonus",
-      "mp_cost": 6,
-      "duration": 3,
-      "stat": "S"
     },
     {
       "class_type": "3",

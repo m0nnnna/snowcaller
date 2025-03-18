@@ -430,7 +430,7 @@ def main():
                 total_xp = 0 
                 total_gold = 0
                 adventure = True
-                event_chance = 25
+                event_chance = 5
 
                 while adventure:
                     if encounter_count >= max_encounters:
@@ -619,10 +619,6 @@ def main():
                             if stage.get("item_count", 0) < quest_info["stages"][i]["item_count_required"]:
                                 all_stages_complete = False
 
-                    # Only trigger random_event if objectives aren't met
-                    if not all_stages_complete and random.random() < 0.25:
-                        max_encounters = random_event(player, encounter_count, max_encounters)
-
                 # Display progress using updated active_quest data
                 progress = []
                 for stage in selected_quest["stages"]:
@@ -638,7 +634,6 @@ def main():
                 tavern.roll_tavern_npcs()  # New line: Roll NPCs after quest adventure
 
                 player.buff = []
-                player.event_cooldowns = {k: 0 for k in player.event_cooldowns}
                 player.rage_turns = 0
 
                 if player.stat_points > 0:

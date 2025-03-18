@@ -13,6 +13,10 @@
       "lore_text": "The kobolds of Blackrock Caves were once mere nuisances, skittering in the shadows. But recently, they’ve grown bold, snatching supplies from merchant caravans under the cover of night. Some whisper they’re driven by a mysterious figure—a hooded stranger seen near the caves. The Guild’s contract is clear: stop the thefts, but the truth behind their sudden courage remains buried in the dark."
     },
     {
+      "quest_name": "Beast Rumors",
+      "lore_text": "There's word that a great beast is hiding in the woods. The darkness swallows you whole and the beasts feed on you. My dear adventurer, stay safe if you see the darkness build below the ice."
+    },
+    {
       "quest_name": "Dragon Slayer",
       "lore_text": "Legends speak of the Dragon of Stormpeak, a beast born from the fury of a shattered sky. Centuries ago, it razed kingdoms, its scales gleaming like molten gold under a storm of fire. Heroes fell, their names lost to ash, until it vanished into the mountains. Now, its roar echoes again, a challenge to the bold. The Guild offers a fortune, but whispers warn: this is no mere beast—it’s a force of ancient wrath."
     }

@@ -267,17 +267,17 @@
       "skills": null
     },
     {
-      "name": "Demon Wolf",
+      "name": "Void Wolf",
       "stats": {"S": 5, "A": 8, "I": 5, "W": 5, "L": 4},
       "level_range": {"min": 5, "max": 10},
       "damage_range": {"min": 7.2, "max": 14.4},
       "spawn_chance": 5,
       "gold_chance": 75,
-      "armor_value": 60,
+      "armor_value": 40,
       "hp_range": {"min": 39, "max": 46.5},
       "rare": true,
-      "notes": "Strong mid-tier, unchanged.",
-      "art_file": "frostwolfmatriarch.txt",
+      "notes": "Quest boss should kill new players easy",
+      "art_file": "voidwolf.txt",
       "skills": null
     },
     {

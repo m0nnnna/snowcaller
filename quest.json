@@ -27,7 +27,7 @@
     },
     {
       "quest_name": "Beast Rumors",
-      "quest_level": 1,
+      "quest_level": 5,
       "quest_description": "Investigate rumors of a beast beneath the ice.",
       "quest_reward": "100 gold, Ice Fang Amulet",
       "source": "npc",
@@ -43,7 +43,7 @@
         },
         {
           "type": "boss",
-          "target_monster": "Demon Wolf",
+          "target_monster": "Void Wolf",
           "kill_count_required": 1
         },
         {
@@ -60,7 +60,7 @@
         "Report back"
       ],
       "next_quest": null,
-      "npc_trigger": "Beast Hunter"
+      "npc_trigger": "Old Storyteller"
     },
     {
       "quest_name": "Kobold Trouble",

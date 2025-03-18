@@ -18,10 +18,19 @@ def get_weapon_damage_range(player):
     if "Rage" in player.skill_effects:
         skills = load_json("skills.json")["skills"]
         for skill in skills:
+            # Check both old and new skill formats
             if skill["name"] == "Rage":
-                base_dmg = skill["base_dmg"]
-                stat = skill["stat"]
-                damage_bonus = base_dmg + (int(player.stats[stat] * 0.5) if stat != "none" else 0)
+                if "effects" in skill:
+                    for effect in skill["effects"]:
+                        if effect["type"] == "damage_bonus":
+                            base_dmg = effect["base_dmg"]
+                            stat = effect["stat"]
+                            damage_bonus = base_dmg + (int(player.stats[stat] * 0.5) if stat != "none" else 0)
+                            break
+                else:
+                    base_dmg = skill["base_dmg"]
+                    stat = skill["stat"]
+                    damage_bonus = base_dmg + (int(player.stats[stat] * 0.5) if stat != "none" else 0)
                 break
     
     if weapon:
@@ -31,17 +40,13 @@ def get_weapon_damage_range(player):
         if weapon_data and weapon_data["damage"]:
             try:
                 min_dmg, max_dmg = map(float, weapon_data["damage"].split("-"))
-                # Use the modifier to scale damage with the player's stat
-                stat_bonus = player.stats[modifier] * 0.5  # Scale by 0.5 per point of the modifier stat
-                # Add any additional bonuses from the weapon's own stats (if applicable)
+                stat_bonus = player.stats[modifier] * 0.5
                 for stat, value in stats.items():
                     if value > 0:
                         stat_bonus += player.stats[stat] * 0.5
                 return (min_dmg + stat_bonus + damage_bonus, max_dmg + stat_bonus + damage_bonus)
             except (ValueError, AttributeError):
                 pass
-    
-    return (1 + damage_bonus, 2 + damage_bonus)
 
 def load_monster_from_json(monster_name=None, boss_fight=False, player_level=None):
     monsters = load_json("monster.json")["monsters"]
@@ -239,69 +244,140 @@ def combat(player, boss_fight=False, monster_name=None):
                 if 1 <= skill_idx <= len(player.skills):
                     skill_name = player.skills[skill_idx - 1]
                     skills = load_json("skills.json")["skills"]
-                    skill_found = False
-                    for skill in skills:
-                        if skill["name"] == skill_name:
-                            skill_found = True
-                            mp_cost = skill["mp_cost"]
-                            if player.mp < mp_cost:
-                                print("Not enough MP!")
-                                break
-                            player.mp -= mp_cost
-                            base_dmg = skill["base_dmg"]
-                            duration = skill["duration"]
-                            effect = skill["effect"]
-                            stat = skill["stat"]
+                    skill = next((s for s in skills if s["name"] == skill_name), None)
+                    if not skill:
+                        print(f"Skill '{skill_name}' not found in skills.json!")
+                        continue
+                    
+                    # Handle MP cost (same for old and new formats)
+                    mp_cost = skill["mp_cost"]
+                    if player.mp < mp_cost:
+                        print("Not enough MP!")
+                        continue
+                    player.mp -= mp_cost
+                    
+                    damage_dealt = 0
+
+                    # Process effects (new format) or single effect (old format)
+                    if "effects" in skill:
+                        for effect in skill["effects"]:
+                            base_dmg = effect["base_dmg"]
+                            duration = effect["duration"]
+                            effect_type = effect["type"]
+                            stat = effect["stat"]
                             scaled_dmg = base_dmg
                             if stat != "none":
-                                if effect == "damage_bonus":
+                                if effect_type == "damage_bonus":
                                     scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
-                                elif effect == "direct_damage":
+                                elif effect_type == "direct_damage":
                                     scaled_dmg = base_dmg + int(player.stats[stat] * 1.0)
-                                elif effect == "heal" or effect == "heal_over_time":
+                                elif effect_type == "heal" or effect_type == "heal_over_time":
                                     scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
-                                elif effect == "damage_over_time":
+                                elif effect_type == "damage_over_time":
                                     scaled_dmg = base_dmg + int(player.stats[stat] * 0.2)
-                                elif effect in ["armor_bonus", "dodge_bonus"]:
+                                elif effect_type in ["armor_bonus", "dodge_bonus"]:
                                     scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
+                                elif effect_type == "life-steal":
+                                    scaled_dmg = 0  # Handled separately
 
-                            if effect == "damage_bonus":
+                            if effect_type == "damage_bonus":
                                 player.skill_effects[skill_name] = duration + 1
                                 print(f"{skill_name} activated! +{scaled_dmg} damage for {duration} turns.")
-                            elif effect == "direct_damage":
+                            elif effect_type == "direct_damage":
                                 monster_hp -= scaled_dmg
                                 print(f"{skill_name} deals {scaled_dmg} damage to {name}!")
-                            elif effect == "heal":
+                            elif effect_type == "heal":
                                 player.hp = min(player.hp + scaled_dmg, player.max_hp)
                                 print(f"{skill_name} heals you for {scaled_dmg} HP!")
-                            elif effect == "damage_over_time":
+                            elif effect_type == "damage_over_time":
                                 player.skill_effects[skill_name] = duration
                                 print(f"{skill_name} applies {scaled_dmg} damage per turn to {name} for {duration} turns!")
                                 monster_hp -= scaled_dmg
-                            elif effect == "heal_over_time":
+                                damage_dealt = scaled_dmg  # Immediate tick for life-steal
+                            elif effect_type == "heal_over_time":
                                 player.skill_effects[skill_name] = duration
                                 print(f"{skill_name} restores {scaled_dmg} HP per turn for {duration} turns!")
-                            elif effect == "armor_bonus":
+                            elif effect_type == "armor_bonus":
                                 player.skill_effects[skill_name] = duration
                                 player_armor_bonus = scaled_dmg
                                 print(f"{skill_name} increases your armor by {scaled_dmg}% for {duration} turns!")
-                            elif effect == "dodge_bonus":
+                            elif effect_type == "dodge_bonus":
                                 player.skill_effects[skill_name] = duration
                                 player_dodge_bonus = scaled_dmg
                                 print(f"{skill_name} increases your dodge chance by {scaled_dmg}% for {duration} turns!")
-                            elif effect == "sleep":
+                            elif effect_type == "sleep":
                                 breakout_chance = max(0.1, min(0.5, monster_stats["stats"]["I"] * 0.05 - player.stats["I"] * 0.02))
                                 if random.random() > breakout_chance:
                                     monster_status["sleep"] = min(duration, 5)
                                     print(f"{skill_name} puts {name} to sleep for up to {duration} turns!")
                                 else:
                                     print(f"{name} resists {skill_name}!")
-                            elif effect == "curse":
+                            elif effect_type == "curse":
                                 monster_status["curse"] = duration
                                 print(f"{skill_name} curses {name}, blocking skills for {duration} turns!")
-                            break
-                    if not skill_found:
-                        print(f"Skill '{skill_name}' not found in skills.json!")
+                            elif effect_type == "life-steal":
+                                player.skill_effects[skill_name] = duration  # Store as buff
+                                if damage_dealt > 0:
+                                    base_percent = 0.10 + (player.stats[stat] * 0.02)  # 2% per stat
+                                    life_steal_percent = random.uniform(base_percent, 0.25)
+                                    hp_restored = damage_dealt * life_steal_percent
+                                    player.hp = min(player.hp + hp_restored, player.max_hp)
+                                    print(f"{skill_name} steals {round(hp_restored, 1)} HP from {name}!")
+                                else:
+                                    print(f"{skill_name} activates, stealing life from damage dealt for {duration} turns!")
+                    else:
+                        # Old format for backward compatibility
+                        base_dmg = skill["base_dmg"]
+                        duration = skill["duration"]
+                        effect = skill["effect"]
+                        stat = skill["stat"]
+                        scaled_dmg = base_dmg
+                        if stat != "none":
+                            if effect == "damage_bonus":
+                                scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
+                            elif effect == "direct_damage":
+                                scaled_dmg = base_dmg + int(player.stats[stat] * 1.0)
+                            elif effect == "heal" or effect == "heal_over_time":
+                                scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
+                            elif effect == "damage_over_time":
+                                scaled_dmg = base_dmg + int(player.stats[stat] * 0.2)
+                            elif effect in ["armor_bonus", "dodge_bonus"]:
+                                scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
+
+                        if effect == "damage_bonus":
+                            player.skill_effects[skill_name] = duration + 1
+                            print(f"{skill_name} activated! +{scaled_dmg} damage for {duration} turns.")
+                        elif effect == "direct_damage":
+                            monster_hp -= scaled_dmg
+                            print(f"{skill_name} deals {scaled_dmg} damage to {name}!")
+                        elif effect == "heal":
+                            player.hp = min(player.hp + scaled_dmg, player.max_hp)
+                            print(f"{skill_name} heals you for {scaled_dmg} HP!")
+                        elif effect == "damage_over_time":
+                            player.skill_effects[skill_name] = duration
+                            print(f"{skill_name} applies {scaled_dmg} damage per turn to {name} for {duration} turns!")
+                            monster_hp -= scaled_dmg
+                        elif effect == "heal_over_time":
+                            player.skill_effects[skill_name] = duration
+                            print(f"{skill_name} restores {scaled_dmg} HP per turn for {duration} turns!")
+                        elif effect == "armor_bonus":
+                            player.skill_effects[skill_name] = duration
+                            player_armor_bonus = scaled_dmg
+                            print(f"{skill_name} increases your armor by {scaled_dmg}% for {duration} turns!")
+                        elif effect == "dodge_bonus":
+                            player.skill_effects[skill_name] = duration
+                            player_dodge_bonus = scaled_dmg
+                            print(f"{skill_name} increases your dodge chance by {scaled_dmg}% for {duration} turns!")
+                        elif effect == "sleep":
+                            breakout_chance = max(0.1, min(0.5, monster_stats["stats"]["I"] * 0.05 - player.stats["I"] * 0.02))
+                            if random.random() > breakout_chance:
+                                monster_status["sleep"] = min(duration, 5)
+                                print(f"{skill_name} puts {name} to sleep for up to {duration} turns!")
+                            else:
+                                print(f"{name} resists {skill_name}!")
+                        elif effect == "curse":
+                            monster_status["curse"] = duration
+                            print(f"{skill_name} curses {name}, blocking skills for {duration} turns!")
                 else:
                     print("Invalid skill number!")
             except ValueError as e:
@@ -421,20 +497,36 @@ def combat(player, boss_fight=False, monster_name=None):
                             break
 
             # Apply player effects: DOT and HOT to monster/player
+            skills = load_json("skills.json")["skills"]
+
             for skill_name, turns in list(player.skill_effects.items()):
                 if turns > 0:
-                    for skill in skills:
-                        if skill["name"] == skill_name:
-                            base_dmg = skill["base_dmg"]
-                            stat = skill["stat"]
-                            scaled_dmg = base_dmg + (int(player.stats[stat] * (0.2 if skill["effect"] == "damage_over_time" else 0.5)) if stat != "none" else 0)
-                            if skill["effect"] == "damage_over_time":
-                                monster_hp -= scaled_dmg
-                                print(f"{skill_name} deals {scaled_dmg} damage to {name}!")
-                            elif skill["effect"] == "heal_over_time":
+                    skill = next((s for s in skills if s["name"] == skill_name), None)
+                    if skill and "effects" in skill:
+                        for effect in skill["effects"]:
+                            if effect["type"] == "damage_over_time":
+                                # Calculate scaled damage
+                                scaled_dmg = effect["base_dmg"] + (player.stats[effect["stat"]] * 0.5 if effect["stat"] != "none" else 0)
+                                # Apply armor reduction
+                                armor_reduction = (monster_stats["armor_value"] + monster_armor_bonus) / 100
+                                reduced_damage = scaled_dmg * (1 - armor_reduction)
+                                monster_hp -= reduced_damage
+                                print(f"{skill_name} deals {round(reduced_damage, 1)} damage to {name}!")
+
+                                # Apply life-steal if present
+                                life_steal_effect = next((e for e in skill["effects"] if e["type"] == "life-steal"), None)
+                                if life_steal_effect:
+                                    base_percent = 0.10 + (player.stats[life_steal_effect["stat"]] * 0.02)
+                                    life_steal_percent = random.uniform(base_percent, 0.25)
+                                    hp_restored = reduced_damage * life_steal_percent
+                                    player.hp = min(player.hp + hp_restored, player.max_hp)
+                                    print(f"{skill_name} steals {round(hp_restored, 1)} HP from {name}!")
+
+                            elif effect["type"] == "heal_over_time":
+                                # Calculate healing
+                                scaled_dmg = effect["base_dmg"] + (player.stats[effect["stat"]] * 0.5 if effect["stat"] != "none" else 0)
                                 player.hp = min(player.hp + scaled_dmg, player.max_hp)
-                                print(f"{skill_name} heals you for {scaled_dmg} HP!")
-                            break
+                                print(f"{skill_name} heals you for {round(scaled_dmg, 1)} HP!")
 
     # Combat resolution
     if player.hp <= 0:
