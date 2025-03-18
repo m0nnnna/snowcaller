@@ -147,7 +147,7 @@ def execute_outcome(player, outcome, max_encounters):
             return "You decline to help."
         return "Dialogue triggered without choice."
 
-def random_event(player, max_encounters):
+def random_event(player, encounter_count, max_encounters):
     events = load_json("event.json")
     available_events = [
         e for e in events 
@@ -156,23 +156,22 @@ def random_event(player, max_encounters):
         and (not e.get("one_time", False) or not e.get("triggered", False))
     ]
     if not available_events:
-        # Decrement event timers even if no event triggers
         for event_name in player.event_timers:
             player.event_timers[event_name] = max(0, player.event_timers[event_name] - 1)
         return max_encounters
     
     event = random.choices(available_events, weights=[e["spawn_chance"] for e in available_events], k=1)[0]
-    player.event_timers[event["name"]] = event.get("cooldown", 1)
+    player.event_timers[event["name"]] = event.get("event_timer", 1)
     if event.get("one_time", False) and not event.get("triggered", False):
         event["triggered"] = True
         with open(os.path.join(os.path.dirname(__file__), "event.json"), "w") as f:
             json.dump(events, f, indent=4)
+    print(f"Distance traveled: {encounter_count}/{max_encounters}")  # Example use of encounter_count
     print(event["description"])
     outcome = random.choices(event["outcomes"], weights=[o["weight"] for o in event["outcomes"]], k=1)[0]
     result = execute_outcome(player, outcome, max_encounters)
     print(result)
     
-    # Decrement event timers after event
     for event_name in player.event_timers:
         player.event_timers[event_name] = max(0, player.event_timers[event_name] - 1)
     

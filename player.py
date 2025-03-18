@@ -23,9 +23,8 @@ class Player:
         self.shop_stock = {}
         self.tavern_buff = None
         self.rage_turns = 0
-        self.event_cooldowns = {
-            "treasure": 0, "merchant": 0, "trap": 0, "friendly": 0, "curse": 0, "lost": 0
-        }
+        self.event_cooldowns = {}
+        self.event_timers = {}
         self.skills = []
         self.skill_effects = {}
         self.active_quests = []
