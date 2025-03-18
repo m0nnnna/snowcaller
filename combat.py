@@ -113,6 +113,10 @@ def combat(player, boss_fight=False, monster_name=None):
     print(f"HP: {round(monster_hp, 1)}")
 
     while monster_hp > 0 and player.hp > 0:
+        # Player MP regeneration at start of turn
+        mp_regen = player.stats["W"] * 0.3  # 0.3 MP per W stat
+        player.mp = min(player.mp + mp_regen, player.max_mp)  # Cap at max_mp
+        print(f"\nYou regenerate {round(mp_regen, 1)} MP Current MP: {round(player.mp, 1)}/{player.max_mp}")
         # Player skill effect durations
         for skill_name, turns in list(player.skill_effects.items()):
             if turns > 0:
@@ -172,7 +176,7 @@ def combat(player, boss_fight=False, monster_name=None):
 
         # Combat UI
         status_display = f" | Status: {', '.join([f'{k} {v}' for k, v in player_status.items()])}" if player_status else ""
-        print(f"\n{monster_stats['name']}: {round(monster_hp, 1)} HP | {player.name}: {round(player.hp, 1)}/{player.max_hp} HP, {player.mp}/{player.max_mp} MP{bonus_display}{status_display}")
+        print(f"\n{monster_stats['name']}: {round(monster_hp, 1)} HP | {player.name}: {round(player.hp, 1)}/{player.max_hp} HP, {round(player.mp, 1)}/{player.max_mp} MP{bonus_display}{status_display}")
         print("1. Attack | 2. Item | 3. Skills | 4. Flee")
         choice = input("Selection: ")
 
@@ -311,6 +315,11 @@ def combat(player, boss_fight=False, monster_name=None):
                 return "FleeAdventure"
             else:
                 print("You fail to flee!")
+                
+        # Monster MP regeneration at start of turn (silent)
+        monster_max_mp = 2 * monster_stats["stats"]["W"] * level_scale  # Define max_mp
+        monster_mp_regen = monster_stats["stats"]["W"] * 0.3  # 0.3 MP per W stat
+        monster_mp = min(monster_mp + monster_mp_regen, monster_max_mp)  # Cap at max_mp, no print
 
         # Monster's turn
         if monster_hp > 0:

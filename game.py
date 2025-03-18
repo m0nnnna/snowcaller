@@ -5,10 +5,11 @@ import builtins
 import random
 import json
 import importlib
+import shutil
 from player import Player, save_game, load_game
 from combat import combat
 from shop import shop_menu, calculate_price
-from tavern import tavern_menu
+from tavern import tavern_menu, Tavern
 from events import random_event
 from utils import load_json, load_file, load_art_file, parse_stats, get_resource_path, save_json
 from commands import handle_command
@@ -50,7 +51,7 @@ def check_repo_status():
     if not os.path.exists(".git"):
         print("Warning: Not a git repository. Update checking skipped.")
         return False
-    # Rest of the function...
+
 
 def load_json(file_path):
     try:
@@ -328,17 +329,17 @@ def main():
             "1": {
                 "name": "Warrior",
                 "art_file": "warrior.txt",
-                "lore": "Forged in the crucible of battle, Warriors are the unyielding shield of Snowcaller. With strength as their blade and courage as their armor, they stand against the tides of chaos that threaten the realm."
+                "lore": "Warriors are the backbone of the realm. They are the defenders of the weak, the protectors of the innocent, and the champions of the just. They are the sword and shield of those lost to the snow"
             },
             "2": {
                 "name": "Mage",
                 "art_file": "mage.txt",
-                "lore": "Masters of the arcane, Mages wield the primal forces of ice and fire. In Snowcaller’s frozen wastes, their intellect unravels mysteries older than the mountains, bending the elements to their will."
+                "lore": "Mages are a powerful force. Once understanding a wide range of magic, they have chosen to specialize in the cold arts. They are the architects of the arcane, the masters of the frost, and the keepers of the flame."
             },
             "3": {
                 "name": "Rogue",
                 "art_file": "rogue.txt",
-                "lore": "Shadows of the frostbitten wilds, Rogues dance between life and death. With agility unmatched and cunning sharp as a dagger, they thrive in the unseen corners of Snowcaller, striking when least expected."
+                "lore": "Rogue's in this world are feared for their ability to hide in the snow. The frozen wastes may be harsh, but they are harsher. They are the shadows that move in the night."
             }
         }
 
@@ -424,7 +425,10 @@ def main():
                 encounter_count = 0
                 combat_count = 0
                 completed_encounters = 0
-                treasure_inventory = []
+                gear_drops = []  # Changed: Removed treasure_inventory, using treasure_count only
+                treasure_count = 0
+                total_xp = 0 
+                total_gold = 0
                 adventure = True
                 event_chance = 25
 
@@ -439,28 +443,35 @@ def main():
                                 boss_monsters = [m for m in monsters if m["rare"] and m["spawn_chance"] > 0]
                                 boss = random.choice(boss_monsters) if boss_monsters else random.choice([m for m in monsters if not m["rare"]])
                                 result = combat(player, True, boss["name"])
-                                Encounters.append(result)
                                 if player.hp <= 0:
                                     print("\nYou have died!")
-                                    if os.path.exists("save.txt"):
-                                        os.remove("save.txt")
+                                    if os.path.exists("save.json"):  # Changed: Updated to save.json from save.txt
+                                        os.remove("save.json")
                                     print("Game Over.")
                                     return
                                 if "Victory" in result:
                                     completed_encounters += 1
                                     update_kill_count(player, result.split("against ")[1])
+                                    total_xp += player.pending_xp
+                                    total_gold += player.gold - total_gold
+                                    player.pending_xp = 0
                             else:
                                 print("You avoid the boss and head back to town.")
                             adventure = False
-                            break
-                        adventure = False
+                        else:
+                            adventure = False
                         break
 
                     encounter_count += 1
-                    Encounters = []
+                    Encounters = []  # Changed: Moved inside loop to reset per encounter
 
                     if random.randint(1, 100) <= event_chance:
                         max_encounters = random_event(player, encounter_count, max_encounters)
+                        if "Treasure Chest" in player.inventory:
+                            treasure_count += player.inventory.count("Treasure Chest")
+                            while "Treasure Chest" in player.inventory:
+                                player.inventory.remove("Treasure Chest")
+                                award_treasure_chest(player)
                     else:
                         combat_count += 1
                         monster = random.choice(encounter_pool)
@@ -469,14 +480,14 @@ def main():
 
                         if player.hp <= 0:
                             print("\nYou have died!")
-                            if os.path.exists("save.txt"):
-                                os.remove("save.txt")
+                            if os.path.exists("save.json"):  # Changed: Updated to save.json from save.txt
+                                os.remove("save.json")
                             print("Game Over.")
                             return
 
-                        if Encounters and "Victory" in Encounters[-1]:
+                        if "Victory" in result:
                             completed_encounters += 1
-                            update_kill_count(player, monster["name"])
+                            update_kill_count(player, result.split("against ")[1])
                             drop_item = None
                             gear = load_json("gear.json")
                             consumables = load_json("consumables.json")
@@ -492,7 +503,7 @@ def main():
                             for item in consumables:
                                 if (player.level >= item["level_range"]["min"] and 
                                     player.level <= item["level_range"]["max"] and 
-                                    item.get("drop_rate", 0) > 0 and  
+                                    item.get("drop_rate", 0) > 0 and 
                                     (not item["boss_only"] or boss_fight)):
                                     valid_drops.append((item["name"], item["drop_rate"]))
 
@@ -500,15 +511,18 @@ def main():
                                 items = [item[0] for item in valid_drops]
                                 weights = [item[1] for item in valid_drops]
                                 drop_item = random.choices(items, weights=weights, k=1)[0]
+                                gear_drops.append(drop_item)
                                 player.inventory.append(drop_item)
                                 print(f"\nYou found a {drop_item}!")
-                            else:
-                                print("\nNo item dropped this time.")
 
                             if random.random() < 0.15 or (boss_fight and random.random() < 0.5):
-                                treasure_inventory.append("Treasure Chest")
+                                treasure_count += 1
 
-                        elif Encounters and "FleeAdventure" in Encounters[-1]:
+                            total_xp += player.pending_xp
+                            total_gold += player.gold - total_gold
+                            player.pending_xp = 0
+
+                        elif "FleeAdventure" in result:
                             print(f"\nYou escaped the {location}, ending your adventure with {completed_encounters} victories.")
                             adventure = False
                             break
@@ -520,18 +534,29 @@ def main():
                         if choice == "2":
                             print(f"You decide to return to town with {completed_encounters} victories.")
                             adventure = False
-                            break
                         elif choice != "1":
                             print("Invalid choice, continuing adventure.")
 
                 if adventure is False and "FleeAdventure" not in Encounters:
-                    print(f"\nAdventure complete! Returning to town with {len(treasure_inventory)} treasure items from {completed_encounters} victories.")
-                    if choice != "2":
-                        for _ in range(len(treasure_inventory)):
+                    gear_summary = f"{len(gear_drops)} piece{'s' if len(gear_drops) != 1 else ''} of gear" if gear_drops else "no gear"
+                    treasure_summary = f"{treasure_count} piece{'s' if treasure_count != 1 else ''} of treasure" if treasure_count else "no treasure"
+                    print(f"\nAdventure complete! Returning to town with {gear_summary}, {treasure_summary} from {completed_encounters} victories.")
+                    if gear_drops:
+                        gear_counts = {}
+                        for item in gear_drops:
+                            gear_counts[item] = gear_counts.get(item, 0) + 1
+                        for item, count in gear_counts.items():
+                            suffix = f" x{count}" if count > 1 else ""
+                            print(f"- Found {item}{suffix}")
+                    if treasure_count > 0:
+                        print(f"- Found {treasure_count} Treasure Chest{'s' if treasure_count > 1 else ''}")
+                        for _ in range(treasure_count):
                             award_treasure_chest(player)
                     save_game(player)
                     if completed_encounters > 0:
                         player.apply_xp()
+                    tavern = Tavern(player)
+                    tavern.roll_tavern_npcs()
 
             elif adventure_type == "2":
                 quests_data = load_json("quest.json")
@@ -609,6 +634,8 @@ def main():
                     print(f"\nQuest '{quest_info['quest_name']}' objectives met! Return to the tavern to turn it in.")
                 else:
                     print(f"\nReturning to town with progress: {', '.join(progress)} toward {quest_info['quest_name']}.")
+                tavern = Tavern(player)  # New line: Create Tavern instance
+                tavern.roll_tavern_npcs()  # New line: Roll NPCs after quest adventure
 
                 player.buff = []
                 player.event_cooldowns = {k: 0 for k in player.event_cooldowns}

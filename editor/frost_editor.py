@@ -183,7 +183,7 @@ class JSONEditor:
 
         about_text = (
             "Frost Editor\n"
-            "Version 0.0.6.3\n"
+            "Version 0.0.7.5\n"
             "Created by Mona\n"
             "A JSON editor with a frosty twist.\n"
             "Credit to Elara for inspiration."

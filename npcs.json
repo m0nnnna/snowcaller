@@ -2,10 +2,13 @@
     {
         "id": "npc1",
         "name": "Old Storyteller",
-        "level_range": {"min": 1, "max": 5},
+        "level_range": {
+            "min": 1,
+            "max": 5
+        },
         "spawn_chance": 100,
         "dialogue": [
-            "The snow wasn’t always this cold, you know...",
+            "The snow wasn\u2019t always this cold, you know...",
             "Legends say a great beast sleeps beneath the ice."
         ],
         "lore": "Long ago, the Snowcaller sealed a beast with a song.",
@@ -14,10 +17,13 @@
     {
         "id": "npc2",
         "name": "Mysterious Wanderer",
-        "level_range": {"min": 3, "max": 10},
-        "spawn_chance": 60,
+        "level_range": {
+            "min": 3,
+            "max": 10
+        },
+        "spawn_chance": 3,
         "dialogue": [
-            "I’ve seen things in the mountains you wouldn’t believe.",
+            "I\u2019ve seen things in the mountains you wouldn\u2019t believe.",
             "Care to hunt a shadow?"
         ],
         "lore": "Shadows move in the peaks, unseen by most.",
@@ -26,8 +32,11 @@
     {
         "id": "npc3",
         "name": "Drunk Mercenary",
-        "level_range": {"min": 5, "max": 15},
-        "spawn_chance": 50,
+        "level_range": {
+            "min": 5,
+            "max": 15
+        },
+        "spawn_chance": 3,
         "dialogue": [
             "Lost me blade to a blasted wolf!",
             "Reckon you could get it back?"

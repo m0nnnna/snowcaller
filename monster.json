@@ -73,7 +73,7 @@
     {
       "name": "Shadow Wolf",
       "stats": {"S": 3, "A": 4, "I": 1, "W": 4, "L": 1},
-      "level_range": {"min": 2, "max": 5},
+      "level_range": {"min": 4, "max": 10},
       "damage_range": {"min": 5, "max": 11},
       "spawn_chance": 5,
       "gold_chance": 50,
@@ -87,7 +87,7 @@
     {
       "name": "Frost Wolf",
       "stats": {"S": 3, "A": 6, "I": 1, "W": 2, "L": 1},
-      "level_range": {"min": 4, "max": 6},
+      "level_range": {"min": 4, "max": 10},
       "damage_range": {"min": 5, "max": 9},
       "spawn_chance": 5,
       "gold_chance": 50,
@@ -268,8 +268,8 @@
     },
     {
       "name": "Demon Wolf",
-      "stats": {"S": 8, "A": 8, "I": 5, "W": 5, "L": 4},
-      "level_range": {"min": 3, "max": 5},
+      "stats": {"S": 5, "A": 8, "I": 5, "W": 5, "L": 4},
+      "level_range": {"min": 5, "max": 10},
       "damage_range": {"min": 7.2, "max": 14.4},
       "spawn_chance": 5,
       "gold_chance": 75,
@@ -282,8 +282,8 @@
     },
     {
       "name": "Frost Wolf Matriarch",
-      "stats": {"S": 8, "A": 8, "I": 5, "W": 5, "L": 4},
-      "level_range": {"min": 3, "max": 5},
+      "stats": {"S": 5, "A": 8, "I": 5, "W": 5, "L": 4},
+      "level_range": {"min": 5, "max": 10},
       "damage_range": {"min": 7.2, "max": 14.4},
       "spawn_chance": 5,
       "gold_chance": 75,

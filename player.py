@@ -34,11 +34,11 @@ class Player:
         self.has_room = False
 
         if class_type == "1":  # Warrior
-            self.stats = {"S": 5, "A": 1, "I": 1, "W": 2, "L": 1}
+            self.stats = {"S": 5, "A": 1, "I": 1, "W": 1, "L": 1}
         elif class_type == "2":  # Mage
-            self.stats = {"S": 1, "A": 1, "I": 5, "W": 2, "L": 1}
+            self.stats = {"S": 1, "A": 1, "I": 5, "W": 3, "L": 2}
         elif class_type == "3":  # Rogue
-            self.stats = {"S": 2, "A": 5, "I": 1, "W": 1, "L": 2}
+            self.stats = {"S": 1, "A": 5, "I": 1, "W": 2, "L": 3}
 
         self.max_hp = 10 + 2 * self.stats["S"]
         self.hp = self.max_hp
@@ -128,14 +128,11 @@ class Player:
         return min(total_av, 100)
 
     def apply_xp(self):
-        print(f"Applying XP: Current exp={self.exp}, Pending XP={self.pending_xp}")
         self.exp += self.pending_xp
         self.pending_xp = 0
-        print(f"After adding pending: exp={self.exp}, max_exp={self.max_exp}")
         while self.exp >= self.max_exp:
             self.trigger_level_up(from_xp=True)  # Call with XP context
-        print(f"Post-leveling: exp={self.exp}, level={self.level}, stat_points={self.stat_points}")
-
+            
     def trigger_level_up(self, from_xp=False):
         """Handle a single level-up with scaled HP/MP increases."""
         old_max_hp = self.max_hp

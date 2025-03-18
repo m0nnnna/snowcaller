@@ -9,7 +9,7 @@ class Tavern:
     def __init__(self, player):
         self.player = player
         self.room_cost = 100
-        self.standard_npcs = ["Barkeep", "Old Storyteller", "Drunk Mercenary"]
+        self.standard_npcs = ["Barkeep"]
         if not hasattr(player, "tavern_npcs"):
             self.player.tavern_npcs = []
         # Load special NPCs from NPC folder
@@ -20,7 +20,28 @@ class Tavern:
                 if filename.endswith(".json"):
                     with open(os.path.join(npc_folder, filename), "r") as f:
                         npc = json.load(f)
-                        self.npc_data[npc["name"]] = npc
+        self.npc_spawn_data = load_json("npcs.json")
+        
+    def roll_tavern_npcs(self):  # New line: Define method to roll NPCs from npc.json
+        """Roll for NPCs from npc.json, preserving existing special NPCs not in npc.json."""
+        player_level = self.player.level if hasattr(self.player, "level") else 1  # New line
+        npc_json_names = {npc["name"] for npc in self.npc_spawn_data}  # New line: Names from npc.json
+
+        # Remove only NPCs from npc.json, keep others (e.g., from NPC folder)
+        self.player.tavern_npcs = [npc for npc in self.player.tavern_npcs if npc["name"] not in npc_json_names]  # New line
+
+        # Roll for NPCs from npc.json
+        for npc in self.npc_spawn_data:  # New line
+            level_range = npc["level_range"]  # New line
+            if level_range["min"] <= player_level <= level_range["max"]:  # New line
+                if random.randint(1, 100) <= npc["spawn_chance"]:  # New line
+                    # Check if this NPC is already in tavern_npcs (unlikely but possible)
+                    if not any(n["name"] == npc["name"] for n in self.player.tavern_npcs):  # New line
+                        self.player.tavern_npcs.append({  # New line
+                            "name": npc["name"],  # New line
+                            "quest": npc.get("quest"),  # New line
+                            "bond": 0  # New line: Reset bond for npc.json NPCs
+                        })  # New line
 
     def visit_tavern(self):
         while True:
