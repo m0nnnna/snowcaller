@@ -1,0 +1,38 @@
+{
+    "fields": [
+        {"name": "name", "type": "text", "label": "Event Name"},
+        {"name": "spawn_chance", "type": "number", "label": "Spawn Chance (%)"},
+        {"name": "cooldown", "type": "number", "label": "Cooldown"},
+        {
+            "name": "level_range",
+            "type": "nested",
+            "label": "Level Range",
+            "fields": [
+                {"name": "min", "type": "number", "label": "Min"},
+                {"name": "max", "type": "number", "label": "Max"}
+            ]
+        },
+        {
+            "name": "one_time",
+            "type": "dropdown",
+            "label": "One-Time Event",
+            "options": ["true", "false"],
+            "default": "false"
+        },
+        {
+            "name": "triggered",
+            "type": "dropdown",
+            "label": "Triggered",
+            "options": ["true", "false"],
+            "default": "false"
+        },
+        {"name": "description", "type": "text", "label": "Description", "multiline": true},
+        {
+            "name": "outcomes",
+            "type": "button",
+            "label": "Add Outcome",
+            "action": "open_outcome_editor"
+        }
+    ],
+    "category": "Random"
+}

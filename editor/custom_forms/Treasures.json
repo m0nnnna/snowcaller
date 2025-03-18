@@ -1,0 +1,25 @@
+{
+    "fields": [
+        {
+            "name": "name",
+            "type": "text"
+        },
+        {
+            "name": "drop_rate",
+            "type": "number"
+        },
+        {
+            "name": "gold",
+            "type": "number"
+        },
+        {
+            "name": "boss_only",
+            "type": "dropdown",
+            "options": [
+                "true",
+                "false"
+            ]
+        }
+    ],
+    "category": "Items"
+}

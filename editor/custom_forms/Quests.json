@@ -1,0 +1,72 @@
+{
+    "fields": [
+        {
+            "name": "quest_name",
+            "type": "text",
+            "label": "Quest Name"
+        },
+        {
+            "name": "quest_level",
+            "type": "number",
+            "label": "Quest Level"
+        },
+        {
+            "name": "quest_description",
+            "type": "text",
+            "label": "Quest Description"
+        },
+        {
+            "name": "quest_reward",
+            "type": "text",
+            "label": "Quest Reward"
+        },
+        {
+            "name": "source",
+            "type": "dropdown",
+            "options": ["guild", "npc", "event"],
+            "label": "Source",
+            "default": "guild"
+        },
+        {
+            "name": "location",
+            "type": "nested",
+            "label": "Location",
+            "fields": [
+                {"name": "main", "type": "text", "label": "Main Location"},
+                {"name": "sub", "type": "text", "label": "Sub Location"}
+            ]
+        },
+        {
+            "name": "stages",
+            "type": "list",
+            "label": "Stages (up to 3)",
+            "max_items": 3,
+            "item_template": {
+                "type": "nested",
+                "fields": [
+                    {"name": "type", "type": "dropdown", "options": ["kill", "boss", "collect"], "label": "Stage Type"},
+                    {"name": "target_monster", "type": "text", "label": "Target Monster (for kill/boss)"},
+                    {"name": "kill_count_required", "type": "number", "label": "Kill Count (for kill/boss)"},
+                    {"name": "target_item", "type": "text", "label": "Target Item (for collect)"},
+                    {"name": "item_count_required", "type": "number", "label": "Item Count (for collect)"}
+                ]
+            }
+        },
+        {
+            "name": "steps",
+            "type": "text",
+            "label": "Steps (comma-separated)"
+        },
+        {
+            "name": "next_quest",
+            "type": "text",
+            "label": "Next Quest (or null)"
+        },
+        {
+            "name": "npc_trigger",
+            "type": "text",
+            "label": "NPC Trigger (or null)"
+        }
+    ],
+    "category": "Quests"
+}

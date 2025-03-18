@@ -1,0 +1,13 @@
+{
+    "fields": [
+        {
+            "name": "quest_name",
+            "type": "text"
+        },
+        {
+            "name": "lore_text",
+            "type": "text"
+        }
+    ],
+    "category": "Lore"
+}

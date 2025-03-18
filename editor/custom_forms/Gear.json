@@ -1,0 +1,89 @@
+{
+    "fields": [
+        {
+            "name": "name",
+            "type": "text",
+            "label": "Gear Name"
+        },
+        {
+            "name": "level_range",
+            "type": "nested",
+            "label": "Level Range",
+            "fields": [
+                {"name": "min", "type": "number", "label": "Min"},
+                {"name": "max", "type": "number", "label": "Max"}
+            ]
+        },
+        {
+            "name": "slot",
+            "type": "dropdown",
+            "options": [
+                "head",
+                "chest",
+                "pants",
+                "boots",
+                "gloves",
+                "main_hand",
+                "off_hand",
+                "neck",
+                "ring"
+            ],
+            "label": "Slot"
+        },
+        {
+            "name": "modifier",
+            "type": "dropdown",
+            "options": [
+                "S",
+                "A",
+                "I",
+                "W",
+                "L"
+            ],
+            "label": "Modifier"
+        },
+        {
+            "name": "stats",
+            "type": "nested",
+            "label": "Stats",
+            "fields": [
+                {"name": "S", "type": "number", "label": "Strength (S)"},
+                {"name": "A", "type": "number", "label": "Agility (A)"},
+                {"name": "I", "type": "number", "label": "Intellect (I)"},
+                {"name": "W", "type": "number", "label": "Will (W)"},
+                {"name": "L", "type": "number", "label": "Luck (L)"}
+            ]
+        },
+        {
+            "name": "damage",
+            "type": "text",
+            "label": "Damage (e.g., 1-3)"
+        },
+        {
+            "name": "armor_value",
+            "type": "number",
+            "label": "Armor Value"
+        },
+        {
+            "name": "drop_rate",
+            "type": "number",
+            "label": "Drop Rate"
+        },
+        {
+            "name": "gold",
+            "type": "number",
+            "label": "Gold Value"
+        },
+        {
+            "name": "boss_only",
+            "type": "dropdown",
+            "options": [
+                "true",
+                "false"
+            ],
+            "label": "Boss Only",
+            "default": "false"
+        }
+    ],
+    "category": "Items"
+}

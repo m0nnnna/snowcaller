@@ -1,0 +1,86 @@
+{
+    "fields": [
+        {
+            "name": "name",
+            "type": "text",
+            "label": "Monster Name"
+        },
+        {
+            "name": "stats",
+            "type": "nested",
+            "label": "Stats",
+            "fields": [
+                {"name": "S", "type": "number", "label": "Strength (S)"},
+                {"name": "A", "type": "number", "label": "Agility (A)"},
+                {"name": "I", "type": "number", "label": "Intellect (I)"},
+                {"name": "W", "type": "number", "label": "Will (W)"},
+                {"name": "L", "type": "number", "label": "Luck (L)"}
+            ]
+        },
+        {
+            "name": "level_range",
+            "type": "nested",
+            "label": "Level Range",
+            "fields": [
+                {"name": "min", "type": "number", "label": "Min"},
+                {"name": "max", "type": "number", "label": "Max"}
+            ]
+        },
+        {
+            "name": "damage_range",
+            "type": "nested",
+            "label": "Damage Range",
+            "fields": [
+                {"name": "min", "type": "number", "label": "Min"},
+                {"name": "max", "type": "number", "label": "Max"}
+            ]
+        },
+        {
+            "name": "spawn_chance",
+            "type": "number",
+            "label": "Spawn Chance (%)"
+        },
+        {
+            "name": "gold_chance",
+            "type": "number",
+            "label": "Gold Chance (%)"
+        },
+        {
+            "name": "armor_value",
+            "type": "number",
+            "label": "Armor Value"
+        },
+        {
+            "name": "hp_range",
+            "type": "nested",
+            "label": "HP Range",
+            "fields": [
+                {"name": "min", "type": "number", "label": "Min"},
+                {"name": "max", "type": "number", "label": "Max"}
+            ]
+        },
+        {
+            "name": "rare",
+            "type": "dropdown",
+            "options": ["true", "false"],
+            "label": "Rare",
+            "default": "false"
+        },
+        {
+            "name": "notes",
+            "type": "text",
+            "label": "Notes"
+        },
+        {
+            "name": "art_file",
+            "type": "text",
+            "label": "Art File"
+        },
+        {
+            "name": "skills",
+            "type": "text",
+            "label": "Skills (comma-separated or null)"
+        }
+    ],
+    "category": "Random"
+}
