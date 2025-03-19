@@ -1,4 +1,6 @@
 #!/bin/bash
+
+#!/bin/bash
 echo "Cleaning old builds..."
 rm -rf dist build *.spec __pycache__ */__pycache__
 echo "Building Snowcaller for Linux..."

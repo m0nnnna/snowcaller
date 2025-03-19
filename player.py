@@ -49,9 +49,9 @@ class Player:
         gear = load_json("gear.json")
         # print(f"Loaded gear.json: {len(gear)} items")
         starting_gear = {
-            "1": ["Warrior Cap", "Warrior Vest", "Warrior Blade"],
-            "2": ["Mage Cap", "Mage Gown", "Mage Wand"],
-            "3": ["Rogue Pants", "Rogue Boots", "Rogue Shirt", "Rogue Knife"]
+            "1": ["Warrior Boots", "Warrior Pants", "Warrior Vest", "Warrior Blade"],
+            "2": ["Mage Sandals", "Mage Pants", "Mage Gown", "Mage Wand"],
+            "3": ["Rogue Boots", "Rogue Pants", "Rogue Shirt", "Rogue Knife"]
         }
         for item_name in starting_gear.get(self.class_type, []):
             # print(f"Looking for {item_name}...")

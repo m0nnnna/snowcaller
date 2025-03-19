@@ -42,13 +42,13 @@
     },
     {
       "name": "Fireball",
-      "mp_cost": 3,
+      "mp_cost": 4,
       "class_type": "2",
       "level_req": 1,
       "effects": [
         {
           "type": "direct_damage",
-          "base_dmg": 4,
+          "base_dmg": 2,
           "stat": "I",
           "duration": 0
         }
@@ -77,6 +77,16 @@
           "duration": 5
         }
       ]
+    },
+    {
+      "class_type": "2",
+      "level_req": 10,
+      "name": "Sleep Spell",
+      "base_dmg": 0,
+      "effect": "sleep",
+      "mp_cost": 8,
+      "duration": 5,
+      "stat": "I"
     },
     {
       "class_type": "3",
@@ -157,36 +167,6 @@
       "mp_cost": 2,
       "duration": 0,
       "stat": "S"
-    },
-    {
-      "class_type": "2",
-      "level_req": 3,
-      "name": "Regeneration",
-      "base_dmg": 5,
-      "effect": "heal_over_time",
-      "mp_cost": 4,
-      "duration": 3,
-      "stat": "W"
-    },
-    {
-      "class_type": "3",
-      "level_req": 8,
-      "name": "Nimble Step",
-      "base_dmg": 10,
-      "effect": "dodge_bonus",
-      "mp_cost": 5,
-      "duration": 3,
-      "stat": "A"
-    },
-    {
-      "class_type": "2",
-      "level_req": 10,
-      "name": "Sleep Spell",
-      "base_dmg": 0,
-      "effect": "sleep",
-      "mp_cost": 8,
-      "duration": 5,
-      "stat": "I"
     },
     {
       "class_type": "monster",

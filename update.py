@@ -7,7 +7,7 @@ import subprocess
 from packaging import version  # For version comparison
 
 # Current game version (update this with each release)
-CURRENT_VERSION = "1.0.0"  # Replace with your actual version
+CURRENT_VERSION = "0.0.5"  # Replace with your actual version
 
 # GitHub repository details
 GITHUB_USER = "m0nnnna"  # Replace with your GitHub username
