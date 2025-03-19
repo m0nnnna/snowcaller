@@ -1,8 +1,7 @@
 import json
 import sys
 import os
-from utils import load_json, save_json
-
+from utils import load_json, save_json, get_base_path
 class Player:
     def __init__(self, name, class_type):
 #        print("Initializing Player...")
@@ -74,7 +73,7 @@ class Player:
         self.hp = self.max_hp
         self.max_mp = 3 * self.stats["W"] if self.class_type == "2" else 2 * self.stats["W"]
         self.mp = self.max_mp
-        print(f"Updated HP: {self.hp}/{self.max_hp}, MP: {self.mp}/{self.max_mp}")
+#        print(f"Updated HP: {self.hp}/{self.max_hp}, MP: {self.mp}/{self.max_mp}")
 
         skills_data = load_json("skills.json")
         skills = skills_data.get("skills", [])
@@ -187,6 +186,8 @@ class Player:
                 print("Invalid choice!")
 
 def save_game(player):
+    base_path = get_base_path()  # Use utils.get_base_path()
+    save_path = os.path.join(base_path, "save.json")
     save_data = {
         "name": player.name,
         "level": player.level,
@@ -218,9 +219,6 @@ def save_game(player):
         "event_cooldowns": player.event_cooldowns,
         "has_room": player.has_room
     }
-    base_path = os.path.dirname(__file__)
-    save_path = os.path.join(base_path, "save.json")
-#    print(f"Saving to: {save_path}")
     try:
         with open(save_path, 'w') as f:
             json.dump(save_data, f, indent=4)
@@ -229,9 +227,8 @@ def save_game(player):
         print(f"Failed to save game: {e}")
 
 def load_game():
-    base_path = os.path.dirname(__file__)
+    base_path = get_base_path()  # Use utils.get_base_path()
     save_path = os.path.join(base_path, "save.json")
-#    print(f"Loading from: {save_path}")
     if not os.path.exists(save_path):
         return None
     try:
