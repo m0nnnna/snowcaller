@@ -3,7 +3,7 @@ name: Build Snowcaller
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:  # Manual trigger option
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,43 +13,25 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      # Checkout your repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Set up Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'  # Match your preferred version
+          python-version: '3.11'
 
-      # Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pyinstaller requests
 
-      # Build with PyInstaller (cross-platform command adjustment)
+      # Build with PyInstaller in a single line, with OS-specific separator
       - name: Build executable
+        shell: bash  # Force bash for consistency across OSes
         run: |
-          pyinstaller --onefile \
-            --add-data "art${{ matrix.os == 'windows-latest' && ';' || ':' }}art" \
-            --add-data "NPC${{ matrix.os == 'windows-latest' && ';' || ':' }}NPC" \
-            --add-data "consumables.json${{ matrix.os == 'windows-latest' && ';' || ':' }}." \
-            --add-data "event.json${{ matrix.os == 'windows-latest' && ';' || ':' }}." \
-            --add-data "gear.json${{ matrix.os == 'windows-latest' && ';' || ':' }}." \
-            --add-data "keyitems.json${{ matrix.os == 'windows-latest' && ';' || ':' }}." \
-            --add-data "lore.json${{ matrix.os == 'windows-latest' && ';' || ':' }}." \
-            --add-data "monster.json${{ matrix.os == 'windows-latest' && ';' || ':' }}." \
-            --add-data "npcs.json${{ matrix.os == 'windows-latest' && ';' || ':' }}." \
-            --add-data "quest.json${{ matrix.os == 'windows-latest' && ';' || ':' }}." \
-            --add-data "skills.json${{ matrix.os == 'windows-latest' && ';' || ':' }}." \
-            --add-data "treasures.json${{ matrix.os == 'windows-latest' && ';' || ':' }}." \
-            --add-data "locations.txt${{ matrix.os == 'windows-latest' && ';' || ':' }}." \
-            --hidden-import "requests" \
-            --name Snowcaller game.py
+          pyinstaller --onefile --add-data "art${{ runner.os == 'Windows' && ';' || ':' }}art" --add-data "NPC${{ runner.os == 'Windows' && ';' || ':' }}NPC" --add-data "consumables.json${{ runner.os == 'Windows' && ';' || ':' }}." --add-data "event.json${{ runner.os == 'Windows' && ';' || ':' }}." --add-data "gear.json${{ runner.os == 'Windows' && ';' || ':' }}." --add-data "keyitems.json${{ runner.os == 'Windows' && ';' || ':' }}." --add-data "lore.json${{ runner.os == 'Windows' && ';' || ':' }}." --add-data "monster.json${{ runner.os == 'Windows' && ';' || ':' }}." --add-data "npcs.json${{ runner.os == 'Windows' && ';' || ':' }}." --add-data "quest.json${{ runner.os == 'Windows' && ';' || ':' }}." --add-data "skills.json${{ runner.os == 'Windows' && ';' || ':' }}." --add-data "treasures.json${{ runner.os == 'Windows' && ';' || ':' }}." --add-data "locations.txt${{ runner.os == 'Windows' && ';' || ':' }}." --hidden-import "requests" --name Snowcaller game.py
 
-      # Upload the executable as an artifact
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
