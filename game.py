@@ -425,10 +425,10 @@ def main():
                 encounter_count = 0
                 combat_count = 0
                 completed_encounters = 0
-                gear_drops = []  # Changed: Removed treasure_inventory, using treasure_count only
+                gear_drops = []
                 treasure_count = 0
-                total_xp = 0 
-                total_gold = 0
+                total_xp = 0
+                total_gold = player.gold
                 adventure = True
                 event_chance = 5
 
@@ -445,7 +445,7 @@ def main():
                                 result = combat(player, True, boss["name"])
                                 if player.hp <= 0:
                                     print("\nYou have died!")
-                                    if os.path.exists("save.json"):  # Changed: Updated to save.json from save.txt
+                                    if os.path.exists("save.json"):
                                         os.remove("save.json")
                                     print("Game Over.")
                                     return
@@ -453,13 +453,44 @@ def main():
                                     completed_encounters += 1
                                     update_kill_count(player, result.split("against ")[1])
                                     total_xp += player.pending_xp
-                                    total_gold += player.gold - total_gold
-                                    player.pending_xp = 0
+                            adventure = False  # End after boss decision
+                        else:
+                            adventure = False  # Full completion
+
+                    if adventure:
+                        encounter_count += 1
+                        Encounters = []
+
+                        if random.randint(1, 100) <= event_chance:
+                            max_encounters = random_event(player, encounter_count, max_encounters)
+                            if "Treasure Chest" in player.inventory:
+                                treasure_count += player.inventory.count("Treasure Chest")
+                                while "Treasure Chest" in player.inventory:
+                                    player.inventory.remove("Treasure Chest")
+                                    award_treasure_chest(player)
+                        else:
+                            combat_count += 1
+                            monster = random.choice(encounter_pool)
+                            result = combat(player, False, monster["name"])
+                            Encounters.append(result)
+
+                            if player.hp <= 0:
+                                print("\nYou have died!")
+                                if os.path.exists("save.json"):
+                                    os.remove("save.json")
+                                print("Game Over.")
+                                return
+
+                            if "Victory" in result:
+                                completed_encounters += 1
+                                update_kill_count(player, result.split("against ")[1])
+                                total_xp += player.pending_xp
+                                total_gold += player.gold - total_gold
                             else:
                                 print("You avoid the boss and head back to town.")
                             adventure = False
-                        else:
-                            adventure = False
+                    else:
+                        adventure = False
                         break
 
                     encounter_count += 1
@@ -520,45 +551,25 @@ def main():
 
                             total_xp += player.pending_xp
                             total_gold += player.gold - total_gold
-                            player.pending_xp = 0
 
                         elif "FleeAdventure" in result:
                             print(f"\nYou escaped the {location}, ending your adventure with {completed_encounters} victories.")
                             adventure = False
-                            break
 
-                    if combat_count > 0 and player.hp < player.max_hp / 2 and adventure:
-                        print(f"\nYou've fought {combat_count} battles in the {location}. HP: {round(player.hp, 1)}/{player.max_hp}")
-                        print("Continue adventure? 1 for Yes | 2 for No")
-                        choice = input("Selection: ")
-                        if choice == "2":
-                            print(f"You decide to return to town with {completed_encounters} victories.")
-                            adventure = False
-                        elif choice != "1":
-                            print("Invalid choice, continuing adventure.")
+                        if combat_count > 0 and player.hp < player.max_hp / 2 and adventure:
+                            print(f"\nYou've fought {combat_count} battles in the {location}. HP: {round(player.hp, 1)}/{player.max_hp}")
+                            print("Continue adventure? 1 for Yes | 2 for No")
+                            choice = input("Selection: ")
+                            if choice == "2":
+                                print(f"You decide to return to town with {completed_encounters} victories.")
+                                adventure = False
+                            elif choice != "1":
+                                print("Invalid choice, continuing adventure.")
 
-                if adventure is False and "FleeAdventure" not in Encounters:
-                    gear_summary = f"{len(gear_drops)} piece{'s' if len(gear_drops) != 1 else ''} of gear" if gear_drops else "no gear"
-                    treasure_summary = f"{treasure_count} piece{'s' if treasure_count != 1 else ''} of treasure" if treasure_count else "no treasure"
-                    print(f"\nAdventure complete! Returning to town with {gear_summary}, {treasure_summary} from {completed_encounters} victories.")
-                    if gear_drops:
-                        gear_counts = {}
-                        for item in gear_drops:
-                            gear_counts[item] = gear_counts.get(item, 0) + 1
-                        for item, count in gear_counts.items():
-                            suffix = f" x{count}" if count > 1 else ""
-                            print(f"- Found {item}{suffix}")
-                    if treasure_count > 0:
-                        print(f"- Found {treasure_count} Treasure Chest{'s' if treasure_count > 1 else ''}")
-                        for _ in range(treasure_count):
-                            award_treasure_chest(player)
-                    save_game(player)
-                    if completed_encounters > 0:
-                        player.apply_xp()
-                    tavern = Tavern(player)
-                    tavern.roll_tavern_npcs()
+                # End adventure here
+                end_adventure(player, location, completed_encounters, gear_drops, treasure_count, total_xp, total_gold)
 
-            elif adventure_type == "2":
+            elif adventure_type == "2":  # Quest Adventure
                 quests_data = load_json("quest.json")
                 monsters_data = load_json("monster.json")
                 quests = quests_data.get("quests", [])
@@ -568,13 +579,13 @@ def main():
                 for i, quest in enumerate(active_quests, 1):
                     q = next(q for q in quests if q["quest_name"] == quest["quest_name"])
                     progress = []
-                    for stage in quest["stages"]:  # Use active_quest stages directly
+                    for stage in quest["stages"]:
                         if stage["type"] in ["kill", "boss"]:
                             progress.append(f"Kills: {stage.get('kill_count', 0)}/{stage.get('kill_count_required', 0)}")
                         elif stage["type"] == "collect":
                             progress.append(f"Items: {stage.get('item_count', 0)}/{stage.get('item_count_required', 0)}")
                     print(f"{i}. {quest['quest_name']} ({', '.join(progress)})")
-
+                
                 quest_choice = int(input("Select a quest: ")) - 1
                 selected_quest = active_quests[quest_choice]
                 quest_info = next(q for q in quests if q["quest_name"] == selected_quest["quest_name"])
@@ -585,6 +596,7 @@ def main():
                     location = quest_info["location"]
     
                 print(f"\nPursuing quest: {quest_info['quest_name']} at the {location}!")
+
 
                 encounter_count = 0
                 max_encounters = 5  # Limit encounters
@@ -647,35 +659,55 @@ def main():
             print(f"Level: {player.level} | XP: {player.exp}/{player.max_exp}")
             from combat import get_weapon_damage_range
             min_dmg, max_dmg = get_weapon_damage_range(player)
-            attack_dps = (min_dmg + max_dmg) / 2
+            attack_dps = (min_dmg + max_dmg) / 2 if min_dmg and max_dmg else 0
             print(f"Attack DPS: {round(attack_dps, 1)} (avg weapon damage per turn)")
+            
             skills = load_json("skills.json")["skills"]
             total_skill_dps = 0
             skill_count = 0
             for skill in skills:
                 if skill["name"] in player.skills:
-                    base_dmg = skill["base_dmg"]
-                    mp_cost = skill["mp_cost"]
-                    duration = skill["duration"]
-                    effect = skill["effect"]
-                    stat = skill["stat"]
+                    # Handle both old and new skill formats like combat.py
+                    effects = skill.get("effects", [{"type": skill.get("effect", "direct_damage"), 
+                                                    "base_dmg": skill.get("base_dmg", 0), 
+                                                    "duration": skill.get("duration", 0), 
+                                                    "stat": skill.get("stat", "none")}]),
+                    mp_cost = skill.get("mp_cost", 1)
+
+                    # Aggregate base damage and determine key properties from effects
+                    base_dmg = 0
+                    duration = 0
+                    stat = "none"
+                    effect_types = []
+                    for effect in effects[0]:  # Unpack the tuple returned by get()
+                        if effect["type"] in ["direct_damage", "damage_bonus", "damage_over_time"]:
+                            base_dmg += effect.get("base_dmg", 0)
+                        duration = max(duration, effect.get("duration", 0))
+                        if effect.get("stat", "none") != "none":
+                            stat = effect["stat"]
+                        effect_types.append(effect["type"])
+
                     scaled_dmg = base_dmg
                     if stat != "none":
-                        if effect == "damage_bonus":
+                        if "damage_bonus" in effect_types:
                             scaled_dmg = base_dmg + (player.stats[stat] * 0.5)
-                        elif effect == "direct_damage":
+                        elif "direct_damage" in effect_types:
                             scaled_dmg = base_dmg + (player.stats[stat] * 1.0)
-                        elif effect == "damage_over_time":
+                        elif "damage_over_time" in effect_types:
                             scaled_dmg = base_dmg + (player.stats[stat] * 0.2)
-                    if effect == "direct_damage" and duration == 0:
+
+                    # Calculate DPS based on effect type
+                    if "direct_damage" in effect_types and duration == 0:
                         dps = scaled_dmg
-                    elif effect in ["damage_bonus", "damage_over_time"]:
+                    elif any(e in ["damage_bonus", "damage_over_time"] for e in effect_types):
                         total_turns = max(1, mp_cost) + duration
                         dps = (scaled_dmg * duration) / total_turns if duration > 0 else 0
                     else:
                         dps = 0
+
                     total_skill_dps += dps
                     skill_count += 1
+            
             skill_dps = total_skill_dps / skill_count if skill_count > 0 else 0
             print(f"Skill DPS: {round(skill_dps, 1)} (avg skill damage per turn)")
             print(f"Armor Value: {round(player.get_total_armor_value(), 1)}% (damage reduction)")
@@ -785,6 +817,29 @@ def guild_menu(player):
                 player.active_quests = active_quests
             else:
                 print(f"Quest '{quest_info['quest_name']}' not complete yet. Kills: {selected_quest['kill_count']}/{quest_info['kill_count_required']}")
+
+def end_adventure(player, location, completed_encounters, gear_drops, treasure_count, total_xp, total_gold):
+    gear_summary = f"{len(gear_drops)} piece{'s' if len(gear_drops) != 1 else ''} of gear" if gear_drops else "no gear"
+    treasure_summary = f"{treasure_count} piece{'s' if treasure_count != 1 else ''} of treasure" if treasure_count else "no treasure"
+    gold_gained = player.gold - total_gold
+    print(f"\nAdventure complete! Returning to town with {gear_summary}, {treasure_summary} from {completed_encounters} victories.")
+    if gear_drops:
+        gear_counts = {}
+        for item in gear_drops:
+            gear_counts[item] = gear_counts.get(item, 0) + 1
+        for item, count in gear_counts.items():
+            suffix = f" x{count}" if count > 1 else ""
+            print(f"- Found {item}{suffix}")
+    if treasure_count > 0:
+        print(f"- Found {treasure_count} Treasure Chest{'s' if treasure_count > 1 else ''}")
+        for _ in range(treasure_count):
+            award_treasure_chest(player)
+    if completed_encounters > 0:
+        print(f"Total XP earned: {total_xp}")
+        player.apply_xp()
+    save_game(player)
+    tavern = Tavern(player)
+    tavern.roll_tavern_npcs()
 
 if __name__ == "__main__":
     main()
