@@ -41,14 +41,18 @@
       ]
     },
     {
+      "name": "Fireball",
+      "mp_cost": 3,
       "class_type": "2",
       "level_req": 1,
-      "name": "Fireball",
-      "base_dmg": 5,
-      "effect": "direct_damage",
-      "mp_cost": 2,
-      "duration": 0,
-      "stat": "I"
+      "effects": [
+        {
+          "type": "direct_damage",
+          "base_dmg": 4,
+          "stat": "I",
+          "duration": 0
+        }
+      ]
     },
     {
       "class_type": "2",
