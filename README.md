@@ -15,7 +15,11 @@
 
 ---
 
-## 🚀 Getting Started
+## Running from Launcher
+
+Please go [here](https://github.com/m0nnnna/Frosted_Launcher/releases/tag/V1) and download the release for your OS and run the launcher. This will auto prepare git, python, the requests module, and the source game.
+
+## Running from source
 
 1. **Clone the Repository**:
    ```bash
