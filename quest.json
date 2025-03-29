@@ -24,11 +24,6 @@
           "stage": "quest_start"
         }
       ],
-      "steps": [
-        "Search the mountain caves for signs of the Beast Folk girl",
-        "Defeat the kobolds in the area",
-        "Find and speak with Elara"
-      ],
       "next_quest": "Lost Pendant",
       "npc_trigger": "Elara, the Fox"
     },
@@ -56,25 +51,20 @@
           "item_count_required": 1
         }
       ],
-      "steps": [
-        "Talk to Elara at the tavern",
-        "Hunt kobolds in the caves",
-        "Find the Lost Pendant"
-      ],
       "next_quest": "Fox Girl's Missing Family",
       "npc_trigger": "Elara, the Fox"
     },
     {
       "quest_name": "Goblin Cleanup",
-      "quest_level": 1,
-      "quest_description": "The village is overrun with goblins. Clear them out.",
-      "quest_reward": "50 gold, Rusty Sword",
+      "quest_level": 3,
+      "quest_description": "Clear out the goblins from the forest.",
+      "quest_reward": "25 gold",
       "source": "guild",
-      "adventure_points": null,
+      "adventure_points": 5,
       "required_rank": 0,
       "location": {
-        "main": "Goblin",
-        "sub": "Camp"
+        "main": "Forest",
+        "sub": "Caves"
       },
       "stages": [
         {
@@ -83,25 +73,86 @@
           "kill_count_required": 5
         }
       ],
-      "steps": [
-        "Speak to the village elder",
-        "Hunt goblins in the forest",
-        "Return to the elder"
-      ],
-      "next_quest": null,
-      "npc_trigger": null
+      "next_quest": "Orc Invasion",
+      "npc_trigger": "Guild Master"
     },
     {
-      "quest_name": "Beast Rumors",
-      "quest_level": 5,
-      "quest_description": "Investigate rumors of a beast beneath the ice.",
-      "quest_reward": "100 gold, Ice Fang Amulet",
-      "source": "npc",
-      "adventure_points": null,
+      "quest_name": "Orc Invasion",
+      "quest_level": 2,
+      "quest_description": "The orcs are gathering in the mountains. Stop them before they attack.",
+      "quest_reward": "35 gold",
+      "source": "guild",
+      "adventure_points": 1,
       "required_rank": 0,
       "location": {
-        "main": "Beast",
-        "sub": "Cave"
+        "main": "Mountain",
+        "sub": "Caves"
+      },
+      "stages": [
+        {
+          "type": "kill",
+          "target_monster": "Orc",
+          "kill_count_required": 5
+        }
+      ],
+      "next_quest": "Bandit Hunt",
+      "npc_trigger": "Guild Master"
+    },
+    {
+      "quest_name": "Bandit Hunt",
+      "quest_level": 3,
+      "quest_description": "Track down and eliminate the bandits in the forest.",
+      "quest_reward": "45 gold",
+      "source": "guild",
+      "adventure_points": 1,
+      "required_rank": 0,
+      "location": {
+        "main": "Forest",
+        "sub": "Caves"
+      },
+      "stages": [
+        {
+          "type": "kill",
+          "target_monster": "Bandit",
+          "kill_count_required": 5
+        }
+      ],
+      "next_quest": "Dragon Slayer",
+      "npc_trigger": "Guild Master"
+    },
+    {
+      "quest_name": "Dragon Slayer",
+      "quest_level": 25,
+      "quest_description": "The legendary dragon has been spotted. Slay it and claim the reward.",
+      "quest_reward": "1000 gold, Dragon Scale",
+      "source": "guild",
+      "adventure_points": 10,
+      "required_rank": 5,
+      "location": {
+        "main": "Mountain",
+        "sub": "Peak"
+      },
+      "stages": [
+        {
+          "type": "boss",
+          "target_monster": "Dragon",
+          "kill_count_required": 1
+        }
+      ],
+      "next_quest": null,
+      "npc_trigger": "Guild Master"
+    },
+    {
+      "quest_name": "Fox Girl's Missing Family",
+      "quest_level": 7,
+      "quest_description": "Help Elara find her missing family members.",
+      "quest_reward": "100 gold",
+      "source": "npc",
+      "adventure_points": 4,
+      "required_rank": 3,
+      "location": {
+        "main": "Mountain",
+        "sub": "Caves"
       },
       "stages": [
         {
@@ -110,201 +161,37 @@
           "kill_count_required": 3
         },
         {
-          "type": "boss",
-          "target_monster": "Void Wolf",
-          "kill_count_required": 1
-        },
-        {
-          "type": "collect",
-          "target_item": "Wolf Fang",
-          "item_count_required": 1
-        }
-      ],
-      "steps": [
-        "Talk to the Old Storyteller",
-        "Hunt Shadow Wolves in the icy caves",
-        "Face the Demon Wolf",
-        "Find a Wolf Fang",
-        "Report back"
-      ],
-      "next_quest": null,
-      "npc_trigger": "Old Storyteller"
-    },
-    {
-      "quest_name": "Kobold Trouble",
-      "quest_level": 2,
-      "quest_description": "Kobolds are stealing supplies. Stop them.",
-      "quest_reward": "60 gold, Kobold Dagger",
-      "source": "guild",
-      "adventure_points": null,
-      "required_rank": 0,
-      "location": {
-        "main": "Kobold",
-        "sub": "Tunnel"
-      },
-      "stages": [
-        {
-          "type": "kill",
-          "target_monster": "Kobold",
-          "kill_count_required": 3
-        }
-      ],
-      "steps": [
-        "Get the contract from the guild",
-        "Track kobolds in the caves",
-        "Report back"
-      ],
-      "next_quest": null,
-      "npc_trigger": null
-    },
-    {
-      "quest_name": "Shadow Hunt",
-      "quest_level": 3,
-      "quest_description": "Hunt a shadowy creature in the mountains.",
-      "quest_reward": "50 gold, Shadow Cloak",
-      "source": "npc",
-      "adventure_points": null,
-      "required_rank": 0,
-      "location": {
-        "main": "Shadow",
-        "sub": "Void"
-      },
-      "stages": [
-        {
-          "type": "kill",
-          "target_monster": "Shadow Beast",
-          "kill_count_required": 1
-        },
-        {
-          "type": "collect",
-          "target_item": "Shadow Cloak",
-          "item_count_required": 1
-        }
-      ],
-      "steps": [
-        "Meet the Mysterious Wanderer",
-        "Track the beast",
-        "Claim the Shadow Cloak",
-        "Return with proof"
-      ],
-      "next_quest": null,
-      "npc_trigger": "Shadow Stalker"
-    },
-    {
-      "quest_name": "Wolf Blade",
-      "quest_level": 5,
-      "quest_description": "Retrieve a lost blade from a wolf pack.",
-      "quest_reward": "40 gold, Mercenary Blade",
-      "source": "npc",
-      "adventure_points": null,
-      "required_rank": 0,
-      "location": {
-        "main": "Hidden,Ice",
-        "sub": "Forest"
-      },
-      "stages": [
-        {
-          "type": "kill",
-          "target_monster": "Wolf",
-          "kill_count_required": 4
-        }
-      ],
-      "steps": [
-        "Speak to the Drunk Mercenary",
-        "Hunt wolves in the forest",
-        "Bring back the blade"
-      ],
-      "next_quest": null,
-      "npc_trigger": null
-    },
-    {
-      "quest_name": "Dragon Slayer",
-      "quest_level": 90,
-      "quest_description": "A dragon threatens the realm. Slay it and claim its scale.",
-      "quest_reward": "1000 gold, Dragon Scale Armor",
-      "source": "guild",
-      "adventure_points": null,
-      "required_rank": 0,
-      "location": {
-        "main": "Last",
-        "sub": "Step"
-      },
-      "stages": [
-        {
-          "type": "boss",
-          "target_monster": "Dragon",
-          "kill_count_required": 1
-        },
-        {
-          "type": "collect",
-          "target_item": "Dragon Scale",
-          "item_count_required": 1
-        }
-      ],
-      "steps": [
-        "Seek the dragon's lair",
-        "Defeat the Dragon",
-        "Collect a Dragon Scale",
-        "Claim your prize"
-      ],
-      "next_quest": null,
-      "npc_trigger": "Dragon Slayer"
-    },
-    {
-      "quest_name": "Fox Girl's Missing Family",
-      "quest_level": 3,
-      "quest_description": "Help Elara uncover the truth about her family.",
-      "quest_reward": "150 gold",
-      "source": "npc",
-      "adventure_points": null,
-      "required_rank": 0,
-      "location": {
-        "main": "Frosted",
-        "sub": "Den"
-      },
-      "stages": [
-        {
           "type": "kill",
           "target_monster": "Frost Wolf",
-          "kill_count_required": 3
-        },
-        {
-          "type": "boss",
-          "target_monster": "Frost Wolf Matriarch",
-          "kill_count_required": 1
+          "kill_count_required": 2
         }
-      ],
-      "steps": [
-        "Meet Elara at the tavern",
-        "Investigate where her family was lost at.",
-        "Return to Elara"
       ],
       "next_quest": "The Sad Truth",
       "npc_trigger": "Elara, the Fox"
     },
     {
       "quest_name": "The Sad Truth",
-      "quest_level": 5,
-      "quest_description": "After your adventures with Elara and finding the location of her parents you set out on this last mission.",
-      "quest_reward": "200 gold, Scholar's Cloak",
+      "quest_level": 8,
+      "quest_description": "Discover what happened to Elara's family.",
+      "quest_reward": "150 gold",
       "source": "npc",
-      "adventure_points": null,
-      "required_rank": 0,
+      "adventure_points": 5,
+      "required_rank": 3,
       "location": {
-        "main": "Bloody",
-        "sub": "Clif"
+        "main": "Mountain",
+        "sub": "Caves"
       },
       "stages": [
         {
-          "type": "collect",
-          "target_item": "Bloody torn clothes",
-          "item_count_required": 1
+          "type": "kill",
+          "target_monster": "Void Wolf",
+          "kill_count_required": 1
+        },
+        {
+          "type": "kill",
+          "target_monster": "Frost Wolf Matriarch",
+          "kill_count_required": 1
         }
-      ],
-      "steps": [
-          "Consult Elara at the tavern",
-          "Gather frost crystals",
-          "Return to Elara"
       ],
       "next_quest": null,
       "npc_trigger": "Elara, the Fox"
