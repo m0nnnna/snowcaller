@@ -6,19 +6,87 @@
     },
     {
       "quest_name": "Goblin Cleanup",
-      "lore_text": "Long ago, the village of Eldwood thrived in peace, its fields among the last to bear a harvest. Then the goblins came—small, vicious creatures led by a cunning chieftain. They raided homes, stole livestock, and plunged the villagers into despair. The elder, a weary man named Thane, once repelled them with a band of brave souls, but age has robbed him of his sword arm. Now, he’s called upon the Guild, seeking a new hero to rid the land of this blight."
+      "lore_text": "Long ago, the village of Eldwood thrived in peace, its fields among the last to bear a harvest. Then the goblins came—small, vicious creatures led by a cunning chieftain. They raided homes, stole livestock, and plunged the villagers into despair. The elder, a weary man named Thane, once repelled them with a band of brave souls, but age has robbed him of his sword arm. Now, he's called upon the Guild, seeking a new hero to rid the land of this blight.",
+      "npc_dialogue": {
+        "npc_name": "Thane",
+        "stages": [
+          {
+            "stage": "quest_start",
+            "text": "Ah, you must be the adventurer from the Guild. I've seen many winters, but these goblins... they're different. More organized, more dangerous. Will you help us?"
+          },
+          {
+            "stage": "quest_accepted",
+            "text": "Thank the gods! The village will be in your debt. Please, be careful out there."
+          },
+          {
+            "stage": "quest_complete",
+            "text": "You've done it! The goblins are gone, and the village can breathe again. You have my deepest gratitude."
+          }
+        ]
+      }
     },
     {
       "quest_name": "Kobold Trouble",
-      "lore_text": "The kobolds of Blackrock Caves were once mere nuisances, skittering in the shadows. But recently, they’ve grown bold, snatching supplies from merchant caravans under the cover of night. Some whisper they’re driven by a mysterious figure—a hooded stranger seen near the caves. The Guild’s contract is clear: stop the thefts, but the truth behind their sudden courage remains buried in the dark."
+      "lore_text": "The kobolds of Blackrock Caves were once mere nuisances, skittering in the shadows. But recently, they've grown bold, snatching supplies from merchant caravans under the cover of night. Some whisper they're driven by a mysterious figure—a hooded stranger seen near the caves. The Guild's contract is clear: stop the thefts, but the truth behind their sudden courage remains buried in the dark.",
+      "npc_dialogue": {
+        "npc_name": "Merchant Captain",
+        "stages": [
+          {
+            "stage": "quest_start",
+            "text": "Those damned kobolds! They've been raiding our caravans for weeks. We need someone to put a stop to this."
+          },
+          {
+            "stage": "quest_accepted",
+            "text": "Good luck. The caves are treacherous, and those kobolds are crafty."
+          },
+          {
+            "stage": "quest_complete",
+            "text": "The raids have stopped! You've saved our trade routes. Here's your reward, and my thanks."
+          }
+        ]
+      }
     },
     {
       "quest_name": "Beast Rumors",
-      "lore_text": "There's word that a great beast is hiding in the woods. The darkness swallows you whole and the beasts feed on you. My dear adventurer, stay safe if you see the darkness build below the ice."
+      "lore_text": "There's word that a great beast is hiding in the woods. The darkness swallows you whole and the beasts feed on you. My dear adventurer, stay safe if you see the darkness build below the ice.",
+      "npc_dialogue": {
+        "npc_name": "Old Storyteller",
+        "stages": [
+          {
+            "stage": "quest_start",
+            "text": "Have you heard of the beast in the forest? Legends say the thing swallows people whole and keeps them trapped in a void."
+          },
+          {
+            "stage": "quest_accepted",
+            "text": "Be careful out there. The darkness comes from the cold."
+          },
+          {
+            "stage": "quest_complete",
+            "text": "You've faced the beast and lived to tell the tale! The forest will be safer now."
+          }
+        ]
+      }
     },
     {
       "quest_name": "Dragon Slayer",
-      "lore_text": "Legends speak of the Dragon of Stormpeak, a beast born from the fury of a shattered sky. Centuries ago, it razed kingdoms, its scales gleaming like molten gold under a storm of fire. Heroes fell, their names lost to ash, until it vanished into the mountains. Now, its roar echoes again, a challenge to the bold. The Guild offers a fortune, but whispers warn: this is no mere beast—it’s a force of ancient wrath."
+      "lore_text": "Legends speak of the Dragon of Stormpeak, a beast born from the fury of a shattered sky. Centuries ago, it razed kingdoms, its scales gleaming like molten gold under a storm of fire. Heroes fell, their names lost to ash, until it vanished into the mountains. Now, its roar echoes again, a challenge to the bold. The Guild offers a fortune, but whispers warn: this is no mere beast—it's a force of ancient wrath.",
+      "npc_dialogue": {
+        "npc_name": "Guild Master",
+        "stages": [
+          {
+            "stage": "quest_start",
+            "text": "The Dragon of Stormpeak has returned. We need a hero brave enough to face it. Are you that hero?"
+          },
+          {
+            "stage": "quest_accepted",
+            "text": "The Guild's resources are at your disposal. Return victorious, or not at all."
+          },
+          {
+            "stage": "quest_complete",
+            "text": "You've done the impossible! The dragon is slain, and the realm is safe once more. Your name will be remembered for generations."
+          }
+        ]
+      }
     }
   ]
 }

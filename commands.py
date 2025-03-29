@@ -36,6 +36,24 @@ def handle_command(input_str, player, commands_enabled):
                 print(f"Gold set to {player.gold}")
             return True
 
+        elif command == "set.rank" and len(parts) == 2:
+            try:
+                rank = int(parts[1])
+                if 1 <= rank <= 6:
+                    player.adventurer_rank = rank
+                    rank_names = ["Silver", "Gold", "Crystal", "Sapphire", "Ruby", "Emerald"]
+                    if commands_enabled:
+                        print(f"Adventurer rank set to {rank_names[rank-1]} (Rank {rank})")
+                    return True
+                else:
+                    if commands_enabled:
+                        print("Rank must be between 1 and 6")
+                    return False
+            except ValueError:
+                if commands_enabled:
+                    print("Please enter a valid number between 1 and 6")
+                return False
+
         elif command == "level.up" and len(parts) == 1:
             level_up(player, commands_enabled)
             return True

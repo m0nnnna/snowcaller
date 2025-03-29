@@ -3,28 +3,28 @@
     {
       "class_type": "1",
       "level_req": 1,
-      "name": "Iron Skin",
+      "name": "Blue Ice",
       "base_dmg": 20,
       "effect": "armor_bonus",
-      "mp_cost": 2,
+      "mp_cost": 1,
       "duration": 3,
       "stat": "S"
     },
     {
       "class_type": "1",
-      "level_req": 3,
-      "name": "Rage",
+      "level_req": 5,
+      "name": "Frosted Weapon",
       "base_dmg": 3,
       "effect": "damage_bonus",
-      "mp_cost": 4,
+      "mp_cost": 3,
       "duration": 3,
       "stat": "S"
     },
     {
-      "name": "Bloodlust",
+      "name": "Frozen Lust",
       "mp_cost": 5,
       "class_type": "1",
-      "level_req": 6,
+      "level_req": 12,
       "effects": [
         {
           "type": "direct_damage",
@@ -36,6 +36,26 @@
           "type": "life-steal",
           "base_dmg": 0,
           "stat": "I",
+          "duration": 4
+        }
+      ]
+    },
+    {
+      "name": "Holy Flame",
+      "mp_cost": 8,
+      "class_type": "1",
+      "level_req": 25,
+      "effects": [
+        {
+          "type": "damage_over_time",
+          "base_dmg": 4,
+          "stat": "S",
+          "duration": 4
+        },
+        {
+          "type": "heal_over_time",
+          "base_dmg": 4,
+          "stat": "S",
           "duration": 4
         }
       ]
@@ -56,36 +76,32 @@
     },
     {
       "class_type": "2",
-      "level_req": 3,
+      "level_req": 5,
       "name": "Heal",
-      "base_dmg": 10,
+      "base_dmg": 12,
       "effect": "heal",
       "mp_cost": 4,
       "duration": 0,
       "stat": "I"
     },
     {
-      "name": "Vampiric Aura",
-      "mp_cost": 5,
       "class_type": "2",
-      "level_req": 6,
-      "effects": [
-        {
-          "type": "life-steal",
-          "base_dmg": 0,
-          "stat": "I",
-          "duration": 5
-        }
-      ]
-    },
-    {
-      "class_type": "2",
-      "level_req": 10,
+      "level_req": 16,
       "name": "Sleep Spell",
       "base_dmg": 0,
       "effect": "sleep",
       "mp_cost": 8,
       "duration": 5,
+      "stat": "I"
+    },
+    {
+      "class_type": "2",
+      "level_req": 21,
+      "name": "Oblivion",
+      "base_dmg": 20,
+      "effect": "direct_damage",
+      "mp_cost": 12,
+      "duration": 0,
       "stat": "I"
     },
     {
@@ -99,10 +115,10 @@
       "stat": "A"
     },
     {
-      "name": "Instant Frost Shank",
+      "name": "Frostbite",
       "mp_cost": 2,
       "class_type": "3",
-      "level_req": 3,
+      "level_req": 5,
       "effects": [
         {
           "type": "direct_damage",
@@ -113,10 +129,10 @@
       ]
     },
     {
-      "name": "Vampiric Backstab",
-      "mp_cost": 5,
+      "name": "White Fang",
+      "mp_cost": 3,
       "class_type": "3",
-      "level_req": 6,
+      "level_req": 12,
       "effects": [
         {
           "type": "direct_damage",
@@ -135,6 +151,20 @@
           "base_dmg": 0,
           "stat": "I",
           "duration": 3
+        }
+      ]
+    },
+    {
+      "name": "Frozen Shadow",
+      "mp_cost": 6,
+      "class_type": "3",
+      "level_req": 25,
+      "effects": [
+        {
+          "type": "dodge_bonus",
+          "base_dmg": 30,
+          "stat": "A",
+          "duration": 0
         }
       ]
     },

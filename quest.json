@@ -1,11 +1,77 @@
 {
   "quests": [
     {
+      "quest_name": "Find the Fox Girl",
+      "quest_level": 6,
+      "quest_description": "The Guild has received reports of a Beast Folk girl lost in the wilderness. Find her and bring her back safely.",
+      "quest_reward": "50 gold",
+      "source": "guild",
+      "adventure_points": 2,
+      "required_rank": 3,
+      "location": {
+        "main": "Mountain",
+        "sub": "Caves"
+      },
+      "stages": [
+        {
+          "type": "kill",
+          "target_monster": "Kobold",
+          "kill_count_required": 5
+        },
+        {
+          "type": "dialogue",
+          "target_npc": "Elara, the Fox",
+          "stage": "quest_start"
+        }
+      ],
+      "steps": [
+        "Search the mountain caves for signs of the Beast Folk girl",
+        "Defeat the kobolds in the area",
+        "Find and speak with Elara"
+      ],
+      "next_quest": "Lost Pendant",
+      "npc_trigger": "Elara, the Fox"
+    },
+    {
+      "quest_name": "Lost Pendant",
+      "quest_level": 6,
+      "quest_description": "Elara's precious pendant was stolen by kobolds. Help her recover it.",
+      "quest_reward": "75 gold",
+      "source": "npc",
+      "adventure_points": 3,
+      "required_rank": 3,
+      "location": {
+        "main": "Mountain",
+        "sub": "Caves"
+      },
+      "stages": [
+        {
+          "type": "kill",
+          "target_monster": "Kobold",
+          "kill_count_required": 3
+        },
+        {
+          "type": "collect",
+          "target_item": "Lucky Star Pendant",
+          "item_count_required": 1
+        }
+      ],
+      "steps": [
+        "Talk to Elara at the tavern",
+        "Hunt kobolds in the caves",
+        "Find the Lost Pendant"
+      ],
+      "next_quest": "Fox Girl's Missing Family",
+      "npc_trigger": "Elara, the Fox"
+    },
+    {
       "quest_name": "Goblin Cleanup",
       "quest_level": 1,
       "quest_description": "The village is overrun with goblins. Clear them out.",
       "quest_reward": "50 gold, Rusty Sword",
       "source": "guild",
+      "adventure_points": null,
+      "required_rank": 0,
       "location": {
         "main": "Goblin",
         "sub": "Camp"
@@ -31,6 +97,8 @@
       "quest_description": "Investigate rumors of a beast beneath the ice.",
       "quest_reward": "100 gold, Ice Fang Amulet",
       "source": "npc",
+      "adventure_points": null,
+      "required_rank": 0,
       "location": {
         "main": "Beast",
         "sub": "Cave"
@@ -68,6 +136,8 @@
       "quest_description": "Kobolds are stealing supplies. Stop them.",
       "quest_reward": "60 gold, Kobold Dagger",
       "source": "guild",
+      "adventure_points": null,
+      "required_rank": 0,
       "location": {
         "main": "Kobold",
         "sub": "Tunnel"
@@ -93,6 +163,8 @@
       "quest_description": "Hunt a shadowy creature in the mountains.",
       "quest_reward": "50 gold, Shadow Cloak",
       "source": "npc",
+      "adventure_points": null,
+      "required_rank": 0,
       "location": {
         "main": "Shadow",
         "sub": "Void"
@@ -124,6 +196,8 @@
       "quest_description": "Retrieve a lost blade from a wolf pack.",
       "quest_reward": "40 gold, Mercenary Blade",
       "source": "npc",
+      "adventure_points": null,
+      "required_rank": 0,
       "location": {
         "main": "Hidden,Ice",
         "sub": "Forest"
@@ -149,6 +223,8 @@
       "quest_description": "A dragon threatens the realm. Slay it and claim its scale.",
       "quest_reward": "1000 gold, Dragon Scale Armor",
       "source": "guild",
+      "adventure_points": null,
+      "required_rank": 0,
       "location": {
         "main": "Last",
         "sub": "Step"
@@ -166,7 +242,7 @@
         }
       ],
       "steps": [
-        "Seek the dragon’s lair",
+        "Seek the dragon's lair",
         "Defeat the Dragon",
         "Collect a Dragon Scale",
         "Claim your prize"
@@ -175,41 +251,13 @@
       "npc_trigger": "Dragon Slayer"
     },
     {
-      "quest_name": "Lost Pendant",
-      "quest_level": 2,
-      "quest_description": "Find Elara's Pendant.",
-      "quest_reward": "75 gold",
-      "source": "event",
-      "location": {
-        "main": "Mountain",
-        "sub": "Caves"
-      },
-      "stages": [
-        {
-          "type": "kill",
-          "target_monster": "Kobold",
-          "kill_count_required": 3
-        },
-        {
-          "type": "collect",
-          "target_item": "Lucky Star Pendant",
-          "item_count_required": 1
-        }
-      ],
-      "steps": [
-        "Encounter the Fox girl",
-        "Hunt kobolds in the caves",
-        "Find the Lost Pendant"
-      ],
-      "next_quest": "Fox Girl's Missing Family",
-      "npc_trigger": "Elara, the Fox"
-    },
-    {
       "quest_name": "Fox Girl's Missing Family",
       "quest_level": 3,
       "quest_description": "Help Elara uncover the truth about her family.",
       "quest_reward": "150 gold",
       "source": "npc",
+      "adventure_points": null,
+      "required_rank": 0,
       "location": {
         "main": "Frosted",
         "sub": "Den"
@@ -238,8 +286,10 @@
       "quest_name": "The Sad Truth",
       "quest_level": 5,
       "quest_description": "After your adventures with Elara and finding the location of her parents you set out on this last mission.",
-      "quest_reward": "200 gold, Scholar’s Cloak",
+      "quest_reward": "200 gold, Scholar's Cloak",
       "source": "npc",
+      "adventure_points": null,
+      "required_rank": 0,
       "location": {
         "main": "Bloody",
         "sub": "Clif"

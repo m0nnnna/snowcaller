@@ -5,6 +5,9 @@ import os
 from utils import load_json
 from player import save_game  # Import to save after room purchase
 
+class ReturnToMainMenu(Exception):
+    pass
+
 class Tavern:
     def __init__(self, player):
         self.player = player
@@ -50,19 +53,22 @@ class Tavern:
             print("1. Visit the Bar | 2. Rest | 3. Buy a Room | 4. Interact with Special NPC | 5. Leave")
             choice = input("Selection: ")
 
-            if choice == "1":
-                self.visit_bar()
-            elif choice == "2":
-                self.rest()
-            elif choice == "3":
-                self.buy_room()
-            elif choice == "4":
-                self.interact_special_npc()
-            elif choice == "5":
-                print("You leave the tavern.")
-                break
-            else:
-                print("Invalid choice!")
+            try:
+                if choice == "1":
+                    self.visit_bar()
+                elif choice == "2":
+                    self.rest()
+                elif choice == "3":
+                    self.buy_room()
+                elif choice == "4":
+                    self.interact_special_npc()
+                elif choice == "5":
+                    print("You leave the tavern.")
+                    break
+                else:
+                    print("Invalid choice!")
+            except ReturnToMainMenu:
+                return  # Return to main menu
 
     def visit_bar(self):
         print("\nYou approach the bar, buzzing with chatter.")
@@ -410,99 +416,6 @@ class Tavern:
             else:
                 print(f"{npc_name}: No new quests available right now.")
 
-        elif choice == "2":
-            if current_quest and current_quest in active_quests:
-                self.turn_in_quest(current_quest)
-                if quest_data.get("next_quest"):
-                    npc["quest"] = quest_data["next_quest"]
-                    npc["quest_accepted"] = False
-                    npc["quest_denied"] = False
-            else:
-                # Handle "Talk" when room or invitation is active
-                talk_section = next((d for d in dialogue_options if "talk" in d), None)
-                if talk_section:
-                    talk_options = talk_section["talk"]
-                    available_options = []
-                    for i in range(1, 10):
-                        base_opt = str(i)
-                        highest_replace = None
-                        for opt in talk_options:
-                            if opt["option"].startswith(base_opt):
-                                bond_check = opt.get("bond_check", -1)
-                                if bond >= bond_check and (highest_replace is None or bond_check > highest_replace.get("bond_check", -1)):
-                                    highest_replace = opt
-                        if highest_replace:
-                            available_options.append(highest_replace)
-                        elif any(opt["option"] == base_opt for opt in talk_options):
-                            available_options.append(next(opt for opt in talk_options if opt["option"] == base_opt))
-                    print("Talk Options (0 to back):")
-                    for i, opt in enumerate(available_options, 1):
-                        print(f"{i}. {opt['text']}")
-                        for flavor in opt.get("flavor_text", []):
-                            print(f"   - {flavor}")
-                    print("0. Back")
-                    reply_choice = int(input("Select option: ")) - 1
-                    if 0 <= reply_choice < len(available_options):
-                        selected_opt = available_options[reply_choice]
-                        print(f"{npc_name}: {selected_opt['response']}")
-                        npc["bond"] = bond + selected_opt["bond_change"]
-                        print(f"Bond with {npc_name} is now {npc['bond']}")
-
-        elif choice == "3":
-            talk_section = next((d for d in dialogue_options if "talk" in d), None)
-            if talk_section:
-                talk_options = talk_section["talk"]
-                available_options = []
-                for i in range(1, 10):
-                    base_opt = str(i)
-                    highest_replace = None
-                    for opt in talk_options:
-                        if opt["option"].startswith(base_opt):
-                            bond_check = opt.get("bond_check", -1)
-                            if bond >= bond_check and (highest_replace is None or bond_check > highest_replace.get("bond_check", -1)):
-                                highest_replace = opt
-                    if highest_replace:
-                        available_options.append(highest_replace)
-                    elif any(opt["option"] == base_opt for opt in talk_options):
-                        available_options.append(next(opt for opt in talk_options if opt["option"] == base_opt))
-                print("Talk Options (0 to back):")
-                for i, opt in enumerate(available_options, 1):
-                    print(f"{i}. {opt['text']}")
-                    for flavor in opt.get("flavor_text", []):
-                        print(f"   - {flavor}")
-                print("0. Back")
-                reply_choice = int(input("Select option: ")) - 1
-                if 0 <= reply_choice < len(available_options):
-                    selected_opt = available_options[reply_choice]
-                    print(f"{npc_name}: {selected_opt['response']}")
-                    npc["bond"] = bond + selected_opt["bond_change"]
-                    print(f"Bond with {npc_name} is now {npc['bond']}")
-
-        elif choice == "4" and show_romance:
-            romance_section = next((d for d in dialogue_options if "romance" in d), None)
-            if romance_section:
-                romance_options = romance_section["romance"]
-                available_options = []
-                for opt in romance_options:
-                    base_opt = opt["option"].split("-")[0]
-                    bond_check = opt.get("bond_check", -1)
-                    if bond >= bond_check:
-                        # Only add if no higher replacement exists
-                        if not any(o["option"].startswith(base_opt + "-") and o.get("bond_check", -1) > bond_check and bond >= o.get("bond_check", -1) for o in romance_options):
-                            available_options.append(opt)
-                print("Romance Options (0 to back):")
-                for i, opt in enumerate(available_options, 1):
-                    print(f"{i}. {opt['text']}")
-                    for flavor in opt.get("flavor_text", []):
-                        print(f"   - {flavor}")
-                print("0. Back")
-                reply_choice = int(input("Select option: ")) - 1
-                if 0 <= reply_choice < len(available_options):
-                    selected_opt = available_options[reply_choice]
-                    print(f"{npc_name}: {selected_opt['response']}")
-                    npc["bond"] = bond + selected_opt["bond_change"]
-                    print(f"Bond with {npc_name} is now {npc['bond']}")
-
     def offer_quest(self, quest_name):
         quests = load_json("quest.json")["quests"]
         quest = next((q for q in quests if q["quest_name"] == quest_name), None)
@@ -513,7 +426,7 @@ class Tavern:
             print("You already have this quest!")
             return
         if quest["quest_name"] in [q["quest_name"] if isinstance(q, dict) else q for q in self.player.completed_quests]:
-            print("You’ve already completed this quest!")
+            print("You've already completed this quest!")
             return
         print(f"\nQuest: {quest['quest_name']} - {quest['quest_description']}")
         if input("Accept? (y/n): ").lower() == "y":
@@ -615,49 +528,13 @@ class Tavern:
         
         if bond_met and quest_met and not npc_data["room"]:
             npc_data["room"] = True
-            print(f"{npc_data['name']} agrees happily. 'I’d love to stay with you!'")
+            print(f"{npc_data['name']} agrees happily. 'I'd love to stay with you!'")
         elif npc_data["room"]:
             print(f"{npc_data['name']} is already living in your room!")
         elif not bond_met:
-            print(f"{npc_data['name']} hesitates. 'I don’t feel close enough to you yet.'")
+            print(f"{npc_data['name']} hesitates. 'I don't feel close enough to you yet.'")
         elif not quest_met:
             print(f"{npc_data['name']} says, 'How nice it would be to stay the night with you once our work is done.'")
-
-    def turn_in_quest(self, quest_name):
-        if not quest_name:
-            print("No quest to turn in!")
-            return
-        quests = load_json("quest.json")["quests"]
-        for quest in self.player.active_quests[:]:
-            if quest["quest_name"] == quest_name:
-                quest_data = next((q for q in quests if q["quest_name"] == quest_name), None)
-                if quest_data:
-                    all_stages_complete = True
-                    for i, stage in enumerate(quest["stages"]):
-                        if stage["type"] in ["kill", "boss"]:
-                            if stage["kill_count"] < quest_data["stages"][i]["kill_count_required"]:
-                                all_stages_complete = False
-                                break
-                        elif stage["type"] == "collect":
-                            item_count = self.player.inventory.count(quest_data["stages"][i]["target_item"])
-                            stage["item_count"] = item_count
-                            if item_count < quest_data["stages"][i]["item_count_required"]:
-                                all_stages_complete = False
-                                break
-                    if all_stages_complete:
-                        reward = quest_data["quest_reward"].split(", ")
-                        gold_amount = int(reward[0].split()[0])
-                        self.player.gold += gold_amount
-                        if len(reward) > 1:
-                            self.player.inventory.append(reward[1])
-                        print(f"Quest '{quest_name}' completed! Reward: {quest_data['quest_reward']}")
-                        self.player.completed_quests.append({"quest_name": quest_name})
-                        self.player.active_quests.remove(quest)
-                        # Update NPC quest chain
-                        for npc_name, npc in self.npc_data.items():
-                            if npc.get("quest") == quest_name and quest_data.get("next_quest"):
-                                npc["quest"] = quest_data["next_quest"]
-                                print(f"{npc_name} has a new task for you: {npc['quest']}")
 
     def rest(self):
         elara_in_room = any(npc["name"] == "Elara, the Lost Scholar" and npc["room"] for npc in self.player.tavern_npcs)
@@ -682,12 +559,16 @@ class Tavern:
                     print("You rest and recover.")
             else:
                 print("Not enough gold!")
+                return
+        
+        # Return to main menu by raising a custom exception
+        raise ReturnToMainMenu()
 
     def buy_room(self):
         if not self.player.has_room and self.player.gold >= self.room_cost:  # Use player.has_room
             self.player.gold -= self.room_cost
             self.player.has_room = True
-            print(f"You’ve bought a permanent room for {self.room_cost} gold!")
+            print(f"You've bought a permanent room for {self.room_cost} gold!")
             save_game(self.player)  # Save state after purchase
         elif self.player.has_room:
             print("You already own a room!")

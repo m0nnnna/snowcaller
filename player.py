@@ -8,7 +8,7 @@ class Player:
         self.name = name
         self.level = 1
         self.exp = 0
-        self.max_exp = 10
+        self.max_exp = 25  # Changed from 100 to 25 to match our new XP scaling
         self.inventory = []
         self.equipment = {
             "head": None, "chest": None, "pants": None, "boots": None,
@@ -18,7 +18,7 @@ class Player:
         self.class_type = class_type
         self.pending_xp = 0
         self.stat_points = 0
-        self.gold = 20
+        self.gold = 0
         self.shop_stock = {}
         self.tavern_buff = None
         self.rage_turns = 0
@@ -30,6 +30,13 @@ class Player:
         self.completed_quests = []
         self.tavern_npcs = []
         self.has_room = False
+        
+        # Guild membership and rank system
+        self.guild_member = False  # New players are not guild members
+        self.adventurer_rank = 0  # Start at 0 until they join
+        self.adventurer_points = 0  # Start with 0 points
+        self.max_adventurer_points = 10  # Initial max points
+        self.rank_thresholds = [0, 20, 60, 140, 200, 300]  # Points needed for each rank
 
         if class_type == "1":  # Warrior
             self.stats = {"S": 5, "A": 1, "I": 1, "W": 1, "L": 1}
@@ -126,20 +133,57 @@ class Player:
         return min(total_av, 100)
 
     def apply_xp(self):
+        # Add pending XP to current XP regardless of level
         self.exp += self.pending_xp
-        self.pending_xp = 0
-        while self.exp >= self.max_exp:
-            self.trigger_level_up(from_xp=True)  # Call with XP context
             
-    def trigger_level_up(self, from_xp=False):
+        # Only try to level up if we're not at max level
+        while self.exp >= self.max_exp and self.level < 25:
+            self.level_up()
+            
+        # Clear pending XP after applying it
+        self.pending_xp = 0
+        
+        # Save the game after applying XP to ensure it's persisted
+        save_game(self)
+
+    def apply_adventurer_points(self, points):
+        if self.adventurer_points >= self.max_adventurer_points:
+            print("\nYou have reached the maximum adventurer rank!")
+            return self.adventurer_points
+            
+        self.adventurer_points = min(self.adventurer_points + points, self.max_adventurer_points)
+        
+        # Check for rank up
+        while self.adventurer_rank < 6 and self.adventurer_points >= self.rank_thresholds[self.adventurer_rank]:
+            self.rank_up()
+            
+        return self.adventurer_points
+
+    def rank_up(self):
+        if self.adventurer_rank < 6:  # Max rank is 6 (Emerald)
+            self.adventurer_rank += 1
+            rank_names = ["Silver", "Gold", "Crystal", "Sapphire", "Ruby", "Emerald"]
+            print(f"\nCongratulations! You have achieved the rank of {rank_names[self.adventurer_rank-1]} Adventurer!")
+            return True
+        return False
+
+    def get_rank_name(self):
+        rank_names = ["Silver", "Gold", "Crystal", "Sapphire", "Ruby", "Emerald"]
+        return rank_names[self.adventurer_rank - 1]
+
+    def get_next_rank_points(self):
+        if self.adventurer_rank < 6:
+            return self.rank_thresholds[self.adventurer_rank] - self.adventurer_points
+        return 0
+
+    def level_up(self):
         """Handle a single level-up with scaled HP/MP increases."""
         old_max_hp = self.max_hp
         old_max_mp = self.max_mp
 
         self.level += 1
-        if from_xp:
-            self.exp -= self.max_exp  # Only subtract XP if leveling via apply_xp
-        self.max_exp = int(10 * (self.level ** 1.5))
+        self.exp -= self.max_exp  # Only subtract XP if leveling via apply_xp
+        self.max_exp = int(25 * (2.5 ** (self.level - 1)))  # Start at 25 XP, scale by 2.5x per level
         self.stat_points += 1
         print(f"{self.name} leveled up to {self.level}! You have {self.stat_points} stat points to allocate.")
 
@@ -151,7 +195,7 @@ class Player:
                 skill["name"] not in self.skills and 
                 len(self.skills) < 15):
                 self.skills.append(skill["name"])
-                print(f"You’ve unlocked the {skill['name']} skill!")
+                print(f"You've unlocked the {skill['name']} skill!")
 
         # Allocate stat points
         if self.stat_points > 0:
@@ -217,7 +261,11 @@ def save_game(player):
         "completed_quests": player.completed_quests,
         "tavern_npcs": player.tavern_npcs,
         "event_cooldowns": player.event_cooldowns,
-        "has_room": player.has_room
+        "has_room": player.has_room,
+        "adventurer_rank": player.adventurer_rank,
+        "adventurer_points": player.adventurer_points,
+        "max_adventurer_points": player.max_adventurer_points,
+        "guild_member": getattr(player, "guild_member", False)  # Add guild membership status
     }
     try:
         with open(save_path, 'w') as f:
@@ -262,6 +310,10 @@ def load_game():
         player.tavern_npcs = save_data.get("tavern_npcs", [])
         player.event_cooldowns = save_data.get("event_cooldowns", {})
         player.has_room = save_data.get("has_room", False)
+        player.adventurer_rank = save_data["adventurer_rank"]
+        player.adventurer_points = save_data["adventurer_points"]
+        player.max_adventurer_points = save_data["max_adventurer_points"]
+        player.guild_member = save_data.get("guild_member", False)  # Load guild membership status
         return player
     except Exception as e:
         print(f"Error loading save: {e}")

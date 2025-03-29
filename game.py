@@ -376,121 +376,145 @@ def main():
             continue
 
         if choice == "1":
+            print("\nChoose your adventure type:")
+            print("1. Short Trip (2-3 encounters)")
+            print("2. Adventure (3-6 encounters)")
+            print("3. Dungeon (6-10 encounters)")
+            adventure_length = input("Selection: ").strip()
+            
+            while adventure_length not in ["1", "2", "3"]:
+                print("Invalid choice! Choose 1, 2, or 3.")
+                adventure_length = input("Selection: ").strip()
+
+            # Set encounter range and modifiers based on adventure type
+            if adventure_length == "1":
+                max_encounters = random.randint(2, 3)
+                event_chance = 5
+                drop_rate_modifier = 0
+                adventure_section = "short"
+            elif adventure_length == "2":
+                max_encounters = random.randint(3, 6)
+                event_chance = 8
+                drop_rate_modifier = 0.03
+                adventure_section = "adventure"
+            else:  # Dungeon
+                max_encounters = random.randint(6, 10)
+                event_chance = 11
+                drop_rate_modifier = 0.06
+                adventure_section = "dungeon"
+
+            # Load appropriate areas based on adventure type
             lines = load_file("locations.txt")
             main_areas = []
             sub_areas = []
             current_section = None
-            for line in lines:
-                if line == "# Main Areas":
-                    current_section = main_areas
-                elif line == "# Sub Areas":
-                    current_section = sub_areas
-                elif current_section is not None:
-                    current_section.append(line)
             
-            if not main_areas:
+            for line in lines:
+                if line == f"# {adventure_section.capitalize()} Trip Areas":
+                    current_section = None
+                elif line == "# Main Areas":
+                    current_section = "main"
+                elif line == "# Sub Areas":
+                    current_section = "sub"
+                elif current_section is not None and line.strip() and not line.startswith("#"):
+                    if current_section == "main":
+                        main_areas.append(line)
+                    elif current_section == "sub":
+                        sub_areas.append(line)
+
+            if not main_areas or not sub_areas:
+                print("Warning: No areas loaded for this adventure type. Using defaults.")
                 main_areas = ["Forest", "Desert", "Mountain"]
-                print("Warning: No main areas loaded from locations.txt, using defaults.")
-            if not sub_areas:
                 sub_areas = ["Castle", "Cave", "Village"]
-                print("Warning: No sub areas loaded from locations.txt, using defaults.")
 
-            active_quests = player.active_quests
+            main_area = random.choice(main_areas)
+            sub_area = random.choice(sub_areas)
+            location = f"{main_area} {sub_area}"
+            print(f"\nYou set out for the {location}!")
 
-            if active_quests:
-                print("1. Random Adventure | 2. Quest Adventure")
-                adventure_type = input("Selection: ")
-            else:
-                adventure_type = "1"
+            monsters = load_json("monster.json")["monsters"]
+            encounter_pool = []
+            for m in monsters:
+                if not m["rare"]:
+                    min_monster_level = m["level_range"]["min"]
+                    max_monster_level = m["level_range"]["max"]
+                    if min_monster_level <= player.level + 2 and max_monster_level >= player.level - 2:
+                        encounter_pool.extend([m] * m["spawn_chance"])
+            if not encounter_pool:
+                print("Warning: No suitable monsters found for your level. Using fallback.")
+                encounter_pool = [m for m in monsters if not m["rare"]][:1]
 
-            if adventure_type == "1":
-                main_area = random.choice(main_areas)
-                sub_area = random.choice(sub_areas)
-                location = f"{main_area} {sub_area}"
-                print(f"\nYou set out for the {location}!")
-                monsters = load_json("monster.json")["monsters"]
-                encounter_pool = []
-                for m in monsters:
-                    if not m["rare"]:
-                        min_monster_level = m["level_range"]["min"]
-                        max_monster_level = m["level_range"]["max"]
-                        if min_monster_level <= player.level + 2 and max_monster_level >= player.level - 2:
-                            encounter_pool.extend([m] * m["spawn_chance"])
-                if not encounter_pool:
-                    print("Warning: No suitable monsters found for your level. Using fallback.")
-                    encounter_pool = [m for m in monsters if not m["rare"]][:1]
+            boss_fight = False
+            encounter_count = 0
+            combat_count = 0
+            completed_encounters = 0
+            gear_drops = []
+            treasure_count = 0
+            total_xp = 0
+            total_gold = player.gold
+            adventure = True
 
-                max_encounters = random.randint(2, 10)
-                boss_fight = False
-                encounter_count = 0
-                combat_count = 0
-                completed_encounters = 0
-                gear_drops = []
-                treasure_count = 0
-                total_xp = 0
-                total_gold = player.gold
-                adventure = True
-                event_chance = 5
-
-                while adventure:
-                    if encounter_count >= max_encounters:
-                        if encounter_count >= 8 and not boss_fight and random.random() < 0.25:
-                            print(f"\nA powerful foe blocks your path! Fight the boss?")
-                            print("1. Yes | 2. No")
-                            boss_choice = input("Selection: ")
-                            if boss_choice == "1":
-                                boss_fight = True
-                                boss_monsters = [m for m in monsters if m["rare"] and m["spawn_chance"] > 0]
-                                boss = random.choice(boss_monsters) if boss_monsters else random.choice([m for m in monsters if not m["rare"]])
-                                result = combat(player, True, boss["name"])
-                                if player.hp <= 0:
-                                    print("\nYou have died!")
-                                    if os.path.exists("save.json"):
-                                        os.remove("save.json")
-                                    print("Game Over.")
-                                    return
-                                if "Victory" in result:
-                                    completed_encounters += 1
-                                    update_kill_count(player, result.split("against ")[1])
-                                    total_xp += player.pending_xp
-                            adventure = False  # End after boss decision
-                        else:
-                            adventure = False  # Full completion
-
-                    if adventure:
-                        encounter_count += 1
-                        Encounters = []
-
-                        if random.randint(1, 100) <= event_chance:
-                            max_encounters = random_event(player, encounter_count, max_encounters)
-                            if "Treasure Chest" in player.inventory:
-                                treasure_count += player.inventory.count("Treasure Chest")
-                                while "Treasure Chest" in player.inventory:
-                                    player.inventory.remove("Treasure Chest")
-                                    award_treasure_chest(player)
-                        else:
-                            combat_count += 1
-                            monster = random.choice(encounter_pool)
-                            result = combat(player, False, monster["name"])
-                            Encounters.append(result)
-
+            while adventure:
+                if encounter_count >= max_encounters:
+                    if encounter_count >= 8 and not boss_fight and random.random() < 0.25:
+                        print(f"\nA powerful foe blocks your path! Fight the boss?")
+                        print("1. Yes | 2. No")
+                        boss_choice = input("Selection: ")
+                        if boss_choice == "1":
+                            boss_fight = True
+                            boss_monsters = [m for m in monsters if m["rare"] and m["spawn_chance"] > 0]
+                            boss = random.choice(boss_monsters) if boss_monsters else random.choice([m for m in monsters if not m["rare"]])
+                            result = combat(player, True, boss["name"])
                             if player.hp <= 0:
                                 print("\nYou have died!")
                                 if os.path.exists("save.json"):
                                     os.remove("save.json")
                                 print("Game Over.")
                                 return
-
                             if "Victory" in result:
                                 completed_encounters += 1
                                 update_kill_count(player, result.split("against ")[1])
                                 total_xp += player.pending_xp
-                                total_gold += player.gold - total_gold
-                            else:
-                                print("You avoid the boss and head back to town.")
-                            adventure = False
+                            adventure = False  # End after boss decision
+                        else:
+                            adventure = False  # Full completion
+
+                if adventure:
+                    encounter_count += 1
+                    Encounters = []
+
+                    if random.randint(1, 100) <= event_chance:
+                        max_encounters = random_event(player, encounter_count, max_encounters)
+                        if "Treasure Chest" in player.inventory:
+                            treasure_count += player.inventory.count("Treasure Chest")
+                            while "Treasure Chest" in player.inventory:
+                                player.inventory.remove("Treasure Chest")
+                                award_treasure_chest(player)
                     else:
-                        adventure = False
+                        combat_count += 1
+                        monster = random.choice(encounter_pool)
+                        result = combat(player, False, monster["name"])
+                        Encounters.append(result)
+
+                        if player.hp <= 0:
+                            print("\nYou have died!")
+                            if os.path.exists("save.json"):
+                                os.remove("save.json")
+                            print("Game Over.")
+                            return
+
+                        if "Victory" in result:
+                            completed_encounters += 1
+                            parts = result.split(" ")
+                            monster_name = parts[2]
+                            xp_gained = int(parts[3])
+                            gold_gained = int(parts[4])
+                            print(f"\nVictory! Gained {xp_gained} XP and {gold_gained} gold!")
+                            update_kill_count(player, monster_name)
+                            total_gold += gold_gained
+                        else:
+                            print("You avoid the boss and head back to town.")
+                            adventure = False
                         break
 
                     encounter_count += 1
@@ -518,7 +542,13 @@ def main():
 
                         if "Victory" in result:
                             completed_encounters += 1
-                            update_kill_count(player, result.split("against ")[1])
+                            parts = result.split(" ")
+                            monster_name = parts[2]
+                            xp_gained = int(parts[3])
+                            gold_gained = int(parts[4])
+                            print(f"\nVictory! Gained {xp_gained} XP and {gold_gained} gold!")
+                            update_kill_count(player, monster_name)
+                            total_gold += gold_gained
                             drop_item = None
                             gear = load_json("gear.json")
                             consumables = load_json("consumables.json")
@@ -529,16 +559,20 @@ def main():
                                     player.level <= item["level_range"]["max"] and 
                                     item.get("drop_rate", 0) > 0 and
                                     (not item.get("boss_only", False) or boss_fight)):
-                                    valid_drops.append((item["name"], item["drop_rate"]))
+                                    # Add the drop rate modifier to the item's base drop rate
+                                    modified_drop_rate = item["drop_rate"] * (1 + drop_rate_modifier)
+                                    valid_drops.append((item["name"], modified_drop_rate))
 
                             for item in consumables:
                                 if (player.level >= item["level_range"]["min"] and 
                                     player.level <= item["level_range"]["max"] and 
                                     item.get("drop_rate", 0) > 0 and 
                                     (not item["boss_only"] or boss_fight)):
-                                    valid_drops.append((item["name"], item["drop_rate"]))
+                                    # Add the drop rate modifier to the item's base drop rate
+                                    modified_drop_rate = item["drop_rate"] * (1 + drop_rate_modifier)
+                                    valid_drops.append((item["name"], modified_drop_rate))
 
-                            if valid_drops and random.random() < 0.25:
+                            if valid_drops and random.random() < 0.25:  # Keep the base 25% chance to get a drop
                                 items = [item[0] for item in valid_drops]
                                 weights = [item[1] for item in valid_drops]
                                 drop_item = random.choices(items, weights=weights, k=1)[0]
@@ -546,7 +580,8 @@ def main():
                                 player.inventory.append(drop_item)
                                 print(f"\nYou found a {drop_item}!")
 
-                            if random.random() < 0.15 or (boss_fight and random.random() < 0.5):
+                            # Apply the same modifier to treasure chest chance
+                            if random.random() < (0.15 * (1 + drop_rate_modifier)) or (boss_fight and random.random() < 0.5):
                                 treasure_count += 1
 
                             total_xp += player.pending_xp
@@ -568,88 +603,6 @@ def main():
 
                 # End adventure here
                 end_adventure(player, location, completed_encounters, gear_drops, treasure_count, total_xp, total_gold)
-
-            elif adventure_type == "2":  # Quest Adventure
-                quests_data = load_json("quest.json")
-                monsters_data = load_json("monster.json")
-                quests = quests_data.get("quests", [])
-                monsters = monsters_data.get("monsters", [])
-    
-                print("\nActive Quests:")
-                for i, quest in enumerate(active_quests, 1):
-                    q = next(q for q in quests if q["quest_name"] == quest["quest_name"])
-                    progress = []
-                    for stage in quest["stages"]:
-                        if stage["type"] in ["kill", "boss"]:
-                            progress.append(f"Kills: {stage.get('kill_count', 0)}/{stage.get('kill_count_required', 0)}")
-                        elif stage["type"] == "collect":
-                            progress.append(f"Items: {stage.get('item_count', 0)}/{stage.get('item_count_required', 0)}")
-                    print(f"{i}. {quest['quest_name']} ({', '.join(progress)})")
-                
-                quest_choice = int(input("Select a quest: ")) - 1
-                selected_quest = active_quests[quest_choice]
-                quest_info = next(q for q in quests if q["quest_name"] == selected_quest["quest_name"])
-    
-                if isinstance(quest_info["location"], dict):
-                    location = f"{quest_info['location']['main']} {quest_info['location']['sub']}"
-                else:
-                    location = quest_info["location"]
-    
-                print(f"\nPursuing quest: {quest_info['quest_name']} at the {location}!")
-
-
-                encounter_count = 0
-                max_encounters = 5  # Limit encounters
-                all_stages_complete = False
-                while encounter_count < max_encounters and not all_stages_complete:
-                    encounter_count += 1
-                    # Fight target monster for kill stages
-                    for stage in selected_quest["stages"]:
-                        if stage["type"] in ["kill", "boss"] and stage.get("kill_count", 0) < stage["kill_count_required"]:
-                            target_monster = next((m for m in monsters if m["name"] == stage["target_monster"]), None)
-                            if not target_monster:
-                                print(f"Monster '{stage['target_monster']}' not found in monster.json!")
-                                break
-                            result = combat(player, target_monster["rare"], target_monster["name"])
-                            if player.hp <= 0:
-                                print("\nYou have died!")
-                                if os.path.exists("save.json"):
-                                    os.remove("save.json")
-                                print("Game Over.")
-                                return
-                            if "Victory" not in result:
-                                print("You fled or failed the encounter.")
-                                break
-
-                    # Check if all stages are complete
-                    all_stages_complete = True
-                    for i, stage in enumerate(selected_quest["stages"]):
-                        if stage["type"] in ["kill", "boss"]:
-                            if stage.get("kill_count", 0) < quest_info["stages"][i]["kill_count_required"]:
-                                all_stages_complete = False
-                        elif stage["type"] == "collect":
-                            if stage.get("item_count", 0) < quest_info["stages"][i]["item_count_required"]:
-                                all_stages_complete = False
-
-                # Display progress using updated active_quest data
-                progress = []
-                for stage in selected_quest["stages"]:
-                    if stage["type"] in ["kill", "boss"]:
-                        progress.append(f"{stage.get('kill_count', 0)}/{stage['kill_count_required']} kills")
-                    elif stage["type"] == "collect":
-                        progress.append(f"{stage.get('item_count', 0)}/{stage['item_count_required']} {stage['target_item']}(s)")
-                if all_stages_complete:
-                    print(f"\nQuest '{quest_info['quest_name']}' objectives met! Return to the tavern to turn it in.")
-                else:
-                    print(f"\nReturning to town with progress: {', '.join(progress)} toward {quest_info['quest_name']}.")
-                tavern = Tavern(player)  # New line: Create Tavern instance
-                tavern.roll_tavern_npcs()  # New line: Roll NPCs after quest adventure
-
-                player.buff = []
-                player.rage_turns = 0
-
-                if player.stat_points > 0:
-                    player.allocate_stat()
 
         elif choice == "2":
             inventory_menu(player)
@@ -695,6 +648,10 @@ def main():
                             scaled_dmg = base_dmg + (player.stats[stat] * 1.0)
                         elif "damage_over_time" in effect_types:
                             scaled_dmg = base_dmg + (player.stats[stat] * 0.2)
+                        elif "heal" in effect_types or "heal_over_time" in effect_types:
+                            scaled_dmg = base_dmg + (player.stats[stat] * 0.5)
+                        elif effect_types in [["armor_bonus"], ["dodge_bonus"]]:
+                            scaled_dmg = base_dmg + (player.stats[stat] * 0.5)
 
                     # Calculate DPS based on effect type
                     if "direct_damage" in effect_types and duration == 0:
@@ -735,6 +692,33 @@ def main():
             print("Invalid choice!")
 
 def guild_menu(player):
+    print("\n=== Adventurers' Guild ===")
+    
+    # If player is not in the guild yet
+    if not hasattr(player, "guild_member") or not player.guild_member:
+        print("Hello there adventurer. How may I help you?")
+        print("1. Join | 2. Leave")
+        choice = input("Selection: ")
+        
+        if choice == "1":
+            if player.level < 3:
+                print("I'm sorry but you seem to be lacking. We do not have work for you.")
+                return
+            else:
+                player.guild_member = True
+                player.adventurer_rank = 0
+                player.adventurer_points = 0
+                player.max_adventurer_points = 10
+                print("Welcome to the Adventurers' Guild! You start at the lowest rank with 0 points.")
+                save_game(player)
+                return
+        elif choice == "2":
+            return
+        else:
+            print("Invalid choice!")
+            return
+    
+    # If player is already in the guild
     quests_data = load_json("quest.json")
     lore_data = load_json("lore.json")
     quests = quests_data.get("quests", [])
@@ -743,28 +727,34 @@ def guild_menu(player):
     active_quests = player.active_quests
     completed_quests = player.completed_quests if hasattr(player, "completed_quests") else []
     
-    print("\n=== Adventurers' Guild ===")
-    print("1. Accept Quest | 2. Turn In Quest | 0. Return")
+    print(f"Current Rank: {player.get_rank_name()} Adventurer")
+    print(f"Adventurer Points: {player.adventurer_points}/{player.max_adventurer_points}")
+    if player.adventurer_rank < 6:
+        next_rank_points = player.get_next_rank_points()
+        print(f"Points needed for next rank: {next_rank_points}")
+    print("\n1. Accept Quest | 2. Turn In Quest | 0. Return")
     choice = input("Selection: ")
 
     if choice == "1":
         if len(active_quests) >= 5:
-            print("You’ve reached the maximum of 5 active quests.")
+            print("You've reached the maximum of 5 active quests.")
             return
         
         available_quests = [
             q for q in quests 
             if player.level >= q["quest_level"] 
+            and player.adventurer_rank >= q["required_rank"]
             and q["quest_name"] not in [aq["quest_name"] for aq in active_quests] 
             and q["quest_name"] not in completed_quests
         ]
         if not available_quests:
-            print("No new quests available.")
+            print("No new quests available at your current rank.")
         else:
             print("\nAvailable Quests:")
             for i, quest in enumerate(available_quests, 1):
                 print(f"{i}. {quest['quest_name']} (Level {quest['quest_level']})")
                 print(f"   {quest['quest_description']}")
+                print(f"   Reward: {quest['quest_reward']} | Points: {quest['adventure_points']}")
             quest_choice = input("Select a quest to accept (or 0 to return): ")
             if quest_choice == "0":
                 return
@@ -788,35 +778,55 @@ def guild_menu(player):
                 print("Invalid input. Please enter a number.")
 
     elif choice == "2":
-        if not active_quests:
-            print("No active quests to turn in.")
-            return
-        
-        print("\nActive Quests:")
-        for i, quest in enumerate(active_quests, 1):
-            q = next(q for q in quests if q["quest_name"] == quest["quest_name"])
-            print(f"{i}. {quest['quest_name']} (Kills: {quest['kill_count']}/{q['kill_count_required']})")
-        turn_in_choice = input("Select a quest to turn in (or 0 to return): ")
-        if turn_in_choice == "0":
-            return
-        if 1 <= int(turn_in_choice) <= len(active_quests):
-            selected_quest = active_quests[int(turn_in_choice) - 1]
-            quest_info = next(q for q in quests if q["quest_name"] == selected_quest["quest_name"])
-            if selected_quest["kill_count"] >= quest_info["kill_count_required"]:
-                reward_parts = quest_info["quest_reward"].split(", ")
-                gold_amount = int(reward_parts[0])
-                item_reward = reward_parts[1] if len(reward_parts) > 1 else None
-                player.gold += gold_amount
-                if item_reward:
-                    player.inventory.append(item_reward)
-                print(f"Quest '{quest_info['quest_name']}' completed! Reward: {quest_info['quest_reward']}")
-                active_quests.remove(selected_quest)
-                if not hasattr(player, "completed_quests"):
-                    player.completed_quests = []
-                player.completed_quests.append(quest_info["quest_name"])
-                player.active_quests = active_quests
-            else:
-                print(f"Quest '{quest_info['quest_name']}' not complete yet. Kills: {selected_quest['kill_count']}/{quest_info['kill_count_required']}")
+        turn_in_quest(player)
+
+def turn_in_quest(player):
+    if not player.active_quests:
+        print("\nYou have no active quests to turn in.")
+        return
+
+    print("\nActive Quests:")
+    for i, quest in enumerate(player.active_quests, 1):
+        print(f"{i}. {quest['quest_name']} - {quest['quest_description']}")
+
+    while True:
+        try:
+            choice = int(input("\nEnter the number of the quest to turn in (0 to cancel): "))
+            if choice == 0:
+                return
+            if 1 <= choice <= len(player.active_quests):
+                break
+            print("Invalid choice. Please try again.")
+        except ValueError:
+            print("Please enter a valid number.")
+
+    quest = player.active_quests[choice - 1]
+    player.active_quests.remove(quest)
+    player.completed_quests.append(quest)
+
+    # Handle quest rewards
+    rewards = quest['quest_reward'].split(", ")
+    for reward in rewards:
+        if "gold" in reward.lower():
+            amount = int(reward.split()[0])
+            player.gold += amount
+            print(f"\nYou received {amount} gold!")
+        else:
+            # Handle item rewards
+            item_name = reward
+            item = find_item_by_name(item_name)
+            if item:
+                player.inventory.append(item)
+                print(f"\nYou received {item_name}!")
+
+    # Handle adventurer points
+    if 'adventure_points' in quest and quest['adventure_points'] is not None:
+        points = quest['adventure_points']
+        current_points = player.apply_adventurer_points(points)
+        print(f"\nYou received {points} Adventurer Points! Current points: {current_points}/{player.max_adventurer_points}")
+        print(f"Current Rank: {player.get_rank_name()}")
+
+    print("\nQuest completed successfully!")
 
 def end_adventure(player, location, completed_encounters, gear_drops, treasure_count, total_xp, total_gold):
     gear_summary = f"{len(gear_drops)} piece{'s' if len(gear_drops) != 1 else ''} of gear" if gear_drops else "no gear"
@@ -834,10 +844,8 @@ def end_adventure(player, location, completed_encounters, gear_drops, treasure_c
         print(f"- Found {treasure_count} Treasure Chest{'s' if treasure_count > 1 else ''}")
         for _ in range(treasure_count):
             award_treasure_chest(player)
-    if completed_encounters > 0:
-        print(f"Total XP earned: {total_xp}")
-        player.apply_xp()
-    save_game(player)
+    print(f"Total gold gained: {gold_gained}")
+    print(f"Current XP: {player.exp}/{player.max_exp}")
     tavern = Tavern(player)
     tavern.roll_tavern_npcs()
 

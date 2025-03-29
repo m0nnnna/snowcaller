@@ -4,13 +4,14 @@ import json
 import os
 from utils import load_json, parse_stats
 from items import use_item
+from player import save_game
 
 def load_art(art_file):
     art_path = os.path.join("art", art_file)
     if os.path.exists(art_path):
         with open(art_path, "r") as f:
             return f.read()
-    return None  # Return None if file doesn’t exist, no error message
+    return None  # Return None if file doesn't exist, no error message
 
 def get_weapon_damage_range(player):
     weapon = player.equipment.get("main_hand")
@@ -84,7 +85,7 @@ def combat(player, boss_fight=False, monster_name=None):
     level_scale = 1 + (level - 1) * 0.1 if monster_stats["rare"] else 1 + (level - 1) * 0.05
     monster_hp = random.uniform(monster_stats["hp_range"]["min"], monster_stats["hp_range"]["max"]) * level_scale
     monster_mp = 2 * monster_stats["stats"]["W"] * level_scale
-    monster_max_mp = 2 * monster_stats["stats"]["W"] * level_scale  # Moved here from line 404
+    monster_max_mp = 2 * monster_stats["stats"]["W"] * level_scale
     monster_min_dmg = monster_stats["damage_range"]["min"] * level_scale
     monster_max_dmg = monster_stats["damage_range"]["max"] * level_scale
     
@@ -99,7 +100,7 @@ def combat(player, boss_fight=False, monster_name=None):
     # Monster skill setup
     monster_skills = monster_stats.get("skills", []) if monster_stats.get("skills") is not None else []
     monster_skill_effects = {}
-    monster_status = {"sleep": 0, "curse": 0}  # Track status effects
+    monster_status = {"sleep": 0, "curse": 0, "poison": 0}  # Track status effects
 
     # Player status setup
     player_status = {"curse": 0}  # Only curse affects players for now
@@ -123,8 +124,8 @@ def combat(player, boss_fight=False, monster_name=None):
     turn = "player" if player_goes_first else "monster"
     player_mp_regenerated = False  # Flag to track MP regeneration for the current player turn
 
-    # Display monster appearance
-    print(f"\nA {name} appears!")
+    # Display monster appearance with level
+    print(f"\nA Level {level} {name} appears!")
     if "art_file" in monster_stats:
         art = load_art(monster_stats["art_file"])
         if art:
@@ -189,7 +190,6 @@ def combat(player, boss_fight=False, monster_name=None):
                                     print(f"{name} uses {skill['name']}, dealing {scaled_dmg} damage to you!")
                                 elif effect == "damage_over_time":
                                     monster_skill_effects[skill["name"]] = duration
-                                    player.hp -= scaled_dmg
                                     print(f"{name} uses {skill['name']}, applying {scaled_dmg} damage per turn for {duration} turns!")
                                 elif effect == "armor_bonus":
                                     monster_skill_effects[skill["name"]] = duration
@@ -238,8 +238,30 @@ def combat(player, boss_fight=False, monster_name=None):
                         player.hp -= reduced_damage
                         print(f"{name} deals {round(reduced_damage, 1)} damage to you (reduced from {round(damage, 1)} by armor)!")
 
+            # Apply DOT/HOT effects on monster's turn (affects player)
+            for skill_name, turns in list(monster_skill_effects.items()):
+                if turns > 0:
+                    for skill in skills:
+                        if skill["name"] == skill_name and skill["effect"] == "damage_over_time":
+                            base_dmg = skill["base_dmg"]
+                            stat = skill["stat"]
+                            dot_dmg = base_dmg + (int(monster_stats["stats"][stat] * 0.2) if stat != "none" else 0)
+                            player.hp -= dot_dmg
+                            print(f"{name}'s {skill_name} deals {dot_dmg} damage to you!")
+                            monster_skill_effects[skill_name] -= 1
+                            if monster_skill_effects[skill_name] <= 0:
+                                del monster_skill_effects[skill_name]
+                            break
+
+            # Decrement monster status effects
+            for status in list(monster_status.keys()):
+                if monster_status[status] > 0:
+                    monster_status[status] -= 1
+                    if monster_status[status] <= 0:
+                        del monster_status[status]
+
             turn = "player"  # Switch to player turn after monster acts
-            player_mp_regenerated = False  # Reset MP regen flag when switching to player turn
+            player_mp_regenerated = False
 
         # Player Turn
         elif turn == "player":
@@ -247,20 +269,20 @@ def combat(player, boss_fight=False, monster_name=None):
             if not player_mp_regenerated and player.mp < player.max_mp:
                 mp_regen = player.stats["W"] * 0.3
                 player.mp = min(player.mp + mp_regen, player.max_mp)
-                print(f"\nYou regenerate {round(mp_regen, 1)} MP Current MP: {round(player.mp, 1)}/{player.max_mp}")
+                print(f"\nYou regenerate {round(mp_regen, 1)} MP")
                 player_mp_regenerated = True
             elif not player_mp_regenerated:
-                print(f"\nMP is full: {round(player.mp, 1)}/{player.max_mp}")
                 player_mp_regenerated = True
 
             # Combat UI
             bonus_display = ""  # Define bonus_display as an empty string or assign its appropriate value
-            status_display = f" | Status: {', '.join([f'{k} {v}' for k, v in player_status.items()])}" if player_status else ""
-            print(f"\n{monster_stats['name']}: {round(monster_hp, 1)} HP | {player.name}: {round(player.hp, 1)}/{player.max_hp} HP, {round(player.mp, 1)}/{player.max_mp} MP{bonus_display}{status_display}")
+            player_status_display = f" Status: {', '.join([f'{k} ({v})' for k, v in player_status.items() if v > 0])}" if any(v > 0 for v in player_status.values()) else ""
+            monster_status_display = f" Status: {', '.join([f'{k} ({v})' for k, v in monster_status.items() if v > 0])}" if any(v > 0 for v in monster_status.values()) else ""
+            print(f"\n| {monster_stats['name']}: {round(monster_hp, 1)} HP{monster_status_display} | {player.name}: {round(player.hp, 1)}/{player.max_hp} HP, {round(player.mp, 1)}/{player.max_mp} MP{player_status_display} |")
             print("1. Attack | 2. Item | 3. Skills | 4. Flee")
             choice = input("Selection: ")
 
-            action_taken = False  # Track if an action completes the turn
+            action_taken = False
 
             if choice == "1":  # Attack
                 min_dmg, max_dmg = get_weapon_damage_range(player)
@@ -332,33 +354,56 @@ def combat(player, boss_fight=False, monster_name=None):
                                                             "base_dmg": skill.get("base_dmg", 0), 
                                                             "duration": skill.get("duration", 0), 
                                                             "stat": skill.get("stat", "none")}])
-                        for effect in effects:
-                            base_dmg = effect["base_dmg"]
-                            duration = effect["duration"]
-                            effect_type = effect["type"]
-                            stat = effect["stat"]
-                            scaled_dmg = base_dmg
-                            if stat != "none":
+                            for effect in effects:
+                                base_dmg = effect["base_dmg"]
+                                duration = effect["duration"]
+                                effect_type = effect["type"]
+                                stat = effect["stat"]
+                                scaled_dmg = base_dmg
+                                if stat != "none":
+                                    if effect_type == "damage_bonus":
+                                        scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
+                                    elif effect_type == "direct_damage":
+                                        scaled_dmg = base_dmg + int(player.stats[stat] * 1.0)
+                                    elif effect_type == "heal" or effect_type == "heal_over_time":
+                                        scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
+                                    elif effect_type == "damage_over_time":
+                                        scaled_dmg = base_dmg + int(player.stats[stat] * 0.2)
+                                    elif effect_type in ["armor_bonus", "dodge_bonus"]:
+                                        scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
+                                    elif effect_type == "life-steal":
+                                        scaled_dmg = 0
                                 if effect_type == "damage_bonus":
-                                    scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
+                                    player_skill_effects[skill_name] = duration
+                                    print(f"{skill_name} activated! +{scaled_dmg} damage for {duration} turns.")
                                 elif effect_type == "direct_damage":
-                                    scaled_dmg = base_dmg + int(player.stats[stat] * 1.0)
-                                elif effect_type == "heal" or effect_type == "heal_over_time":
-                                    scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
+                                    monster_hp -= scaled_dmg
+                                    print(f"{skill_name} deals {scaled_dmg} damage to {name}!")
                                 elif effect_type == "damage_over_time":
-                                    scaled_dmg = base_dmg + int(player.stats[stat] * 0.2)
-                                elif effect_type in ["armor_bonus", "dodge_bonus"]:
-                                    scaled_dmg = base_dmg + int(player.stats[stat] * 0.5)
-                                elif effect_type == "life-steal":
-                                    scaled_dmg = 0
-                            if effect_type == "damage_bonus":
-                                player_skill_effects[skill_name] = duration + 1
-                                print(f"{skill_name} activated! +{scaled_dmg} damage for {duration} turns.")
-                            elif effect_type == "direct_damage":
-                                monster_hp -= scaled_dmg
-                                print(f"{skill_name} deals {scaled_dmg} damage to {name}!")
-                            # Handle other effects here if needed
-                        action_taken = True
+                                    player_skill_effects[skill_name] = duration
+                                    monster_status["poison"] = duration
+                                    print(f"{skill_name} applies {scaled_dmg} damage per turn for {duration} turns!")
+                                elif effect_type == "heal":
+                                    player.hp = min(player.hp + scaled_dmg, player.max_hp)
+                                    print(f"{skill_name} heals you for {scaled_dmg} HP!")
+                                elif effect_type == "heal_over_time":
+                                    player_skill_effects[skill_name] = duration
+                                    print(f"{skill_name} will heal you for {scaled_dmg} HP per turn for {duration} turns!")
+                                elif effect_type == "armor_bonus":
+                                    player_skill_effects[skill_name] = duration
+                                    player_armor_bonus = scaled_dmg
+                                    print(f"{skill_name} increases your armor by {scaled_dmg}% for {duration} turns!")
+                                elif effect_type == "dodge_bonus":
+                                    player_skill_effects[skill_name] = duration
+                                    player_dodge_bonus = scaled_dmg
+                                    print(f"{skill_name} increases your dodge chance by {scaled_dmg}% for {duration} turns!")
+                                elif effect_type == "sleep":
+                                    monster_status["sleep"] = duration
+                                    print(f"{skill_name} puts {name} to sleep for {duration} turns!")
+                                elif effect_type == "curse":
+                                    monster_status["curse"] = duration
+                                    print(f"{skill_name} curses {name}, blocking skills for {duration} turns!")
+                            action_taken = True
                     except ValueError:
                         print("Please enter a valid number!")
                 continue
@@ -371,45 +416,43 @@ def combat(player, boss_fight=False, monster_name=None):
                 else:
                     print("You fail to flee!")
                     action_taken = True
+
+            # Apply DOT/HOT effects on player's turn (affects monster)
+            for skill_name, turns in list(player_skill_effects.items()):
+                if turns > 0:
+                    skill = next((s for s in skills if s["name"] == skill_name), None)
+                    if skill:
+                        # Handle both old and new skill formats
+                        if "effects" in skill:
+                            for effect in skill["effects"]:
+                                if effect["type"] == "damage_over_time":
+                                    scaled_dmg = effect["base_dmg"] + (player.stats[effect["stat"]] * 0.2 if effect["stat"] != "none" else 0)
+                                    armor_reduction = (monster_stats["armor_value"] + monster_armor_bonus) / 100
+                                    reduced_damage = scaled_dmg * (1 - armor_reduction)
+                                    monster_hp -= reduced_damage
+                                    print(f"{skill_name} deals {round(reduced_damage, 1)} damage to {name}!")
+                                elif effect["type"] == "heal_over_time":
+                                    scaled_dmg = effect["base_dmg"] + (player.stats[effect["stat"]] * 0.5 if effect["stat"] != "none" else 0)
+                                    player.hp = min(player.hp + scaled_dmg, player.max_hp)
+                                    print(f"{skill_name} heals you for {round(scaled_dmg, 1)} HP!")
+                        else:
+                            # Handle old skill format
+                            if skill["effect"] == "damage_over_time":
+                                scaled_dmg = skill["base_dmg"] + (player.stats[skill["stat"]] * 0.2 if skill["stat"] != "none" else 0)
+                                armor_reduction = (monster_stats["armor_value"] + monster_armor_bonus) / 100
+                                reduced_damage = scaled_dmg * (1 - armor_reduction)
+                                monster_hp -= reduced_damage
+                                print(f"{skill_name} deals {round(reduced_damage, 1)} damage to {name}!")
+                            elif skill["effect"] == "heal_over_time":
+                                scaled_dmg = skill["base_dmg"] + (player.stats[skill["stat"]] * 0.5 if skill["stat"] != "none" else 0)
+                                player.hp = min(player.hp + scaled_dmg, player.max_hp)
+                                print(f"{skill_name} heals you for {round(scaled_dmg, 1)} HP!")
+                        player_skill_effects[skill_name] -= 1
+                        if player_skill_effects[skill_name] <= 0:
+                            del player_skill_effects[skill_name]
+
             if action_taken:
                 turn = "monster"  # Switch to monster turn only after a real action
-
-
-        # Apply DOT/HOT effects
-        for skill_name, turns in list(monster_skill_effects.items()):
-            if turns > 0:
-                for skill in skills:
-                    if skill["name"] == skill_name and skill["effect"] == "damage_over_time":
-                        base_dmg = skill["base_dmg"]
-                        stat = skill["stat"]
-                        dot_dmg = base_dmg + (int(monster_stats["stats"][stat] * 0.2) if stat != "none" else 0)
-                        player.hp -= dot_dmg
-                        print(f"{name}'s {skill_name} deals {dot_dmg} damage to you!")
-                        break
-
-        for skill_name, turns in list(player_skill_effects.items()):
-            if turns > 0:
-                skill = next((s for s in skills if s["name"] == skill_name), None)
-                if skill and "effects" in skill:
-                    for effect in skill["effects"]:
-                        if effect["type"] == "damage_over_time":
-                            scaled_dmg = effect["base_dmg"] + (player.stats[effect["stat"]] * 0.5 if effect["stat"] != "none" else 0)
-                            armor_reduction = (monster_stats["armor_value"] + monster_armor_bonus) / 100
-                            reduced_damage = scaled_dmg * (1 - armor_reduction)
-                            monster_hp -= reduced_damage
-                            print(f"{skill_name} deals {round(reduced_damage, 1)} damage to {name}!")
-                            life_steal_effect = next((e for e in skill["effects"] if e["type"] == "life-steal"), None)
-                            if life_steal_effect:
-                                stat = life_steal_effect["stat"]
-                                base_percent = 0.10 + (player.stats[stat] * 0.02 if stat != "none" else 0.02)
-                                life_steal_percent = random.uniform(base_percent, 0.25)
-                                hp_restored = reduced_damage * life_steal_percent
-                                player.hp = min(player.hp + hp_restored, player.max_hp)
-                                print(f"{skill_name} steals {round(hp_restored, 1)} HP from {name}!")
-                        elif effect["type"] == "heal_over_time":
-                            scaled_dmg = effect["base_dmg"] + (player.stats[effect["stat"]] * 0.5 if effect["stat"] != "none" else 0)
-                            player.hp = min(player.hp + scaled_dmg, player.max_hp)
-                            print(f"{skill_name} heals you for {round(scaled_dmg, 1)} HP!")
 
     # Combat resolution
     if player.hp <= 0:
@@ -418,67 +461,14 @@ def combat(player, boss_fight=False, monster_name=None):
         xp = level * 2 * (1.5 if monster_stats["rare"] or boss_fight else 1)
         gold = random.randint(level * 2, level * 5) * (2 if monster_stats["rare"] or boss_fight else 1)
         player.gold += gold
-        player.pending_xp += xp
-        
-        # Update quest kill counts
-        quests = load_json("quest.json")["quests"]
-        for quest in player.active_quests[:]:
-            quest_data = next((q for q in quests if q["quest_name"] == quest["quest_name"]), None)
-            if quest_data:
-                for stage in quest["stages"]:
-                    if stage["type"] in ["kill", "boss"]:
-                        if "kill_count" not in stage:
-                            stage["kill_count"] = 0
-                        if stage["target_monster"] in monster_stats["name"]:
-                            stage["kill_count"] = min(stage["kill_count"] + 1, stage["kill_count_required"])
-                            print(f"Quest '{quest['quest_name']}': {stage['target_monster']} killed ({stage['kill_count']}/{stage['kill_count_required']})")
-
-        # Handle key item drops tied to active quests
-        key_items = load_json("keyitems.json")["key_items"]
-        for item in key_items:
-            if item["drop_from"] in monster_stats["name"] and item["quest"] in [q["quest_name"] for q in player.active_quests]:
-                for quest in player.active_quests:
-                    if quest["quest_name"] == item["quest"]:
-                        kill_stages = [s for s in quest["stages"] if s["type"] in ["kill", "boss"] and s["target_monster"] in monster_stats["name"]]
-                        collect_stage = next((s for s in quest["stages"] if s["type"] == "collect" and s["target_item"] == item["name"]), None)
-                        if kill_stages and collect_stage:
-                            if "item_count" not in collect_stage:
-                                collect_stage["item_count"] = 0
-                            all_kills_done = all(s["kill_count"] >= quest_data["stages"][quest["stages"].index(s)]["kill_count_required"] for s in kill_stages)
-                            if all_kills_done and collect_stage["item_count"] < quest_data["stages"][quest["stages"].index(collect_stage)]["item_count_required"]:
-                                player.inventory.append(item["name"])
-                                print(f"You found a {item['name']}! {item['description']}")
-                            elif random.random() < item["drop_chance"] / 100 and item["name"] not in player.inventory:
-                                player.inventory.append(item["name"])
-                                print(f"You found a {item['name']}! {item['description']}")
-                            collect_stage["item_count"] = player.inventory.count(item["name"])
-                            if collect_stage["item_count"] > 0:
-                                print(f"Quest '{quest['quest_name']}': {item['name']} collected ({collect_stage['item_count']}/{quest_data['stages'][quest['stages'].index(collect_stage)]['item_count_required']})")
-
-        # Check quest progress (do not complete here)
-        for quest in player.active_quests[:]:
-            quest_data = next((q for q in quests if q["quest_name"] == quest["quest_name"]), None)
-            if quest_data:
-                all_stages_complete = True
-                for i, stage in enumerate(quest["stages"]):
-                    if stage["type"] in ["kill", "boss"]:
-                        if "kill_count" not in stage or stage["kill_count"] < quest_data["stages"][i]["kill_count_required"]:
-                            all_stages_complete = False
-                            break
-                    elif stage["type"] == "collect":
-                        if "item_count" not in stage or stage["item_count"] < quest_data["stages"][i]["item_count_required"]:
-                            all_stages_complete = False
-                            break
-                    elif stage["type"] not in ["kill", "boss", "collect"]:
-                        all_stages_complete = False
-                        print(f"Warning: Unknown stage type '{stage['type']}' in quest '{quest['quest_name']}'")
-                if all_stages_complete:
-                    print(f"Quest '{quest['quest_name']}' objectives met! Return to the tavern to turn it in.")
-                    if quest_data["npc_trigger"] and quest_data["npc_trigger"] not in [n["name"] for n in player.tavern_npcs]:
-                        trigger_npc_event(player, quest_data["npc_trigger"])
-        
-        print(f"\nVictory! Gained {xp} XP and {gold} gold!")
-        return f"Victory against {monster_stats['name']}"
+        # Apply XP immediately
+        player.exp += xp
+        # Handle any level-ups
+        while player.exp >= player.max_exp and player.level < 25:
+            player.level_up()
+        # Save the game silently
+        save_game(player)
+        return f"Victory against {monster_stats['name']} {xp} {gold}"
 
 def trigger_npc_event(player, npc_name):
     """Trigger special NPC appearance based on event, quest, or item."""

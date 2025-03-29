@@ -133,36 +133,5 @@
                 "weight": 100
             }
         ]
-    },
-    {
-        "name": "elara_meetup",
-        "spawn_chance": 5,
-        "cooldown": 15,
-        "level_range": {
-            "min": 2,
-            "max": 13
-        },
-        "one_time": true,
-        "triggered": true,
-        "description": "You find a really crude campsite. A small voice from behind a tree reaches out to you. Hello stranger please I mean you no harm. The small figure steps out from the shadows, it's a young girl. As she steps closer ever careful you notice she's one of the Beast Folk a member of the Fox tribe. Will you help her back to town safely?",
-        "outcomes": [
-            {
-                "type": "dialogue",
-                "npc_file": "NPC/Elara, the Fox.json",
-                "stage": "quest_start",
-                "requires_choice": true,
-                "weight": 100,
-                "on_reply": {
-                    "reply_index": 0,
-                    "action": "add_tavern_npc",
-                    "npc": {
-                        "name": "Elara, the Fox",
-                        "room": false,
-                        "bond": 0,
-                        "quest": "Lost Pendant"
-                    }
-                }
-            }
-        ]
     }
 ]
