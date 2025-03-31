@@ -137,7 +137,7 @@
       "hp_range": {"min": 16, "max": 18.9},
       "rare": false,
       "notes": "Fast, pack tactics, loot-focused.",
-      "art_file": "wolfp.txt",
+      "art_file": "wolfpack.txt",
       "skills": null
     },
     {

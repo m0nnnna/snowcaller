@@ -1,16 +1,90 @@
 {
     "name": "Elara, the Fox",
     "room_condition": {
-        "bond_required": 8,
+        "bond_required": 20,
         "quest_completed": "The Sad Truth"
     },
     "dialogue": [
+        {
+            "quest": "Find the Fox Girl",
+            "stages": [
+                {
+                    "stage": "quest_start",
+                    "text": "A small fox girl huddles in the corner of the cave, her fur matted and her eyes wide with fear. She looks up at you with a mix of hope and apprehension. Please... I don't want to be alone anymore.",
+                    "replies": [
+                        {
+                            "text": "I'll help you get back to safety.",
+                            "response": "Really? You mean it? Her tail wags slightly, though she still seems nervous.",
+                            "bond_change": 2
+                        },
+                        {
+                            "text": "I can't help you right now.",
+                            "response": "Oh... I understand. I'll just stay here then.",
+                            "bond_change": -1
+                        }
+                    ],
+                    "flavor": [
+                        {
+                            "option": "3-1",
+                            "text": "How long have you been here?",
+                            "response": "I... I don't know. The days blur together in the darkness.",
+                            "bond_change": 0
+                        },
+                        {
+                            "option": "3-2",
+                            "text": "Are you hurt?",
+                            "response": "Just some scratches... but I'm so tired.",
+                            "bond_change": 0
+                        },
+                        {
+                            "option": "3-3",
+                            "text": "What happened to you?",
+                            "response": "I... I'd rather not talk about it right now. Please, can we just get out of here?",
+                            "bond_change": 1
+                        }
+                    ]
+                },
+                {
+                    "stage": "quest_accepted",
+                    "text": "Thank you... I'll follow you."
+                },
+                {
+                    "stage": "quest_denied",
+                    "text": "I understand... I'll wait here then."
+                },
+                {
+                    "stage": "pending",
+                    "text": "The kobolds... they're everywhere. Please be careful."
+                },
+                {
+                    "stage": "quest_complete",
+                    "text": "We made it! I can't believe we're finally out of there. Thank you so much!",
+                    "replies": [
+                        {
+                            "text": "You're safe now.",
+                            "response": "You're amazing! I don't know what I would have done without you.",
+                            "bond_change": 3
+                        },
+                        {
+                            "text": "Just doing my job.",
+                            "response": "Oh... well, thank you anyway.",
+                            "bond_change": -1
+                        },
+                        {
+                            "text": "It was dangerous, but worth it.",
+                            "response": "You risked your life for me... I won't forget that.",
+                            "bond_change": 2
+                        }
+                    ]
+                }
+            ]
+        },
         {
             "quest": "Lost Pendant",
             "stages": [
                 {
                     "stage": "quest_start",
-                    "text": "Thank you for finding me! I’m Elara. I thought I was done for stuck outside all alone. But now I have you! Say... you don't think you'd be up for helping me again would you? Kobolds stole my pendant, and I’m too scared to go after them alone. Will you please help?",
+                    "text": "Thank you for finding me! I'm Elara. I thought I was done for stuck outside all alone. But now I have you! Say... you don't think you'd be up for helping me again would you? Kobolds stole my pendant, and I'm too scared to go after them alone. Will you please help?",
                     "replies": [
                         {
                             "text": "Of course. I'd be more than honored to go after your lost treasure.",
@@ -18,15 +92,15 @@
                             "bond_change": 2
                         },
                         {
-                            "text": "I can’t help you right now.",
-                            "response": "Oh… I’ll wait here then, hoping someone else comes by.",
+                            "text": "I can't help you right now.",
+                            "response": "Oh… I'll wait here then, hoping someone else comes by.",
                             "bond_change": -1
                         }
                     ], 
                     "flavor": [
                         {
                             "option": "3-1",
-                            "text": "Why’s this pendant important?",
+                            "text": "Why's this pendant important?",
                             "response": "It was my mothers. Normally it gets passed down to the oldest daughter. However they had already taken her away. My mom gave it to me before she was also taken away...",
                             "bond_change": 0
                         },
@@ -50,24 +124,24 @@
                 },
                 {
                     "stage": "quest_denied",
-                    "text": "You didn’t want to help… I hope I can find someone else, but I’ll stay here for now."
+                    "text": "You didn't want to help… I hope I can find someone else, but I'll stay here for now."
                 },
                 {
                     "stage": "pending",
-                    "text": "How’s it going with my pendant? Those Kobolds are tricky, aren’t they?"
+                    "text": "How's it going with my pendant? Those Kobolds are tricky, aren't they?"
                 },
                 {
                     "stage": "quest_complete",
-                    "text": "You got it back! Thank you so much! Elara ties the pendant to her tail. I can’t believe you helped a beast folk like me.",
+                    "text": "You got it back! Thank you so much! Elara ties the pendant to her tail. I can't believe you helped a beast folk like me.",
                     "replies": [
                         {
                             "text": "Of course. It was easy work for me.",
-                            "response": "You’re amazing! Elara jumps in joy smiling at you warmly.",
+                            "response": "You're amazing! Elara jumps in joy smiling at you warmly.",
                             "bond_change": 3
                         },
                         {
-                            "text": "That’s all I’m doing for you.",
-                            "response": "Oh… I hoped we’d continue, but thank you anyway.",
+                            "text": "That's all I'm doing for you.",
+                            "response": "Oh… I hoped we'd continue, but thank you anyway.",
                             "bond_change": -2
                         },
                         {
@@ -140,8 +214,8 @@
                             "bond_change": 3
                         },
                         {
-                            "text": "That’s all I’m doing for you.",
-                            "response": "Oh… I hoped we’d continue, but thank you anyway.",
+                            "text": "That's all I'm doing for you.",
+                            "response": "Oh… I hoped we'd continue, but thank you anyway.",
                             "bond_change": -2
                         }
                     ],
@@ -173,10 +247,10 @@
                 {
                     "option": "1",
                     "text": "How do you like the tavern?",
-                    "response": "It’s warm and cozy—much better than that campsite!",
+                    "response": "It's warm and cozy—much better than that campsite!",
                     "bond_change": 1,
                     "flavor_text": [
-                        "Elara’s tail flicks as she looks around.",
+                        "Elara's tail flicks as she looks around.",
                         "She seems more at ease here."
                     ]
                 },
@@ -205,7 +279,7 @@
                 {
                     "option": "2",
                     "text": "What do you think of the food here?",
-                    "response": "It’s tasty! I’ve never had bread this soft.",
+                    "response": "It's tasty! I've never had bread this soft.",
                     "bond_change": 1,
                     "flavor_text": [
                         "She nibbles on a piece of bread.",
@@ -224,7 +298,7 @@
                 },
                 {
                     "option": "4",
-                    "text": "What’s your favorite story?",
+                    "text": "What's your favorite story?",
                     "response": "One about a fox who tricked a wolf—want to hear it?",
                     "bond_change": 2,
                     "flavor_text": [
@@ -234,8 +308,8 @@
                 },
                 {
                     "option": "5",
-                    "text": "How’s the pendant holding up?",
-                    "response": "It’s safe now, thanks to you. I check it every day.",
+                    "text": "How's the pendant holding up?",
+                    "response": "It's safe now, thanks to you. I check it every day.",
                     "bond_change": 1,
                     "flavor_text": [
                         "She pats the pendant on her tail.",
@@ -245,7 +319,7 @@
                 {
                     "option": "6",
                     "text": "Do you like the snow?",
-                    "response": "It’s pretty, but so cold! My fur barely keeps up.",
+                    "response": "It's pretty, but so cold! My fur barely keeps up.",
                     "bond_change": 1,
                     "flavor_text": [
                         "She shivers dramatically.",
@@ -274,7 +348,7 @@
                 },
                 {
                     "option": "9",
-                    "text": "What’s your dream?",
+                    "text": "What's your dream?",
                     "response": "To find a home again… maybe with friends like you.",
                     "bond_change": 3,
                     "flavor_text": [
@@ -287,16 +361,16 @@
         {
             "room": {
                 "stage": "room_unlocked",
-                "text": "You’ve been so kind, and we’ve been through so much. Can I stay with you here?",
+                "text": "You've been so kind, and we've been through so much. Can I stay with you here?",
                 "replies": [
                     {
-                        "text": "Of course, I’d love that.",
+                        "text": "Of course, I'd love that.",
                         "response": "Thank you! A room together sounds cozy.",
                         "bond_change": 3
                     },
                     {
-                        "text": "Not yet, let’s keep things as they are.",
-                        "response": "Oh, okay… I’ll wait then.",
+                        "text": "Not yet, let's keep things as they are.",
+                        "response": "Oh, okay… I'll wait then.",
                         "bond_change": -1
                     }
                 ]
@@ -305,15 +379,15 @@
         {
             "invitation": {
                 "stage": "invite_to_stay",
-                "text": "You have a room here, and we’ve grown close. Would you mind if I stayed with you?",
+                "text": "You have a room here, and we've grown close. Would you mind if I stayed with you?",
                 "replies": [
                     {
-                        "text": "I’d love for you to stay with me.",
+                        "text": "I'd love for you to stay with me.",
                         "response": "Really? That makes me so happy—I feel at home with you.",
                         "bond_change": 3
                     },
                     {
-                        "text": "I’m not ready for that yet.",
+                        "text": "I'm not ready for that yet.",
                         "response": "Oh… I understand. Maybe another time?",
                         "bond_change": -1
                     }
@@ -328,14 +402,14 @@
                     "response": "Oh! Thank you… you make me blush.",
                     "bond_change": 2,
                     "flavor_text": [
-                        "Elara’s ears twitch shyly.",
+                        "Elara's ears twitch shyly.",
                         "Her tail brushes against you."
                     ]
                 },
                 {
                     "option": "2",
                     "text": "Can I hold your hand?",
-                    "response": "Yes… I’d like that.",
+                    "response": "Yes… I'd like that.",
                     "bond_change": 3,
                     "flavor_text": [
                         "She hesitates, then takes your hand.",

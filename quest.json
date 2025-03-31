@@ -1,60 +1,6 @@
 {
   "quests": [
     {
-      "quest_name": "Find the Fox Girl",
-      "quest_level": 6,
-      "quest_description": "The Guild has received reports of a Beast Folk girl lost in the wilderness. Find her and bring her back safely.",
-      "quest_reward": "50 gold",
-      "source": "guild",
-      "adventure_points": 2,
-      "required_rank": 3,
-      "location": {
-        "main": "Mountain",
-        "sub": "Caves"
-      },
-      "stages": [
-        {
-          "type": "kill",
-          "target_monster": "Kobold",
-          "kill_count_required": 5
-        },
-        {
-          "type": "dialogue",
-          "target_npc": "Elara, the Fox",
-          "stage": "quest_start"
-        }
-      ],
-      "next_quest": "Lost Pendant",
-      "npc_trigger": "Elara, the Fox"
-    },
-    {
-      "quest_name": "Lost Pendant",
-      "quest_level": 6,
-      "quest_description": "Elara's precious pendant was stolen by kobolds. Help her recover it.",
-      "quest_reward": "75 gold",
-      "source": "npc",
-      "adventure_points": 3,
-      "required_rank": 3,
-      "location": {
-        "main": "Mountain",
-        "sub": "Caves"
-      },
-      "stages": [
-        {
-          "type": "kill",
-          "target_monster": "Kobold",
-          "kill_count_required": 3
-        },
-        {
-          "type": "collect",
-          "target_item": "Lucky Star Pendant",
-          "item_count_required": 1
-        }
-      ],
-      "next_quest": "Fox Girl's Missing Family",
-      "npc_trigger": "Elara, the Fox"
-    },
-    {
       "quest_name": "Goblin Cleanup",
       "quest_level": 3,
       "quest_description": "Clear out the goblins from the forest.",
@@ -141,6 +87,60 @@
       ],
       "next_quest": null,
       "npc_trigger": "Guild Master"
+    },
+    {
+      "quest_name": "Find the Fox Girl",
+      "quest_level": 6,
+      "quest_description": "The Guild has received reports of a Beast Folk girl lost in the wilderness. Find her and bring her back safely.",
+      "quest_reward": "50 gold",
+      "source": "guild",
+      "adventure_points": 2,
+      "required_rank": 3,
+      "location": {
+        "main": "Mountain",
+        "sub": "Caves"
+      },
+      "stages": [
+        {
+          "type": "kill",
+          "target_monster": "Kobold",
+          "kill_count_required": 5
+        },
+        {
+          "type": "dialogue",
+          "target_npc": "Elara, the Fox",
+          "stage": "quest_start"
+        }
+      ],
+      "next_quest": "Lost Pendant",
+      "npc_trigger": "Elara, the Fox"
+    },
+    {
+      "quest_name": "Lost Pendant",
+      "quest_level": 6,
+      "quest_description": "Elara's precious pendant was stolen by kobolds. Help her recover it.",
+      "quest_reward": "75 gold",
+      "source": "npc",
+      "adventure_points": 3,
+      "required_rank": 3,
+      "location": {
+        "main": "Mountain",
+        "sub": "Caves"
+      },
+      "stages": [
+        {
+          "type": "kill",
+          "target_monster": "Kobold",
+          "kill_count_required": 3
+        },
+        {
+          "type": "collect",
+          "target_item": "Lucky Star Pendant",
+          "item_count_required": 1
+        }
+      ],
+      "next_quest": "Fox Girl's Missing Family",
+      "npc_trigger": "Elara, the Fox"
     },
     {
       "quest_name": "Fox Girl's Missing Family",
