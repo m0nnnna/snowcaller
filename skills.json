@@ -4,9 +4,9 @@
       "class_type": "1",
       "level_req": 1,
       "name": "Blue Ice",
-      "base_dmg": 20,
+      "base_dmg": 10,
       "effect": "armor_bonus",
-      "mp_cost": 1,
+      "mp_cost": 2,
       "duration": 3,
       "stat": "S"
     },
@@ -21,7 +21,7 @@
       "stat": "S"
     },
     {
-      "name": "Frozen Lust",
+      "name": "Frozen Reaver’s Strike",
       "mp_cost": 5,
       "class_type": "1",
       "level_req": 12,
@@ -36,6 +36,26 @@
           "type": "life-steal",
           "base_dmg": 0,
           "stat": "I",
+          "duration": 4
+        }
+      ]
+    },
+    {
+      "name": "Shiver and Awe",
+      "mp_cost": 9,
+      "class_type": "1",
+      "level_req": 18,
+      "effects": [
+        {
+          "type": "direct_damage",
+          "base_dmg": 5,
+          "stat": "S",
+          "duration": 0
+        },
+        {
+          "type": "damage_over_time",
+          "base_dmg": 4,
+          "stat": "S",
           "duration": 4
         }
       ]
@@ -96,11 +116,11 @@
     },
     {
       "class_type": "2",
-      "level_req": 21,
-      "name": "Oblivion",
-      "base_dmg": 20,
+      "level_req": 25,
+      "name": "Purge Ice",
+      "base_dmg": 14,
       "effect": "direct_damage",
-      "mp_cost": 12,
+      "mp_cost": 20,
       "duration": 0,
       "stat": "I"
     },
@@ -155,8 +175,22 @@
       ]
     },
     {
+      "name": "Winter's Bleeding",
+      "mp_cost": 8,
+      "class_type": "3",
+      "level_req": 12,
+      "effects": [
+        {
+          "type": "damage_over_time",
+          "base_dmg": 5,
+          "stat": "A",
+          "duration": 5
+        }
+      ]
+    },
+    {
       "name": "Frozen Shadow",
-      "mp_cost": 6,
+      "mp_cost": 12,
       "class_type": "3",
       "level_req": 25,
       "effects": [
