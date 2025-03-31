@@ -12,7 +12,7 @@ Iced
 Barren
 Cold
 Shrouded
-Numb 
+Numb
 Stark
 Wintry
 Secret
