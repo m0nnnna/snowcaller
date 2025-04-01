@@ -2,11 +2,11 @@
   "lore": [
     {
       "quest_name": "intro",
-      "lore_text": "In the realm of Snowcaller, a land ravaged by ice, echoes of ancient wars whisper through the winds. Once, mighty empires clashed; their ruins now lie buried beneath frost and ash. Since the world froze over, monsters and other creatures have spread across the frozen wastes. You have journeyed far to reach Brighthaven, one of the last bastions where fame can be forged. What adventures await you? What secrets of the old world will you unearth?"
+      "lore_text": "In the frozen realm of Snowcaller, an Age of Ice has buried the warring legacies of humans, elves, and dwarves, their empires reduced to frost and shadow. Humanity’s fleeting reign has crumbled as the endless snows empower ancient monsters, dragons, goblins, and worse—that stalk the wastes. You’ve fought your way to Brighthaven, a fragile bastion of warmth amid the cold, where survival is a blade’s edge and fame a fleeting hope. Will you carve a legend from this frozen hell? Or will the ice entomb you with the rest?"
     },
     {
       "quest_name": "Goblin Cleanup",
-      "lore_text": "Long ago, the village of Eldwood thrived in peace, its fields among the last to bear a harvest. Then the goblins came—small, vicious creatures led by a cunning chieftain. They raided homes, stole livestock, and plunged the villagers into despair. The elder, a weary man named Thane, once repelled them with a band of brave souls, but age has robbed him of his sword arm. Now, he's called upon the Guild, seeking a new hero to rid the land of this blight.",
+      "lore_text": "Long ago, the village of Eldwood thrived in peace, its fields among the last to bear a harvest. Then the goblins came. Small, vicious creatures led by a cunning chieftain. They raided homes, stole livestock, and plunged the villagers into despair. The elder, a weary man named Thane, once repelled them with a band of brave souls, but age has robbed him of his sword arm. Now, he's called upon the Guild, seeking a new hero to rid the land of this blight.",
       "npc_dialogue": {
         "npc_name": "Thane",
         "stages": [
@@ -29,7 +29,7 @@
       "quest_name": "Kobold Trouble",
       "lore_text": "The kobolds of Blackrock Caves were once mere nuisances, skittering in the shadows. But recently, they've grown bold, snatching supplies from merchant caravans under the cover of night. Some whisper they're driven by a mysterious figure—a hooded stranger seen near the caves. The Guild's contract is clear: stop the thefts, but the truth behind their sudden courage remains buried in the dark.",
       "npc_dialogue": {
-        "npc_name": "Merchant Captain",
+        "npc_name": "Merchant Captain Lee",
         "stages": [
           {
             "stage": "quest_start",
@@ -42,6 +42,48 @@
           {
             "stage": "quest_complete",
             "text": "The raids have stopped! You've saved our trade routes. Here's your reward, and my thanks."
+          }
+        ]
+      }
+    },
+    {
+      "quest_name": "Orc Invasion",
+      "lore_text": "Bloody savages the orcs are. People for as long as I can remember have been trying to defend them. But they are pure evil. Born of sin and scorn they fight endlessly. When they go on their raids they care not for the goods. Only the humans to hunt.",
+      "npc_dialogue": {
+        "npc_name": "Merchant Captain Lee",
+        "stages": [
+          {
+            "stage": "quest_start",
+            "text": "Hello hero. I'm glad to see the guild sent you. After our last quest we feared that no one would come. We believe orcs are coming our way. The orcs are getting smarter, they have started spying on us. We believe there's a nest of them near here. Please head there and put an end to them and find what information you can for us."
+          },
+          {
+            "stage": "quest_accepted",
+            "text": "Good luck, may the flame be with you."
+          },
+          {
+            "stage": "quest_complete",
+            "text": "Hero I thank for your service. After reading this letter I can be sure that we will be in for the fight of our lives. I only pray that when the time comes you will answer our call."
+          }
+        ]
+      }
+    },
+    {
+      "quest_name": "Bandit Hunt",
+      "lore_text": "Bandits in our frosted wasteland are proof that man without law will eat itself alive. They have no issue killing. Beastfolk often fall victim to their cruelty. We need someone to put an end to them. Please head to the hidden camp and that pack of dogs down.",
+      "npc_dialogue": {
+        "npc_name": "Beastfolk Elder",
+        "stages": [
+          {
+            "stage": "quest_start",
+            "text": "Hello human. I am glad you have taken our request. Over the east along the ridge there is a bandit camp. They have been praying on our kind for far too long. Please find it in your heart to help us."
+          },
+          {
+            "stage": "quest_accepted",
+            "text": "You will help human? I thank you. The Gods will bless you for your bravery."
+          },
+          {
+            "stage": "quest_complete",
+            "text": "The Elder's eyes fill with tears. Thank you human. Not only have you saved our tribe, but you've given a future to our children. Anytime you find yourself lost in the ice our tribe will always have a seat waiting for by the fire."
           }
         ]
       }

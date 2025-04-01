@@ -10,6 +10,7 @@ from player import Player, save_game, load_game
 from combat import combat
 from shop import shop_menu, calculate_price
 from tavern import tavern_menu, Tavern
+from guild import Guild
 from events import random_event
 from utils import load_json, load_file, load_art_file, parse_stats, get_resource_path, save_json
 from commands import handle_command
@@ -367,6 +368,10 @@ def main():
     save_game(player)
     print("Game autosaved!")
 
+    # Initialize Tavern and Guild instances
+    tavern = Tavern(player)
+    guild = Guild(player)
+
     while True:
         print(f"\n{'-' * 20} {player.name}: Level {player.level} {'-' * 20}")
         print(f"HP: {round(player.hp, 1)}/{player.max_hp} | MP: {player.mp}/{player.max_mp} | Gold: {player.gold}")
@@ -602,87 +607,28 @@ def main():
                                 print("Invalid choice, continuing adventure.")
 
                 # End adventure here
-                end_adventure(player, location, completed_encounters, gear_drops, treasure_count, total_xp, total_gold)
+                end_adventure(player, location, completed_encounters, gear_drops, treasure_count, total_xp, total_gold, tavern)
 
         elif choice == "2":
             inventory_menu(player)
 
         elif choice == "3":
-            print(f"\nStats: S:{player.stats['S']} A:{player.stats['A']} I:{player.stats['I']} W:{player.stats['W']} L:{player.stats['L']}")
-            print(f"Level: {player.level} | XP: {player.exp}/{player.max_exp}")
-            from combat import get_weapon_damage_range
-            min_dmg, max_dmg = get_weapon_damage_range(player)
-            attack_dps = (min_dmg + max_dmg) / 2 if min_dmg and max_dmg else 0
-            print(f"Attack DPS: {round(attack_dps, 1)} (avg weapon damage per turn)")
-            
-            skills = load_json("skills.json")["skills"]
-            total_skill_dps = 0
-            skill_count = 0
-            for skill in skills:
-                if skill["name"] in player.skills:
-                    # Handle both old and new skill formats like combat.py
-                    effects = skill.get("effects", [{"type": skill.get("effect", "direct_damage"), 
-                                                    "base_dmg": skill.get("base_dmg", 0), 
-                                                    "duration": skill.get("duration", 0), 
-                                                    "stat": skill.get("stat", "none")}]),
-                    mp_cost = skill.get("mp_cost", 1)
-
-                    # Aggregate base damage and determine key properties from effects
-                    base_dmg = 0
-                    duration = 0
-                    stat = "none"
-                    effect_types = []
-                    for effect in effects[0]:  # Unpack the tuple returned by get()
-                        if effect["type"] in ["direct_damage", "damage_bonus", "damage_over_time"]:
-                            base_dmg += effect.get("base_dmg", 0)
-                        duration = max(duration, effect.get("duration", 0))
-                        if effect.get("stat", "none") != "none":
-                            stat = effect["stat"]
-                        effect_types.append(effect["type"])
-
-                    scaled_dmg = base_dmg
-                    if stat != "none":
-                        if "damage_bonus" in effect_types:
-                            scaled_dmg = base_dmg + (player.stats[stat] * 0.5)
-                        elif "direct_damage" in effect_types:
-                            scaled_dmg = base_dmg + (player.stats[stat] * 1.0)
-                        elif "damage_over_time" in effect_types:
-                            scaled_dmg = base_dmg + (player.stats[stat] * 0.2)
-                        elif "heal" in effect_types or "heal_over_time" in effect_types:
-                            scaled_dmg = base_dmg + (player.stats[stat] * 0.5)
-                        elif effect_types in [["armor_bonus"], ["dodge_bonus"]]:
-                            scaled_dmg = base_dmg + (player.stats[stat] * 0.5)
-
-                    # Calculate DPS based on effect type
-                    if "direct_damage" in effect_types and duration == 0:
-                        dps = scaled_dmg
-                    elif any(e in ["damage_bonus", "damage_over_time"] for e in effect_types):
-                        total_turns = max(1, mp_cost) + duration
-                        dps = (scaled_dmg * duration) / total_turns if duration > 0 else 0
-                    else:
-                        dps = 0
-
-                    total_skill_dps += dps
-                    skill_count += 1
-            
-            skill_dps = total_skill_dps / skill_count if skill_count > 0 else 0
-            print(f"Skill DPS: {round(skill_dps, 1)} (avg skill damage per turn)")
-            print(f"Armor Value: {round(player.get_total_armor_value(), 1)}% (damage reduction)")
-            if player.stat_points > 0:
-                player.allocate_stat()
+            tavern.visit_tavern()
 
         elif choice == "4":
-            shop_menu(player)
+            guild.guild_menu()
 
         elif choice == "5":
-            tavern_menu(player)
+            inventory_menu(player)
 
         elif choice == "6":
-            guild_menu(player)
-
-        elif choice == "7":
             save_game(player)
             print("Game saved!")
+
+        elif choice == "7":
+            player = load_game()
+            if player:
+                print("Game loaded!")
 
         elif choice == "8":
             print("Goodbye!")
@@ -691,144 +637,7 @@ def main():
         else:
             print("Invalid choice!")
 
-def guild_menu(player):
-    print("\n=== Adventurers' Guild ===")
-    
-    # If player is not in the guild yet
-    if not hasattr(player, "guild_member") or not player.guild_member:
-        print("Hello there adventurer. How may I help you?")
-        print("1. Join | 2. Leave")
-        choice = input("Selection: ")
-        
-        if choice == "1":
-            if player.level < 3:
-                print("I'm sorry but you seem to be lacking. We do not have work for you.")
-                return
-            else:
-                player.guild_member = True
-                player.adventurer_rank = 0
-                player.adventurer_points = 0
-                player.max_adventurer_points = 10
-                print("Welcome to the Adventurers' Guild! You start at the lowest rank with 0 points.")
-                save_game(player)
-                return
-        elif choice == "2":
-            return
-        else:
-            print("Invalid choice!")
-            return
-    
-    # If player is already in the guild
-    quests_data = load_json("quest.json")
-    lore_data = load_json("lore.json")
-    quests = quests_data.get("quests", [])
-    lore = lore_data.get("lore", [])
-    
-    active_quests = player.active_quests
-    completed_quests = player.completed_quests if hasattr(player, "completed_quests") else []
-    
-    print(f"Current Rank: {player.get_rank_name()} Adventurer")
-    print(f"Adventurer Points: {player.adventurer_points}/{player.max_adventurer_points}")
-    if player.adventurer_rank < 6:
-        next_rank_points = player.get_next_rank_points()
-        print(f"Points needed for next rank: {next_rank_points}")
-    print("\n1. Accept Quest | 2. Turn In Quest | 0. Return")
-    choice = input("Selection: ")
-
-    if choice == "1":
-        if len(active_quests) >= 5:
-            print("You've reached the maximum of 5 active quests.")
-            return
-        
-        available_quests = [
-            q for q in quests 
-            if player.level >= q["quest_level"] 
-            and player.adventurer_rank >= q["required_rank"]
-            and q["quest_name"] not in [aq["quest_name"] for aq in active_quests] 
-            and q["quest_name"] not in completed_quests
-        ]
-        if not available_quests:
-            print("No new quests available at your current rank.")
-        else:
-            print("\nAvailable Quests:")
-            for i, quest in enumerate(available_quests, 1):
-                print(f"{i}. {quest['quest_name']} (Level {quest['quest_level']})")
-                print(f"   {quest['quest_description']}")
-                print(f"   Reward: {quest['quest_reward']} | Points: {quest['adventure_points']}")
-            quest_choice = input("Select a quest to accept (or 0 to return): ")
-            if quest_choice == "0":
-                return
-            try:
-                quest_index = int(quest_choice) - 1
-                if 0 <= quest_index < len(available_quests):
-                    selected_quest = available_quests[quest_index]
-                    active_quests.append({"quest_name": selected_quest["quest_name"], "kill_count": 0})
-                    player.active_quests = active_quests
-                    print(f"Accepted quest: {selected_quest['quest_name']}")
-                    
-                    lore_entry = next((l for l in lore if l["quest_name"] == selected_quest["quest_name"]), None)
-                    if lore_entry:
-                        lore_choice = input("Would you like to read the lore? (y/n): ").lower()
-                        if lore_choice == "y":
-                            print(f"\nLore for '{selected_quest['quest_name']}':")
-                            print(lore_entry["lore_text"])
-                else:
-                    print(f"Invalid selection. Choose between 1 and {len(available_quests)}.")
-            except ValueError:
-                print("Invalid input. Please enter a number.")
-
-    elif choice == "2":
-        turn_in_quest(player)
-
-def turn_in_quest(player):
-    if not player.active_quests:
-        print("\nYou have no active quests to turn in.")
-        return
-
-    print("\nActive Quests:")
-    for i, quest in enumerate(player.active_quests, 1):
-        print(f"{i}. {quest['quest_name']} - {quest['quest_description']}")
-
-    while True:
-        try:
-            choice = int(input("\nEnter the number of the quest to turn in (0 to cancel): "))
-            if choice == 0:
-                return
-            if 1 <= choice <= len(player.active_quests):
-                break
-            print("Invalid choice. Please try again.")
-        except ValueError:
-            print("Please enter a valid number.")
-
-    quest = player.active_quests[choice - 1]
-    player.active_quests.remove(quest)
-    player.completed_quests.append(quest)
-
-    # Handle quest rewards
-    rewards = quest['quest_reward'].split(", ")
-    for reward in rewards:
-        if "gold" in reward.lower():
-            amount = int(reward.split()[0])
-            player.gold += amount
-            print(f"\nYou received {amount} gold!")
-        else:
-            # Handle item rewards
-            item_name = reward
-            item = find_item_by_name(item_name)
-            if item:
-                player.inventory.append(item)
-                print(f"\nYou received {item_name}!")
-
-    # Handle adventurer points
-    if 'adventure_points' in quest and quest['adventure_points'] is not None:
-        points = quest['adventure_points']
-        current_points = player.apply_adventurer_points(points)
-        print(f"\nYou received {points} Adventurer Points! Current points: {current_points}/{player.max_adventurer_points}")
-        print(f"Current Rank: {player.get_rank_name()}")
-
-    print("\nQuest completed successfully!")
-
-def end_adventure(player, location, completed_encounters, gear_drops, treasure_count, total_xp, total_gold):
+def end_adventure(player, location, completed_encounters, gear_drops, treasure_count, total_xp, total_gold, tavern):
     gear_summary = f"{len(gear_drops)} piece{'s' if len(gear_drops) != 1 else ''} of gear" if gear_drops else "no gear"
     treasure_summary = f"{treasure_count} piece{'s' if treasure_count != 1 else ''} of treasure" if treasure_count else "no treasure"
     gold_gained = player.gold - total_gold
@@ -846,7 +655,6 @@ def end_adventure(player, location, completed_encounters, gear_drops, treasure_c
             award_treasure_chest(player)
     print(f"Total gold gained: {gold_gained}")
     print(f"Current XP: {player.exp}/{player.max_exp}")
-    tavern = Tavern(player)
     tavern.roll_tavern_npcs()
 
 if __name__ == "__main__":

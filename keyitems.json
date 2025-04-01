@@ -1,20 +1,28 @@
 {
   "key_items": [
     {
-      "name": "Dragon Scale",
-      "description": "A shimmering scale from a mighty dragon.",
-      "drop_from": "Dragon",
-      "drop_chance": 50,
-      "quest": "Dragon Slayer",
-      "npc_trigger": "Dragon Slayer"
+      "name": "Intelligence Report",
+      "description": "A simple report picked up from orc spies.",
+      "drop_from": "Orc Spy",
+      "drop_chance": 65,
+      "quest": "Orc Invasion",
+      "npc_trigger": "Merchant Captain Lee"
     },
     {
-      "name": "Ancient Tome",
-      "description": "A dusty book with cryptic runes.",
-      "drop_from": "Kobold",
-      "drop_chance": 0,
-      "quest": "Lost Knowledge",
-      "npc_trigger": "Elara, the Fox"
+      "name": "Wolf Fang",
+      "description": "A sharp fang from a fearsome wolf.",
+      "drop_from": "Demon Wolf",
+      "drop_chance": 80,
+      "quest": null,
+      "npc_trigger": null
+    },
+    {
+      "name": "Shadow Cloak",
+      "description": "A cloak woven from shadow essence.",
+      "drop_from": "Shadow Beast",
+      "drop_chance": 60,
+      "quest": null,
+      "npc_trigger": null
     },
     {
       "name": "Lucky Star Pendant",
@@ -26,27 +34,35 @@
     },
     {
       "name": "Bloody torn clothes",
-      "description": "A small item that beast folk tend to give to children.",
-      "drop_from": "Frost Wolf",
+      "description": "Simple tribal clothing torn and bloodied.",
+      "drop_from": "Orc",
       "drop_chance": 80,
       "quest": "The Sad Truth",
       "npc_trigger": "Elara, the Fox"
     },
     {
-      "name": "Wolf Fang",
-      "description": "A sharp fang from a fearsome wolf.",
-      "drop_from": "Demon Wolf",
-      "drop_chance": 80,
-      "quest": "Beast Rumors",
-      "npc_trigger": "Beast Hunter"
+      "name": "Dragon Scale",
+      "description": "A shimmering scale from a mighty dragon.",
+      "drop_from": "Dragon",
+      "drop_chance": 50,
+      "quest": null,
+      "npc_trigger": null
     },
     {
-      "name": "Shadow Cloak",
-      "description": "A cloak woven from shadow essence.",
-      "drop_from": "Shadow Beast",
-      "drop_chance": 60,
-      "quest": "Shadow Hunt",
-      "npc_trigger": "Shadow Stalker"
+      "name": "Ancient Rune",
+      "description": "A mysterious rune with unknown power.",
+      "drop_from": "Ancient Guardian",
+      "drop_chance": 40,
+      "quest": null,
+      "npc_trigger": null
+    },
+    {
+      "name": "Phoenix Feather",
+      "description": "A feather from the legendary phoenix.",
+      "drop_from": "Phoenix",
+      "drop_chance": 30,
+      "quest": null,
+      "npc_trigger": null
     }
   ]
 }

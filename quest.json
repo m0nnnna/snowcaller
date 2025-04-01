@@ -3,14 +3,14 @@
     {
       "quest_name": "Goblin Cleanup",
       "quest_level": 3,
-      "quest_description": "Clear out the goblins from the forest.",
-      "quest_reward": "25 gold",
+      "quest_description": "Clear out the goblins from the village of Eldwood..",
+      "quest_reward": "30 gold",
       "source": "guild",
       "adventure_points": 5,
       "required_rank": 0,
       "location": {
-        "main": "Forest",
-        "sub": "Caves"
+        "main": "Village",
+        "sub": "Eldwood"
       },
       "stages": [
         {
@@ -19,26 +19,53 @@
           "kill_count_required": 5
         }
       ],
-      "next_quest": "Orc Invasion",
+      "next_quest": "Kobold Trouble",
       "npc_trigger": "Guild Master"
     },
     {
-      "quest_name": "Orc Invasion",
-      "quest_level": 2,
-      "quest_description": "The orcs are gathering in the mountains. Stop them before they attack.",
-      "quest_reward": "35 gold",
+      "quest_name": "Kobold Trouble",
+      "quest_level": 3,
+      "quest_description": "Head the caves of Blackrock and kill all the kobolds.",
+      "quest_reward": "30 gold",
       "source": "guild",
-      "adventure_points": 1,
+      "adventure_points": 5,
       "required_rank": 0,
       "location": {
-        "main": "Mountain",
+        "main": "Blackrock",
         "sub": "Caves"
       },
       "stages": [
         {
           "type": "kill",
-          "target_monster": "Orc",
+          "target_monster": "Kobold",
           "kill_count_required": 5
+        }
+      ],
+      "next_quest": "Orc Invasion",
+      "npc_trigger": "Guild Master"
+    },
+    {
+      "quest_name": "Orc Invasion",
+      "quest_level": 4,
+      "quest_description": "The orcs are gathering in the mountains. Stop them before they attack.",
+      "quest_reward": "40 gold",
+      "source": "guild",
+      "adventure_points": 5,
+      "required_rank": 0,
+      "location": {
+        "main": "Frosted",
+        "sub": "Hovel"
+      },
+      "stages": [
+        {
+          "type": "kill",
+          "target_item": "Orc Spy",
+          "item_count_required": 4
+        },
+        {
+          "type": "collect",
+          "target_item": "Lucky Star Pendant",
+          "item_count_required": 1
         }
       ],
       "next_quest": "Bandit Hunt",
@@ -46,15 +73,15 @@
     },
     {
       "quest_name": "Bandit Hunt",
-      "quest_level": 3,
+      "quest_level": 5,
       "quest_description": "Track down and eliminate the bandits in the forest.",
-      "quest_reward": "45 gold",
+      "quest_reward": "50 gold Warm Chain",
       "source": "guild",
-      "adventure_points": 1,
+      "adventure_points": 5,
       "required_rank": 0,
       "location": {
-        "main": "Forest",
-        "sub": "Caves"
+        "main": "Hidden",
+        "sub": "Camp"
       },
       "stages": [
         {
@@ -63,39 +90,23 @@
           "kill_count_required": 5
         }
       ],
-      "next_quest": "Dragon Slayer",
-      "npc_trigger": "Guild Master"
-    },
-    {
-      "quest_name": "Dragon Slayer",
-      "quest_level": 25,
-      "quest_description": "The legendary dragon has been spotted. Slay it and claim the reward.",
-      "quest_reward": "1000 gold, Dragon Scale",
-      "source": "guild",
-      "adventure_points": 10,
-      "required_rank": 5,
-      "location": {
-        "main": "Mountain",
-        "sub": "Peak"
-      },
-      "stages": [
-        {
-          "type": "boss",
-          "target_monster": "Dragon",
-          "kill_count_required": 1
-        }
-      ],
       "next_quest": null,
       "npc_trigger": "Guild Master"
     },
     {
       "quest_name": "Find the Fox Girl",
       "quest_level": 6,
-      "quest_description": "The Guild has received reports of a Beast Folk girl lost in the wilderness. Find her and bring her back safely.",
-      "quest_reward": "50 gold",
+      "quest_description": {
+        "content": "A small fox girl has been kidnapped by kobolds. Find her in the cave and bring her back to safety.",
+        "color": "yellow"
+      },
+      "quest_reward": {
+        "content": "100 gold, Fox Girl's Pendant",
+        "color": "yellow"
+      },
       "source": "guild",
-      "adventure_points": 2,
-      "required_rank": 3,
+      "adventure_points": 10,
+      "required_rank": 2,
       "location": {
         "main": "Mountain",
         "sub": "Caves"
@@ -172,10 +183,16 @@
     {
       "quest_name": "The Sad Truth",
       "quest_level": 8,
-      "quest_description": "Discover what happened to Elara's family.",
-      "quest_reward": "150 gold",
+      "quest_description": {
+        "content": "Elara's family was killed by kobolds. Help her come to terms with her loss.",
+        "color": "yellow"
+      },
+      "quest_reward": {
+        "content": "200 gold, Elara's Trust",
+        "color": "yellow"
+      },
       "source": "npc",
-      "adventure_points": 5,
+      "adventure_points": 20,
       "required_rank": 3,
       "location": {
         "main": "Mountain",

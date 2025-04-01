@@ -1,0 +1,66 @@
+{
+  "exchange_options": {
+    "adventure_points": {
+      "name": "Adventure Points Exchange",
+      "description": "Exchange key items for adventure points",
+      "rates": [
+        {
+          "item": "Wolf Fang",
+          "points": 2
+        },
+        {
+          "item": "Dragon Scale",
+          "points": 5
+        },
+        {
+          "item": "Shadow Cloak",
+          "points": 3
+        }
+      ]
+    },
+    "crafted_items": {
+      "name": "Crafted Items Exchange",
+      "description": "Exchange multiple key items for special crafted items",
+      "recipes": [
+        {
+          "name": "Dragon Scale Armor",
+          "description": "A powerful armor crafted from dragon scales",
+          "requirements": [
+            {
+              "item": "Dragon Scale",
+              "quantity": 3
+            },
+            {
+              "item": "Shadow Cloak",
+              "quantity": 1
+            }
+          ],
+          "result": {
+            "type": "gear",
+            "name": "Dragon Scale Armor",
+            "quantity": 1
+          }
+        },
+        {
+          "name": "Wolf Fang Dagger",
+          "description": "A deadly dagger crafted from wolf fangs",
+          "requirements": [
+            {
+              "item": "Wolf Fang",
+              "quantity": 2
+            },
+            {
+              "item": "Shadow Cloak",
+              "quantity": 1
+            }
+          ],
+          "result": {
+            "type": "gear",
+            "name": "Wolf Fang Dagger",
+            "quantity": 1
+          }
+        }
+      ]
+    }
+  }
+} 

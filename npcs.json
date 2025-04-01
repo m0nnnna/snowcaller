@@ -8,8 +8,8 @@
         },
         "spawn_chance": 3,
         "dialogue": [
-            "Have you heard of the beast in the forest?",
-            "Legends say the thing swallows people hole and keeps them trapped in a void."
+            "Have you heard the tale of the dream eater?",
+            "From how the story goes. A walk in the woods late at night. If you don't freeze to death you will quickly see the darkness build below the ice. What looks like a shadow from a beast above is actually a mouth that shallows you whole."
         ],
         "lore": "The darkness comes from the cold.",
         "quest": "Beast Rumors"
@@ -23,7 +23,7 @@
         },
         "spawn_chance": 3,
         "dialogue": [
-            "I\u2019ve seen things in the mountains you wouldn\u2019t believe.",
+            "I've seen things in the mountains you wouldn't believe.",
             "Care to hunt a shadow?"
         ],
         "lore": "Shadows move in the peaks, unseen by most.",

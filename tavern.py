@@ -4,6 +4,59 @@ import json
 import os
 from utils import load_json
 from player import save_game  # Import to save after room purchase
+from colorama import init, Fore, Back, Style
+
+# Initialize colorama
+init()
+
+# Color constants
+RED = Fore.RED
+GREEN = Fore.GREEN
+BLUE = Fore.BLUE
+YELLOW = Fore.YELLOW
+MAGENTA = Fore.MAGENTA
+CYAN = Fore.CYAN
+WHITE = Fore.WHITE
+RESET = Style.RESET_ALL
+
+# Color mapping
+COLOR_MAP = {
+    "red": RED,
+    "green": GREEN,
+    "blue": BLUE,
+    "yellow": YELLOW,
+    "magenta": MAGENTA,
+    "cyan": CYAN,
+    "white": WHITE
+}
+
+def print_colored_text(text_data):
+    """Helper function to print text with color from JSON data."""
+    if isinstance(text_data, dict):
+        # Handle text with text_color
+        if "text" in text_data and "text_color" in text_data:
+            color = text_data["text_color"].lower()
+            color_code = COLOR_MAP.get(color, WHITE)
+            print(f"{color_code}{text_data['text']}{RESET}")
+        # Handle response with response_color
+        elif "response" in text_data and "response_color" in text_data:
+            color = text_data["response_color"].lower()
+            color_code = COLOR_MAP.get(color, WHITE)
+            print(f"{color_code}{text_data['response']}{RESET}")
+        # Handle flavor text
+        elif "text" in text_data and "text_color" in text_data:
+            color = text_data["text_color"].lower()
+            color_code = COLOR_MAP.get(color, WHITE)
+            print(f"{color_code}{text_data['text']}{RESET}")
+        # Fallback for simple text with color
+        elif "text" in text_data and "color" in text_data:
+            color = text_data["color"].lower()
+            color_code = COLOR_MAP.get(color, WHITE)
+            print(f"{color_code}{text_data['text']}{RESET}")
+        else:
+            print(text_data)
+    else:
+        print(text_data)
 
 class ReturnToMainMenu(Exception):
     pass
@@ -189,7 +242,8 @@ class Tavern:
             print(f"{npc_name}: I have nothing to say right now.")
             return
 
-        print(f"{npc_name}: {dialogue['text']}")
+        print(f"{npc_name}: ", end="")
+        print_colored_text(dialogue["text"])
 
         # Menu options
         options = ["1. Ask about Quest", "2. Turn in Quest", "3. Talk"]
@@ -211,7 +265,8 @@ class Tavern:
                 reply_choice = int(input("Select reply: ")) - 1
                 if 0 <= reply_choice < len(replies):
                     selected_reply = replies[reply_choice]
-                    print(f"{npc_name}: {selected_reply['response']}")
+                    print(f"{npc_name}: ", end="")
+                    print_colored_text(selected_reply["response"])
                     npc["bond"] = bond + selected_reply["bond_change"]
                     if reply_choice == 0:  # Accept room
                         npc["room"] = True
@@ -223,7 +278,8 @@ class Tavern:
                 reply_choice = int(input("Select reply: ")) - 1
                 if 0 <= reply_choice < len(replies):
                     selected_reply = replies[reply_choice]
-                    print(f"{npc_name}: {selected_reply['response']}")
+                    print(f"{npc_name}: ", end="")
+                    print_colored_text(selected_reply["response"])
                     npc["bond"] = bond + selected_reply["bond_change"]
                     if reply_choice == 0:  # Accept invitation
                         npc["living_with_player"] = True
@@ -251,7 +307,8 @@ class Tavern:
                         reply_choice = int(input("Select reply: ")) - 1
                         if reply_choice == 0:  # Accept quest
                             selected_reply = replies[0]
-                            print(f"{npc_name}: {selected_reply['response']}")
+                            print(f"{npc_name}: ", end="")
+                            print_colored_text(selected_reply["response"])
                             npc["bond"] = bond + selected_reply["bond_change"]
                             quests = load_json("quest.json")["quests"]
                             quest_data = next((q for q in quests if q["quest_name"] == current_quest), None)
@@ -261,22 +318,26 @@ class Tavern:
                                 npc["quest_accepted"] = True
                                 dialogue = next((s for s in stages if s["stage"] == "quest_accepted"), None)
                                 if dialogue:
-                                    print(f"{npc_name}: {dialogue['text']}")
-                                save_game(self.player)
+                                    print(f"{npc_name}: ", end="")
+                                    print_colored_text(dialogue["text"])
+                            save_game(self.player)
                             break
                         elif reply_choice == 1:  # Deny quest
                             selected_reply = replies[1]
-                            print(f"{npc_name}: {selected_reply['response']}")
+                            print(f"{npc_name}: ", end="")
+                            print_colored_text(selected_reply["response"])
                             npc["bond"] = bond + selected_reply["bond_change"]
                             npc["quest_denied"] = True
                             dialogue = next((s for s in stages if s["stage"] == "quest_denied"), None)
                             if dialogue:
-                                print(f"{npc_name}: {dialogue['text']}")
+                                print(f"{npc_name}: ", end="")
+                                print_colored_text(dialogue["text"])
                             save_game(self.player)
                             break
                         elif reply_choice == 2 and available_flavor:  # Flavor option
                             selected_flavor = available_flavor[0]
-                            print(f"{npc_name}: {selected_flavor['response']}")
+                            print(f"{npc_name}: ", end="")
+                            print_colored_text(selected_flavor["response"])
                             npc["bond"] = bond + selected_flavor["bond_change"]
                             npc["flavor_count"] = npc["flavor_count"] + 1
                             save_game(self.player)
@@ -301,7 +362,8 @@ class Tavern:
                         stage = "quest_complete"
                     dialogue = next((s for s in stages if s["stage"] == stage), None)
                     if dialogue:
-                        print(f"{npc_name}: {dialogue['text']}")
+                        print(f"{npc_name}: ", end="")
+                        print_colored_text(dialogue["text"])
                 # Handle next quest
                 quests = load_json("quest.json")["quests"]
                 quest_data = next((q for q in quests if q["quest_name"] == current_quest), None)
@@ -332,12 +394,14 @@ class Tavern:
                     for i, opt in enumerate(available_options, 1):
                         print(f"{i}. {opt['text']}")
                         for flavor in opt.get("flavor_text", []):
-                            print(f"   - {flavor}")
+                            print("   - ", end="")
+                            print_colored_text(flavor)
                     print("0. Back")
                     reply_choice = int(input("Select option: ")) - 1
                     if 0 <= reply_choice < len(available_options):
                         selected_opt = available_options[reply_choice]
-                        print(f"{npc_name}: {selected_opt['response']}")
+                        print(f"{npc_name}: ", end="")
+                        print_colored_text(selected_opt["response"])
                         npc["bond"] = bond + selected_opt["bond_change"]
                         print(f"Bond with {npc_name} is now {npc['bond']}")
 
@@ -362,12 +426,14 @@ class Tavern:
                 for i, opt in enumerate(available_options, 1):
                     print(f"{i}. {opt['text']}")
                     for flavor in opt.get("flavor_text", []):
-                        print(f"   - {flavor}")
+                        print("   - ", end="")
+                        print_colored_text(flavor)
                 print("0. Back")
                 reply_choice = int(input("Select option: ")) - 1
                 if 0 <= reply_choice < len(available_options):
                     selected_opt = available_options[reply_choice]
-                    print(f"{npc_name}: {selected_opt['response']}")
+                    print(f"{npc_name}: ", end="")
+                    print_colored_text(selected_opt["response"])
                     npc["bond"] = bond + selected_opt["bond_change"]
                     print(f"Bond with {npc_name} is now {npc['bond']}")
 
@@ -387,19 +453,22 @@ class Tavern:
                 for i, opt in enumerate(available_options, 1):
                     print(f"{i}. {opt['text']}")
                     for flavor in opt.get("flavor_text", []):
-                        print(f"   - {flavor}")
+                        print("   - ", end="")
+                        print_colored_text(flavor)
                 print("0. Back")
                 reply_choice = int(input("Select option: ")) - 1
                 if 0 <= reply_choice < len(available_options):
                     selected_opt = available_options[reply_choice]
-                    print(f"{npc_name}: {selected_opt['response']}")
+                    print(f"{npc_name}: ", end="")
+                    print_colored_text(selected_opt["response"])
                     npc["bond"] = bond + selected_opt["bond_change"]
                     print(f"Bond with {npc_name} is now {npc['bond']}")
             elif current_quest and current_quest not in completed_quests and current_quest not in active_quests:
                 quests = load_json("quest.json")["quests"]
                 quest_data = next((q for q in quests if q["quest_name"] == current_quest), None)
                 if quest_data:
-                    print(f"{npc_name}: {quest_data['quest_description']}")
+                    print(f"{npc_name}: ", end="")
+                    print_colored_text(quest_data["quest_description"])
                     accept = input("Accept quest? (y/n): ").lower()
                     if accept == "y":
                         new_quest = {"quest_name": current_quest, "stages": [{"type": s["type"], "target_monster": s.get("target_monster"), "kill_count_required": s.get("kill_count_required", 0), "kill_count": 0, "target_item": s.get("target_item"), "item_count_required": s.get("item_count_required", 0), "item_count": 0} for s in quest_data["stages"]]}
@@ -407,12 +476,14 @@ class Tavern:
                         npc["quest_accepted"] = True
                         dialogue = next((s for s in stages if s["stage"] == "quest_accepted"), None)
                         if dialogue:
-                            print(f"{npc_name}: {dialogue['text']}")
+                            print(f"{npc_name}: ", end="")
+                            print_colored_text(dialogue["text"])
                     else:
                         npc["quest_denied"] = True
                         dialogue = next((s for s in stages if s["stage"] == "quest_denied"), None)
                         if dialogue:
-                            print(f"{npc_name}: {dialogue['text']}")
+                            print(f"{npc_name}: ", end="")
+                            print_colored_text(dialogue["text"])
             else:
                 print(f"{npc_name}: No new quests available right now.")
 
@@ -537,14 +608,77 @@ class Tavern:
             print(f"{npc_data['name']} says, 'How nice it would be to stay the night with you once our work is done.'")
 
     def rest(self):
-        elara_in_room = any(npc["name"] == "Elara, the Lost Scholar" and npc["room"] for npc in self.player.tavern_npcs)
-        if self.player.has_room:  # Use player.has_room
-            if elara_in_room:
-                print("You and Elara sleep together in your room, sharing stories of Snowcaller.")
-                self.player.hp = self.player.max_hp * 1.1
-                self.player.mp = self.player.max_mp * 1.1
-                self.player.hp = min(self.player.hp, self.player.max_hp * 1.1)
-                self.player.mp = min(self.player.mp, self.player.max_mp * 1.1)
+        if self.player.has_room:
+            # Get all NPCs living with the player
+            living_npcs = [npc for npc in self.player.tavern_npcs if npc.get("living_with_player", False)]
+            
+            if living_npcs:
+                print("\nYou rest in your room with:")
+                for i, npc in enumerate(living_npcs, 1):
+                    print(f"{i}. {npc['name']}")
+                print("0. Rest Alone")
+                
+                choice = input("\nSelect an NPC to interact with (or 0 to rest alone): ")
+                try:
+                    choice_num = int(choice)
+                    if choice_num == 0:
+                        print("You rest in your own room for free.")
+                        self.player.hp = self.player.max_hp
+                        self.player.mp = self.player.max_mp
+                    elif 1 <= choice_num <= len(living_npcs):
+                        selected_npc = living_npcs[choice_num - 1]
+                        print(f"\nWhat would you like to do with {selected_npc['name']}?")
+                        print("1. Conversation")
+                        print("2. Romance")
+                        print("3. Rest Together")
+                        print("0. Back")
+                        
+                        interaction = input("Selection: ")
+                        if interaction == "1":
+                            # Load and handle conversation dialogue
+                            npc_file = os.path.join("NPC", f"{selected_npc['name']}.json")
+                            if os.path.exists(npc_file):
+                                with open(npc_file, 'r') as f:
+                                    npc_data = json.load(f)
+                                talk_section = next((d for d in npc_data.get("dialogue", []) if "talk" in d), None)
+                                if talk_section:
+                                    self.handle_talk_options(selected_npc, talk_section["talk"])
+                            else:
+                                print(f"{selected_npc['name']} seems to be lost in thought.")
+                        elif interaction == "2":
+                            # Load and handle romance dialogue
+                            npc_file = os.path.join("NPC", f"{selected_npc['name']}.json")
+                            if os.path.exists(npc_file):
+                                with open(npc_file, 'r') as f:
+                                    npc_data = json.load(f)
+                                romance_section = next((d for d in npc_data.get("dialogue", []) if "romance" in d), None)
+                                if romance_section:
+                                    self.handle_romance_options(selected_npc, romance_section["romance"])
+                            else:
+                                print(f"{selected_npc['name']} smiles warmly at you.")
+                        elif interaction == "3":
+                            print(f"\nYou rest with {selected_npc['name']}, sharing stories and warmth.")
+                            # Apply temporary buff (10% increase for 1 hour)
+                            self.player.hp = self.player.max_hp * 1.1
+                            self.player.mp = self.player.max_mp * 1.1
+                            self.player.hp = min(self.player.hp, self.player.max_hp * 1.1)
+                            self.player.mp = min(self.player.mp, self.player.max_mp * 1.1)
+                            # Add buff to player's active buffs
+                            if not hasattr(self.player, 'active_buffs'):
+                                self.player.active_buffs = []
+                            self.player.active_buffs.append({
+                                'name': f"{selected_npc['name']}'s Warmth",
+                                'duration': 3600,  # 1 hour in seconds
+                                'hp_multiplier': 1.1,
+                                'mp_multiplier': 1.1
+                            })
+                            print(f"You feel {selected_npc['name']}'s warmth, increasing your HP and MP by 10% for 1 hour.")
+                    else:
+                        print("Invalid selection!")
+                        return
+                except ValueError:
+                    print("Invalid input!")
+                    return
             else:
                 print("You rest in your own room for free.")
                 self.player.hp = self.player.max_hp
@@ -564,6 +698,60 @@ class Tavern:
         # Return to main menu by raising a custom exception
         raise ReturnToMainMenu()
 
+    def handle_talk_options(self, npc, talk_options):
+        bond = npc.get("bond", 0)
+        available_options = []
+        for i in range(1, 10):
+            base_opt = str(i)
+            highest_replace = None
+            for opt in talk_options:
+                if opt["option"].startswith(base_opt):
+                    bond_check = opt.get("bond_check", -1)
+                    if bond >= bond_check and (highest_replace is None or bond_check > highest_replace.get("bond_check", -1)):
+                        highest_replace = opt
+            if highest_replace:
+                available_options.append(highest_replace)
+            elif any(opt["option"] == base_opt for opt in talk_options):
+                available_options.append(next(opt for opt in talk_options if opt["option"] == base_opt))
+        
+        print("\nTalk Options (0 to back):")
+        for i, opt in enumerate(available_options, 1):
+            print(f"{i}. {opt['text']}")
+            for flavor in opt.get("flavor_text", []):
+                print(f"   - {flavor}")
+        print("0. Back")
+        
+        reply_choice = int(input("Select option: ")) - 1
+        if 0 <= reply_choice < len(available_options):
+            selected_opt = available_options[reply_choice]
+            print(f"{npc['name']}: {selected_opt['response']}")
+            npc["bond"] = bond + selected_opt["bond_change"]
+            print(f"Bond with {npc['name']} is now {npc['bond']}")
+
+    def handle_romance_options(self, npc, romance_options):
+        bond = npc.get("bond", 0)
+        available_options = []
+        for opt in romance_options:
+            base_opt = opt["option"].split("-")[0]
+            bond_check = opt.get("bond_check", -1)
+            if bond >= bond_check:
+                if not any(o["option"].startswith(base_opt + "-") and o.get("bond_check", -1) > bond_check and bond >= o.get("bond_check", -1) for o in romance_options):
+                    available_options.append(opt)
+        
+        print("\nRomance Options (0 to back):")
+        for i, opt in enumerate(available_options, 1):
+            print(f"{i}. {opt['text']}")
+            for flavor in opt.get("flavor_text", []):
+                print(f"   - {flavor}")
+        print("0. Back")
+        
+        reply_choice = int(input("Select option: ")) - 1
+        if 0 <= reply_choice < len(available_options):
+            selected_opt = available_options[reply_choice]
+            print(f"{npc['name']}: {selected_opt['response']}")
+            npc["bond"] = bond + selected_opt["bond_change"]
+            print(f"Bond with {npc['name']} is now {npc['bond']}")
+
     def buy_room(self):
         if not self.player.has_room and self.player.gold >= self.room_cost:  # Use player.has_room
             self.player.gold -= self.room_cost
@@ -580,7 +768,14 @@ class Tavern:
             print("No special NPCs are here yet!")
             return
         
-        special_npcs = self.player.tavern_npcs
+        # Filter out NPCs with bonds of -100 or worse and NPCs living with the player
+        special_npcs = [npc for npc in self.player.tavern_npcs 
+                       if npc.get("bond", 0) > -100 and not npc.get("living_with_player", False)]
+        
+        if not special_npcs:
+            print("No special NPCs are here yet!")
+            return
+            
         print("\nSpecial NPCs present:")
         for i, npc in enumerate(special_npcs[:9], 1):
             print(f"{i}. {npc['name']}")

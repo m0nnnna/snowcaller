@@ -811,7 +811,7 @@
     "stats": {"S": 8, "A": 8, "I": 8, "W": 8, "L": 8},
     "damage": "10-15",
     "armor_value": 0,
-    "drop_rate": 1,
+    "drop_rate": 0,
     "gold": 100000,
     "boss_only": true
   },
@@ -823,7 +823,7 @@
     "stats": {"S": 0, "A": 0, "I": 0, "W": 0, "L": 20},
     "damage": null,
     "armor_value": 10,
-    "drop_rate": 1,
+    "drop_rate": 0,
     "gold": 100000,
     "boss_only": true
   }

@@ -11,15 +11,20 @@
                 {
                     "stage": "quest_start",
                     "text": "A small fox girl huddles in the corner of the cave, her fur matted and her eyes wide with fear. She looks up at you with a mix of hope and apprehension. Please... I don't want to be alone anymore.",
+                    "text_color": "white",
                     "replies": [
                         {
                             "text": "I'll help you get back to safety.",
+                            "text_color": "blue",
                             "response": "Really? You mean it? Her tail wags slightly, though she still seems nervous.",
+                            "response_color": "green",
                             "bond_change": 2
                         },
                         {
                             "text": "I can't help you right now.",
+                            "text_color": "blue",
                             "response": "Oh... I understand. I'll just stay here then.",
+                            "response_color": "green",
                             "bond_change": -1
                         }
                     ],
@@ -27,52 +32,68 @@
                         {
                             "option": "3-1",
                             "text": "How long have you been here?",
+                            "text_color": "blue",
                             "response": "I... I don't know. The days blur together in the darkness.",
+                            "response_color": "green",
                             "bond_change": 0
                         },
                         {
                             "option": "3-2",
                             "text": "Are you hurt?",
+                            "text_color": "blue",
                             "response": "Just some scratches... but I'm so tired.",
+                            "response_color": "green",
                             "bond_change": 0
                         },
                         {
                             "option": "3-3",
                             "text": "What happened to you?",
+                            "text_color": "blue",
                             "response": "I... I'd rather not talk about it right now. Please, can we just get out of here?",
+                            "response_color": "green",
                             "bond_change": 1
                         }
                     ]
                 },
                 {
                     "stage": "quest_accepted",
-                    "text": "Thank you... I'll follow you."
+                    "text": "Thank you... I'll follow you.",
+                    "text_color": "green"
                 },
                 {
                     "stage": "quest_denied",
-                    "text": "I understand... I'll wait here then."
+                    "text": "I understand... I'll wait here then.",
+                    "text_color": "green"
                 },
                 {
                     "stage": "pending",
-                    "text": "The kobolds... they're everywhere. Please be careful."
+                    "text": "The kobolds... they're everywhere. Please be careful.",
+                    "text_color": "green"
                 },
                 {
                     "stage": "quest_complete",
                     "text": "We made it! I can't believe we're finally out of there. Thank you so much!",
+                    "text_color": "green",
                     "replies": [
                         {
                             "text": "You're safe now.",
+                            "text_color": "blue",
                             "response": "You're amazing! I don't know what I would have done without you.",
+                            "response_color": "green",
                             "bond_change": 3
                         },
                         {
                             "text": "Just doing my job.",
+                            "text_color": "blue",
                             "response": "Oh... well, thank you anyway.",
+                            "response_color": "green",
                             "bond_change": -1
                         },
                         {
                             "text": "It was dangerous, but worth it.",
+                            "text_color": "blue",
                             "response": "You risked your life for me... I won't forget that.",
+                            "response_color": "green",
                             "bond_change": 2
                         }
                     ]
@@ -85,15 +106,20 @@
                 {
                     "stage": "quest_start",
                     "text": "Thank you for finding me! I'm Elara. I thought I was done for stuck outside all alone. But now I have you! Say... you don't think you'd be up for helping me again would you? Kobolds stole my pendant, and I'm too scared to go after them alone. Will you please help?",
+                    "text_color": "green",
                     "replies": [
                         {
                             "text": "Of course. I'd be more than honored to go after your lost treasure.",
+                            "text_color": "blue",
                             "response": "Really?! Elara's ears twitch and her tail wags. Thank you so much! I'll be here waiting for you hero.",
+                            "response_color": "green",
                             "bond_change": 2
                         },
                         {
                             "text": "I can't help you right now.",
+                            "text_color": "blue",
                             "response": "Oh… I'll wait here then, hoping someone else comes by.",
+                            "response_color": "green",
                             "bond_change": -1
                         }
                     ], 
@@ -101,52 +127,68 @@
                         {
                             "option": "3-1",
                             "text": "Why's this pendant important?",
+                            "text_color": "blue",
                             "response": "It was my mothers. Normally it gets passed down to the oldest daughter. However they had already taken her away. My mom gave it to me before she was also taken away...",
+                            "response_color": "green",
                             "bond_change": 0
                         },
                         {
                             "option": "3-2",
                             "text": "They were taken away? Who had taken them?",
+                            "text_color": "blue",
                             "response": "Slave catchers. They raided our small camp. There was about 50 of us total. We ran as hard as we could but and ice storm hit us. That's when they got my sister...",
+                            "response_color": "green",
                             "bond_change": 0
                         },
                         {
                             "option": "3-3",
                             "text": "What about your parents? What happened to them?",
+                            "text_color": "blue",
                             "response": "I'd really rather not talk about that...Please if you could get my pendant back it would mean the world to me.",
+                            "response_color": "green",
                             "bond_change": 1
                         }
                     ]
                 },
                 {
                     "stage": "quest_accepted",
-                    "text": "You truly are an amazing hero. No matter what you better come back."
+                    "text": "You truly are an amazing hero. No matter what you better come back.",
+                    "text_color": "green"
                 },
                 {
                     "stage": "quest_denied",
-                    "text": "You didn't want to help… I hope I can find someone else, but I'll stay here for now."
+                    "text": "You didn't want to help… I hope I can find someone else, but I'll stay here for now.",
+                    "text_color": "green"
                 },
                 {
                     "stage": "pending",
-                    "text": "How's it going with my pendant? Those Kobolds are tricky, aren't they?"
+                    "text": "How's it going with my pendant? Those Kobolds are tricky, aren't they?",
+                    "text_color": "green"
                 },
                 {
                     "stage": "quest_complete",
                     "text": "You got it back! Thank you so much! Elara ties the pendant to her tail. I can't believe you helped a beast folk like me.",
+                    "text_color": "green",
                     "replies": [
                         {
                             "text": "Of course. It was easy work for me.",
+                            "text_color": "blue",
                             "response": "You're amazing! Elara jumps in joy smiling at you warmly.",
+                            "response_color": "green",
                             "bond_change": 3
                         },
                         {
                             "text": "That's all I'm doing for you.",
+                            "text_color": "blue",
                             "response": "Oh… I hoped we'd continue, but thank you anyway.",
+                            "response_color": "green",
                             "bond_change": -2
                         },
                         {
                             "text": "It was dangerous. I could've died.",
+                            "text_color": "blue",
                             "response": "But you kept your promise and came back.",
+                            "response_color": "green",
                             "bond_change": 1
                         }
                     ]
@@ -158,16 +200,21 @@
             "stages": [
                 {
                     "stage": "quest_start",
-                    "text": "Hello hero! Elara yells as you walk past her in the tavern. Thank you again for everything you've done. You and Elara spend some time together drinking. She speaks to you with a lower guard. You know... I'd do anything to see my parents again. She jokingly knudges you. What would you say to another adventure? We can try to track them down. ",
+                    "text": "Hello hero! Elara yells as you walk past her in the tavern. Thank you again for everything you've done. You and Elara spend some time together drinking. She speaks to you with a lower guard. You know... I'd do anything to see my parents again. She jokingly nudges you. What would you say to another adventure? We can try to track them down. ",
+                    "text_color": "green",
                     "replies": [
                         {
                             "text": "Once the morning light hits we will look for them.",
+                            "text_color": "blue",
                             "response": "Elara sits somber at the thought of seeing her parents again. Hero, whatever you find out there please bring it back to me. ",
+                            "response_color": "green",
                             "bond_change": 2
                         },
                         {
                             "text": "Go out into the cold to look for the dead? No thanks.",
+                            "text_color": "blue",
                             "response": "Oh…",
+                            "response_color": "green",
                             "bond_change": -2
                         }
                     ], 
@@ -175,47 +222,61 @@
                         {
                             "option": "3-1",
                             "text": "Where were they last seen?",
+                            "text_color": "blue",
                             "response": "There was a Frosted Den we passed. We were being chased and they told me to keep running.",
+                            "response_color": "green",
                             "bond_change": 0
                         },
                         {
                             "option": "3-2",
                             "text": "Do you think they're alive?",
+                            "text_color": "blue",
                             "response": "...I can only hope they are out there..",
+                            "response_color": "green",
                             "bond_change": 0
                         },
                         {
                             "option": "3-3",
-                            "text": "You slam down the final drink for the night. Elara! She is stunned by your outbrust loud enough for the entire Tavern to hear. I promise I will find them at any cost.",
-                            "response": "Elara looks as if she is about to cry. Most humans never even look Beast Folk in the the eyes. Never mind a human risking their own skin on such a foolish adventure. Hero...She clinges onto you with tears. Thank you.",
+                            "text": "You slam down the final drink for the night. Elara! She is stunned by your out burst loud enough for the entire Tavern to hear. I promise I will find them at any cost.",
+                            "text_color": "blue",
+                            "response": "Elara looks as if she is about to cry. Most humans never even look Beast Folk in the the eyes. Never mind a human risking their own skin on such a foolish adventure. Hero...She clings onto you with tears. Thank you.",
+                            "response_color": "green",
                             "bond_change": 1
                         }
                     ]
                 },
                 {
                     "stage": "quest_accepted",
-                    "text": "Thank you hero..."
+                    "text": "Thank you hero...",
+                    "text_color": "green"
                 },
                 {
                     "stage": "quest_denied",
-                    "text": "It's okay...I am asking a lot..."
+                    "text": "It's okay...I am asking a lot...",
+                    "text_color": "green"
                 },
                 {
                     "stage": "pending",
-                    "text": "Hero? Have you been to the Frosted Den?"
+                    "text": "Hero? Have you been to the Frosted Den?",
+                    "text_color": "green"
                 },
                 {
                     "stage": "quest_complete",
                     "text": "Hero...You're all scratched up and hurt. Did you run into any monsters? Please tell me everything. Elara proceeds to to try cleaning you off and applying bandages.",
+                    "text_color": "green",
                     "replies": [
                         {
                             "text": "I made it here safely. Surely we can follow up our next lead.",
+                            "text_color": "blue",
                             "response": "Hero...Elara looks up at you with hope in her eyes. A new fight is coming.",
+                            "response_color": "green",
                             "bond_change": 3
                         },
                         {
                             "text": "That's all I'm doing for you.",
-                            "response": "Oh… I hoped we'd continue, but thank you anyway.",
+                            "text_color": "blue",
+                            "response": "Oh… I don't have anyone else....",
+                            "response_color": "green",
                             "bond_change": -2
                         }
                     ],
@@ -223,19 +284,139 @@
                         {
                             "option": "3-1",
                             "text": "Elara...I found wolves. The Frosted Den had a family of strong wolves that seem to have eaten everything made of meat within miles.",
+                            "text_color": "blue",
                             "response": "Oh hero. Elara blushes her face red at her Hero facing such a threat. Hero you have to promise me whenever you leave the safety of the city gates you will always return.",
+                            "response_color": "green",
                             "bond_change": 0
                         },
                         {
                             "option": "3-2",
                             "text": "Of course Elara. I wouldn't dream of leaving you alone.",
-                            "response": "Oh Hero. Elara with a small smile clinges on her Hero. You faced great danger just for my peace of mind. Now we have a lead. But... given your current state. I couldn't ask anymore of you.",
+                            "text_color": "blue",
+                            "response": "Oh Hero. Elara with a small smile clings on her Hero. You faced great danger just for my peace of mind. Now we have a lead. But... given your current state. I couldn't ask anymore of you.",
+                            "response_color": "green",
                             "bond_change": 0
                         },
                         {
                             "option": "3-3",
-                            "text": "You ponder for a moment. You can see the weight on her heart the pain of not knowning the fate of her loved ones. Is it time to move on? Or could you see this out till the end? You meet her gaze. For now I rest, and we drink to a completed hunt.",
+                            "text": "You ponder for a moment. You can see the weight on her heart the pain of not knowing the fate of her loved ones. Is it time to move on? Or could you see this out till the end? You meet her gaze. For now I rest, and we drink to a completed hunt.",
+                            "text_color": "blue",
                             "response": "Elara can see your attempt to make her smile. Rounds of ale for all. The ",
+                            "response_color": "green",
+                            "bond_change": 1
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "quest": "The Sad Truth",
+            "stages": [
+                {
+                    "stage": "quest_start",
+                    "text": "Elara is sitting at the bar darting her eyes all around the room. As you approach her her eyes lock onto yours. Hero you are awake! You steady yourself to head out into the frozen wastes. Elara is demanding you take her with you. Even as her eyes fill with tears you pat her head to let her know it will be okay. Hero...No matter what you have to keep your promise and come back alive!",
+                    "text_color": "green",
+                    "replies": [
+                        {
+                            "text": "Elara. I swear this oath to you. I will return. I will find your family. I will bring them home to you.",
+                            "text_color": "blue",
+                            "response": "Elara never knowing such kindness even from her own people never mind a human. She jumps into your arms and hugs you tightly. You truly are my hero. Elara sits down tears in her eyes yet a big smile on her face. With this you depart.",
+                            "response_color": "green",
+                            "bond_change": 2
+                        },
+                        {
+                            "text": "Elara. There is no simple way to say this. Your family is most likely dead. I'm not going to risk my life to bring back the frozen remains of your parents.",
+                            "text_color": "blue",
+                            "response": "Oh…Elara looks down at the floor. I'm sorry hero, I shouldn't have asked this of you. I know it to be too much. Elara walks outside the tavern. Your words heavy in the air you can almost be certain that she will never speak to you again.",
+                            "response_color": "green",
+                            "bond_change": -200
+                        }
+                    ], 
+                    "flavor": [
+                        {
+                            "option": "3-1",
+                            "text": "Elara you you need to stay here. It's far too dangerous out there.",
+                            "text_color": "blue",
+                            "response": "Hero I must go with you. If it's so dangerous I cannot stay here while you are out there risking your life. If you were to die I would never forgive myself. Elara grabs onto you. You're all I have left in this world.",
+                            "response_color": "green",
+                            "bond_change": 0
+                        },
+                        {
+                            "option": "3-2",
+                            "text": "Elara. You hug her gently, knowing that this risk is too great. In this world risking your life is pointless. Never mind risking your life for someone else entirely. If you were to ask most people they'd agree that this is the single dumbest thing you could ever do. Adding on top of doing it for a beastfolk girl. Yet after all the things we've done, the nights spent drinking together. For the the first time in a long time you finally feel like you've found a friend. It's always until she looks into your eyes with those big golden eyes that shine brighter than the sun. You see that this could be so much more. It's time to be a hero.",
+                            "text_color": "blue",
+                            "response": "Hero...Elara is staring directly at you.",
+                            "response_color": "green",
+                            "bond_change": 0
+                        },
+                        {
+                            "option": "3-3",
+                            "text": "You smile at her. The only thought on your mind is that you'll defend her smile at any cost. You've seen me in action. Those wolves weren't able to get the better of me.",
+                            "text_color": "blue",
+                            "response": "Elara holds onto you tighter than ever. Almost seems like she doesn't want you to leave.",
+                            "response_color": "green",
+                            "bond_change": 10
+                        }
+                    ]
+                },
+                {
+                    "stage": "quest_accepted",
+                    "text": "Elara is silent",
+                    "text_color": "green"
+                },
+                {
+                    "stage": "quest_denied",
+                    "text": "Light fades from her eyes.",
+                    "text_color": "green"
+                },
+                {
+                    "stage": "pending",
+                    "text": "I can't stand waiting...",
+                    "text_color": "green"
+                },
+                {
+                    "stage": "quest_complete",
+                    "text": "HERO! Elara screams at the top of her lungs. The entire tavern falls silent. She starts to sprint to you. She jumps into your arms. Hero...I'm so glad you're okay. I'm so glad you're here. I'm so glad you're safe.",
+                    "text_color": "green",
+                    "replies": [
+                        {
+                            "text": "Elara...After all we've been through. I'm so sorry. Your head falls into your hands. Your parents...They're dead.",
+                            "text_color": "blue",
+                            "response": "Elara kneels down and grabs the hero's hands. You've done so much for me. You even risked your life just for my closure. You are my hero. I can now properly mourn my parents. Elara takes off her necklace the object that started this whole mess. She hands it to you. Please take it. Before you protest, this is mine to give. You've given me so much more than this. It's my turn to repay you. Elara kisses your forehead.",
+                            "response_color": "green",
+                            "bond_change": 3
+                        },
+                        {
+                            "text": "I risked my life for nothing. Nothing but dead bodies. I could have been killed or injured over nothing. This is the last time I'll ever help you.",
+                            "text_color": "blue",
+                            "response": "Elara stands in shock at her hero's sudden burst of anger. She runs out of the tavern. The hero watches her go. He knows he'll never see her again.",
+                            "response_color": "green",
+                            "bond_change": -200
+                        }
+                    ],
+                    "flavor": [
+                        {
+                            "option": "3-1",
+                            "text": "Elara it's okay. I'm okay. There's no need for you to worry about me.",
+                            "text_color": "blue",
+                            "response": "YOU IDIOT! Elara scream at the hero. I will NEVER stop worrying about you. Ever since you found me I've been nothing but a burden. You've taken care of me. Saved me. Done all the tasks I've asked of you. You've asked for not a single thing in return. At the very least I can be the one praying for your safe return.",
+                            "response_color": "green",
+                            "bond_change": 0
+                        },
+                        {
+                            "option": "3-2",
+                            "text": "I found the people who raided your village. I did what I had to do. They are no more. Those that survived the wolves met me.",
+                            "text_color": "blue",
+                            "response": "Elara is silent. Although these people were evil she still cannot wish death on someone. Thank you. I'm sure with their passing plenty of other people will be saved.",
+                            "response_color": "green",
+                            "bond_change": 0
+                        },
+                        {
+                            "option": "3-3",
+                            "text": "I also searched the camp. I found beastfolk in cages. After dealing with the slavers I was able to free them. I asked them about you they weren't from your tribe but did tell me the tale of what had happened.",
+                            "text_color": "blue",
+                            "response": "Elara takes a deep breath and prepares to hear the news.",
+                            "response_color": "green",
                             "bond_change": 1
                         }
                     ]
@@ -247,11 +428,19 @@
                 {
                     "option": "1",
                     "text": "How do you like the tavern?",
+                    "text_color": "blue",
                     "response": "It's warm and cozy—much better than that campsite!",
+                    "response_color": "green",
                     "bond_change": 1,
                     "flavor_text": [
-                        "Elara's tail flicks as she looks around.",
-                        "She seems more at ease here."
+                        {
+                            "text": "Elara's tail flicks as she looks around.",
+                            "text_color": "green"
+                        },
+                        {
+                            "text": "She seems more at ease here.",
+                            "text_color": "green"
+                        }
                     ]
                 },
                 {
@@ -259,10 +448,17 @@
                     "bond_check": 3,
                     "text": "Do you miss your family?",
                     "response": "Every day… but being here with you helps.",
+                    "response_color": "green",
                     "bond_change": 2,
                     "flavor_text": [
-                        "Her ears droop slightly.",
-                        "A soft sigh escapes her."
+                        {
+                            "text": "Her ears droop slightly.",
+                            "text_color": "green"
+                        },
+                        {
+                            "text": "A soft sigh escapes her.",
+                            "text_color": "green"
+                        }
                     ]
                 },
                 {
@@ -270,90 +466,153 @@
                     "bond_check": 6,
                     "text": "What was your home like?",
                     "response": "Full of laughter and stories—before the slavers came.",
+                    "response_color": "green",
                     "bond_change": 3,
                     "flavor_text": [
-                        "Her eyes light up with memory.",
-                        "Then darken with sorrow."
+                        {
+                            "text": "Her eyes light up with memory.",
+                            "text_color": "green"
+                        },
+                        {
+                            "text": "Then darken with sorrow.",
+                            "text_color": "green"
+                        }
                     ]
                 },
                 {
                     "option": "2",
                     "text": "What do you think of the food here?",
                     "response": "It's tasty! I've never had bread this soft.",
+                    "response_color": "green",
                     "bond_change": 1,
                     "flavor_text": [
-                        "She nibbles on a piece of bread.",
-                        "Her tail wags slightly."
+                        {
+                            "text": "She nibbles on a piece of bread.",
+                            "text_color": "green"
+                        },
+                        {
+                            "text": "Her tail wags slightly.",
+                            "text_color": "green"
+                        }
                     ]
                 },
                 {
                     "option": "3",
                     "text": "Seen any good fights lately?",
                     "response": "Oh, just some drunks last night—nothing exciting.",
+                    "response_color": "green",
                     "bond_change": 0,
                     "flavor_text": [
-                        "She shrugs casually.",
-                        "Her ears perk up at a distant shout."
+                        {
+                            "text": "She shrugs casually.",
+                            "text_color": "green"
+                        },
+                        {
+                            "text": "Her ears perk up at a distant shout.",
+                            "text_color": "green"
+                        }
                     ]
                 },
                 {
                     "option": "4",
                     "text": "What's your favorite story?",
                     "response": "One about a fox who tricked a wolf—want to hear it?",
+                    "response_color": "green",
                     "bond_change": 2,
                     "flavor_text": [
-                        "She leans in, eyes sparkling.",
-                        "Her voice takes on a playful tone."
+                        {
+                            "text": "She leans in, eyes sparkling.",
+                            "text_color": "green"
+                        },
+                        {
+                            "text": "Her voice takes on a playful tone.",
+                            "text_color": "green"
+                        }
                     ]
                 },
                 {
                     "option": "5",
                     "text": "How's the pendant holding up?",
                     "response": "It's safe now, thanks to you. I check it every day.",
+                    "response_color": "green",
                     "bond_change": 1,
                     "flavor_text": [
-                        "She pats the pendant on her tail.",
-                        "A small smile crosses her face."
+                        {
+                            "text": "She pats the pendant on her tail.",
+                            "text_color": "green"
+                        },
+                        {
+                            "text": "A small smile crosses her face.",
+                            "text_color": "green"
+                        }
                     ]
                 },
                 {
                     "option": "6",
                     "text": "Do you like the snow?",
                     "response": "It's pretty, but so cold! My fur barely keeps up.",
+                    "response_color": "green",
                     "bond_change": 1,
                     "flavor_text": [
-                        "She shivers dramatically.",
-                        "Then giggles at herself."
+                        {
+                            "text": "She shivers dramatically.",
+                            "text_color": "green"
+                        },
+                        {
+                            "text": "Then giggles at herself.",
+                            "text_color": "green"
+                        }
                     ]
                 },
                 {
                     "option": "7",
                     "text": "What do you do for fun?",
                     "response": "I weave little trinkets—want me to make you one?",
+                    "response_color": "green",
                     "bond_change": 2,
                     "flavor_text": [
-                        "She pulls out some thread.",
-                        "Her fingers move deftly."
+                        {
+                            "text": "She pulls out some thread.",
+                            "text_color": "green"
+                        },
+                        {
+                            "text": "Her fingers move deftly.",
+                            "text_color": "green"
+                        }
                     ]
                 },
                 {
                     "option": "8",
                     "text": "How do beast folk live?",
                     "response": "In clans, usually—mine was small but tight-knit.",
+                    "response_color": "green",
                     "bond_change": 1,
                     "flavor_text": [
-                        "She gazes into the distance.",
-                        "Her voice softens."
+                        {
+                            "text": "She gazes into the distance.",
+                            "text_color": "green"
+                        },
+                        {
+                            "text": "Her voice softens.",
+                            "text_color": "green"
+                        }
                     ]
                 },
                 {
                     "option": "9",
                     "text": "What's your dream?",
                     "response": "To find a home again… maybe with friends like you.",
+                    "response_color": "green",
                     "bond_change": 3,
                     "flavor_text": [
-                        "Her tail curls around her.",
-                        "She looks at you hopefully."
+                        {
+                            "text": "Her tail curls around her.",
+                            "text_color": "green"
+                        },
+                        {
+                            "text": "She looks at you hopefully.",
+                            "text_color": "green"
+                        }
                     ]
                 }
             ]
@@ -400,40 +659,68 @@
                     "option": "1",
                     "text": "You look lovely today.",
                     "response": "Oh! Thank you… you make me blush.",
+                    "response_color": "green",
                     "bond_change": 2,
                     "flavor_text": [
-                        "Elara's ears twitch shyly.",
-                        "Her tail brushes against you."
+                        {
+                            "text": "Elara's ears twitch shyly.",
+                            "text_color": "green"
+                        },
+                        {
+                            "text": "Her tail brushes against you.",
+                            "text_color": "green"
+                        }
                     ]
                 },
                 {
                     "option": "2",
                     "text": "Can I hold your hand?",
                     "response": "Yes… I'd like that.",
+                    "response_color": "green",
                     "bond_change": 3,
                     "flavor_text": [
-                        "She hesitates, then takes your hand.",
-                        "Her grip is warm and gentle."
+                        {
+                            "text": "She hesitates, then takes your hand.",
+                            "text_color": "green"
+                        },
+                        {
+                            "text": "Her grip is warm and gentle.",
+                            "text_color": "green"
+                        }
                     ]
                 },
                 {
                     "option": "3",
                     "text": "What do you think of us?",
                     "response": "I feel safe with you… maybe more than safe.",
+                    "response_color": "green",
                     "bond_change": 2,
                     "flavor_text": [
-                        "Her eyes meet yours softly.",
-                        "A nervous smile plays on her lips."
+                        {
+                            "text": "Her eyes meet yours softly.",
+                            "text_color": "green"
+                        },
+                        {
+                            "text": "A nervous smile plays on her lips.",
+                            "text_color": "green"
+                        }
                     ]
                 },
                 {
                     "option": "4",
                     "text": "Want to share a quiet evening?",
                     "response": "Just us? That sounds perfect.",
+                    "response_color": "green",
                     "bond_change": 2,
                     "flavor_text": [
-                        "She leans closer, tail wagging.",
-                        "The room feels warmer somehow."
+                        {
+                            "text": "She leans closer, tail wagging.",
+                            "text_color": "green"
+                        },
+                        {
+                            "text": "The room feels warmer somehow.",
+                            "text_color": "green"
+                        }
                     ]
                 }
             ]
