@@ -219,6 +219,7 @@
       "gold_chance": 75,
       "armor_value": 8,
       "hp_range": {"min": 8, "max": 17},
+      "rare": false,
       "notes": "Frost variant of Goblin, tougher and more rewarding.",
       "art_file": "icegoblin.txt",
       "skills": null
@@ -232,6 +233,7 @@
       "gold_chance": 80,
       "armor_value": 8,
       "hp_range": {"min": 10, "max": 19},
+      "rare": false,
       "notes": "Frost variant of Kobold, faster and more agile.",
       "art_file": "frostkobold.txt",
       "skills": null
@@ -245,6 +247,7 @@
       "gold_chance": 85,
       "armor_value": 15,
       "hp_range": {"min": 12, "max": 20},
+      "rare": false,
       "notes": "Frost variant of Skeleton, more magical and durable.",
       "art_file": "frozenskeleton.txt",
       "skills": null
@@ -258,6 +261,7 @@
       "gold_chance": 90,
       "armor_value": 8,
       "hp_range": {"min": 15, "max": 18},
+      "rare": false,
       "notes": "Frost variant of Bandit, stronger and luckier.",
       "art_file": "icebandit.txt",
       "skills": null
@@ -271,6 +275,7 @@
       "gold_chance": 85,
       "armor_value": 20,
       "hp_range": {"min": 18, "max": 20.5},
+      "rare": false,
       "notes": "Frost variant of Orc, stronger and wiser.",
       "art_file": "frostorc.txt",
       "skills": null
@@ -284,6 +289,7 @@
       "gold_chance": 90,
       "armor_value": 8,
       "hp_range": {"min": 16, "max": 18},
+      "rare": false,
       "notes": "Frost variant of Giant Rat, faster and luckier.",
       "art_file": "icerat.txt",
       "skills": null
@@ -297,6 +303,7 @@
       "gold_chance": 95,
       "armor_value": 25,
       "hp_range": {"min": 22, "max": 25.6},
+      "rare": false,
       "notes": "Frost variant of Troll, stronger and wiser.",
       "art_file": "frosttroll.txt",
       "skills": null
@@ -310,6 +317,7 @@
       "gold_chance": 90,
       "armor_value": 15,
       "hp_range": {"min": 16, "max": 18.6},
+      "rare": false,
       "notes": "Frost variant of Harpy, faster and wiser.",
       "art_file": "iceharpy.txt",
       "skills": null
@@ -323,6 +331,7 @@
       "gold_chance": 85,
       "armor_value": 20,
       "hp_range": {"min": 20, "max": 23},
+      "rare": false,
       "notes": "Frost variant of Zombie, stronger and wiser.",
       "art_file": "frozenzombie.txt",
       "skills": null
@@ -336,6 +345,7 @@
       "gold_chance": 95,
       "armor_value": 8,
       "hp_range": {"min": 18, "max": 21.1},
+      "rare": false,
       "notes": "Frost variant of Wolf Pack, faster and luckier.",
       "art_file": "icewolfpack.txt",
       "skills": null
@@ -349,6 +359,7 @@
       "gold_chance": 95,
       "armor_value": 30,
       "hp_range": {"min": 22, "max": 26.7},
+      "rare": false,
       "notes": "Frost variant of Orc Warrior, stronger and luckier.",
       "art_file": "frostorcwarrior.txt",
       "skills": null
@@ -362,6 +373,7 @@
       "gold_chance": 90,
       "armor_value": 15,
       "hp_range": {"min": 16, "max": 19.7},
+      "rare": false,
       "notes": "Frost variant of Cultist, more magical and wiser.",
       "art_file": "icecultist.txt",
       "skills": null
@@ -375,6 +387,7 @@
       "gold_chance": 95,
       "armor_value": 35,
       "hp_range": {"min": 24, "max": 30},
+      "rare": false,
       "notes": "Frost variant of Golem, stronger and wiser.",
       "art_file": "frostgolem.txt",
       "skills": null
@@ -388,6 +401,7 @@
       "gold_chance": 95,
       "armor_value": 30,
       "hp_range": {"min": 26, "max": 32},
+      "rare": false,
       "notes": "Frost variant of Minotaur, stronger and wiser.",
       "art_file": "iceminotaur.txt",
       "skills": null
@@ -401,6 +415,7 @@
       "gold_chance": 90,
       "armor_value": 20,
       "hp_range": {"min": 18, "max": 23},
+      "rare": false,
       "notes": "Frost variant of Specter, more magical and wiser.",
       "art_file": "frostspecter.txt",
       "skills": null

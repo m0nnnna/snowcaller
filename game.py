@@ -6,6 +6,9 @@ import random
 import json
 import importlib
 import shutil
+import textwrap
+import re
+from colorama import init, Fore, Back, Style
 from player import Player, save_game, load_game
 from combat import combat
 from shop import shop_menu, calculate_price
@@ -15,38 +18,139 @@ from events import random_event
 from utils import load_json, load_file, load_art_file, parse_stats, get_resource_path, save_json
 from commands import handle_command
 
+# Initialize colorama
+init()
+
 # Global sleep delay (in seconds)
-SLEEP_DELAY = 0.03  # Reduced for smoother animation
+MENU_DELAY = 0.005  # Fast for menus
+TEXT_DELAY = 0.02   # Normal for story/important text
+ANIMATION_DELAY = 0.05  # Slower for special animations
 
 # Store the original print function
 _original_print = builtins.print
 
-# Override print to include a typing animation
+def progress_bar(progress, total, length=50, fill='█', empty='░'):
+    """Display a progress bar animation."""
+    percent = progress / total
+    filled_length = int(length * percent)
+    bar = fill * filled_length + empty * (length - filled_length)
+    _original_print(f'\r[{bar}] {int(percent * 100)}%', end='', flush=True)
+
+def spinning_cursor():
+    """Display a spinning cursor animation."""
+    while True:
+        for cursor in '|/-\\':
+            yield cursor
+
+def fade_text(text, steps=10, delay=0.05):
+    """Create a fade-in effect for text."""
+    for i in range(steps):
+        alpha = i / steps
+        faded_text = f"\033[38;2;255;255;255;{int(alpha * 255)}m{text}\033[0m"
+        _original_print(faded_text, end='\r', flush=True)
+        time.sleep(delay)
+    _original_print(text)
+
+def pulse_text(text, cycles=3, delay=0.1):
+    """Create a pulsing effect for text."""
+    for _ in range(cycles):
+        for i in range(10):
+            brightness = int(255 * (i / 10))
+            _original_print(f"\033[38;2;{brightness};{brightness};{brightness}m{text}\033[0m", end='\r', flush=True)
+            time.sleep(delay)
+        for i in range(10, 0, -1):
+            brightness = int(255 * (i / 10))
+            _original_print(f"\033[38;2;{brightness};{brightness};{brightness}m{text}\033[0m", end='\r', flush=True)
+            time.sleep(delay)
+    _original_print(text)
+
+def scroll_text(text, width=80, delay=0.05):
+    """Create a scrolling text effect."""
+    if len(text) <= width:
+        return text
+    
+    for i in range(len(text) - width + 1):
+        _original_print(f"\r{text[i:i+width]}", end='', flush=True)
+        time.sleep(delay)
+    return text[-width:]
+
+def format_text(text, color=Fore.WHITE, style=Style.NORMAL, width=80):
+    """Format text with color, style, and proper wrapping."""
+    # Wrap text to specified width
+    wrapped_text = textwrap.fill(text, width=width)
+    # Apply color and style
+    return f"{style}{color}{wrapped_text}{Style.RESET_ALL}"
+
+def print_section(title, color=Fore.CYAN):
+    """Print a section header with a border."""
+    border = "=" * 80
+    _original_print(format_text(border, color))
+    _original_print(format_text(title.center(80), color))
+    _original_print(format_text(border, color))
+
+def print_important(text, color=Fore.YELLOW):
+    """Print important information with emphasis."""
+    _original_print(format_text(f"! {text} !", color, Style.BRIGHT))
+
+def print_menu_item(number, text, color=Fore.GREEN):
+    """Print a menu item with consistent formatting."""
+    _original_print(format_text(f"{number}. {text}", color))
+
+# Override print to include a typing animation and formatting
 def print(*args, **kwargs):
     # Get the text to print
     text = " ".join(str(arg) for arg in args)
     
-    # Print character by character with a small delay
-    for char in text:
-        _original_print(char, end='', flush=True)
-        time.sleep(SLEEP_DELAY)
+    # Determine color, style, and animation from kwargs
+    color = kwargs.pop('color', Fore.WHITE)
+    style = kwargs.pop('style', Style.NORMAL)
+    animation = kwargs.pop('animation', 'type')  # Default to typing animation
+    is_menu = kwargs.pop('is_menu', False)  # New parameter for menu text
+    
+    # Format the text
+    formatted_text = format_text(text, color, style)
+    
+    # Choose appropriate delay based on context
+    delay = MENU_DELAY if is_menu else TEXT_DELAY
+    
+    if animation == 'type':
+        # Print character by character with appropriate delay
+        for char in formatted_text:
+            _original_print(char, end='', flush=True)
+            time.sleep(delay)
+    elif animation == 'fade':
+        fade_text(formatted_text)
+    elif animation == 'pulse':
+        pulse_text(formatted_text)
+    elif animation == 'scroll':
+        scroll_text(formatted_text)
     
     # Print newline if needed
     if not kwargs.get('end', ''):
         _original_print()
     
     # Add a small delay after each line
-    time.sleep(SLEEP_DELAY * 2)
+    time.sleep(delay * 2)
 
 # Replace the built-in print with our version
 builtins.print = print
 
 # Import the update checker
 try:
-    # Add the current directory to the Python path
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    # Get the directory containing the game files
+    if getattr(sys, 'frozen', False):
+        # If running as a compiled executable
+        base_path = os.path.dirname(sys.executable)
+    else:
+        # If running as a script
+        base_path = os.path.dirname(os.path.abspath(__file__))
+    
+    # Add the base path to Python's path
+    if base_path not in sys.path:
+        sys.path.insert(0, base_path)
+    
     from update import check_for_updates
-except (ImportError, ModuleNotFoundError):
+except (ImportError, ModuleNotFoundError) as e:
     def check_for_updates():
         pass  # Dummy function if update.py is missing
     print("Warning: update.py not found. Skipping update checks.")
@@ -270,20 +374,23 @@ def update_kill_count(player, monster_name):
     quests = quests_data.get("quests", [])
     
     if not quests:
-        print("Warning: No quests found in quest.json!")
+        print("Warning: No quests found in quest.json!", color=Fore.RED, animation='pulse')
         return
     
     for quest in player.active_quests:
         quest_info = next((q for q in quests if q["quest_name"] == quest["quest_name"]), None)
         if quest_info is None:
-            print(f"Warning: Quest '{quest['quest_name']}' in active_quests not found in quest.json!")
+            print(f"Warning: Quest '{quest['quest_name']}' in active_quests not found in quest.json!", 
+                  color=Fore.RED, animation='pulse')
             continue
         if "target_monster" not in quest_info:
-            print(f"Warning: Quest '{quest['quest_name']}' in quest.json missing 'target_monster' key!")
+            print(f"Warning: Quest '{quest['quest_name']}' in quest.json missing 'target_monster' key!", 
+                  color=Fore.RED, animation='pulse')
             continue
         if quest_info["target_monster"] == monster_name:
             quest["kill_count"] = quest.get("kill_count", 0) + 1
-            print(f"Progress on '{quest['quest_name']}': {quest['kill_count']}/{quest_info['kill_count_required']} {monster_name}s killed.")
+            progress_text = f"Progress on '{quest['quest_name']}': {quest['kill_count']}/{quest_info['kill_count_required']} {monster_name}s killed."
+            print(progress_text, color=Fore.YELLOW, animation='fade')
 
 def main():
     if getattr(sys, 'frozen', False):
@@ -362,16 +469,6 @@ def main():
         selected_class = class_data[class_type]
         print(f"\n=== You have chosen the {selected_class['name']} ===")
         
-        # Load and display ASCII art
-        try:
-            art_lines = load_art_file(selected_class["art_file"])
-            print("\nClass Art:")
-            for line in art_lines:
-                print(line)
-        except Exception as e:
-            print(f"Error loading {selected_class['name']} art: {e}")
-            print(f"(Imagine a grand {selected_class['name']} here!)")
-        
         # Display class lore
         print(f"\n{selected_class['lore']}")
 
@@ -389,16 +486,16 @@ def main():
     while True:
         print(f"\n{'-' * 20} {player.name}: Level {player.level} {'-' * 20}")
         print(f"HP: {round(player.hp, 1)}/{player.max_hp} | MP: {player.mp}/{player.max_mp} | Gold: {player.gold}")
-        print("1. Adventure | 2. Inventory | 3. Stats | 4. Shop | 5. Tavern | 6. Guild | 7. Save | 8. Quit")
+        print("1. Adventure | 2. Inventory | 3. Stats | 4. Shop | 5. Tavern | 6. Guild | 7. Save | 8. Quit", is_menu=True)
         choice = input("Selection: ").strip().lower()
         if handle_command(choice, player, commands_enabled):
             continue
 
         if choice == "1":
             print("\nChoose your adventure type:")
-            print("1. Short Trip (2-3 encounters)")
-            print("2. Adventure (3-6 encounters)")
-            print("3. Dungeon (6-10 encounters)")
+            print("1. Short Trip (2-3 encounters)", is_menu=True)
+            print("2. Adventure (3-6 encounters)", is_menu=True)
+            print("3. Dungeon (6-10 encounters)", is_menu=True)
             adventure_length = input("Selection: ").strip()
             
             while adventure_length not in ["1", "2", "3"]:
@@ -524,17 +621,24 @@ def main():
 
                         if "Victory" in result:
                             completed_encounters += 1
-                            parts = result.split(" ")
+                            # Remove ANSI color codes before parsing
+                            clean_result = re.sub(r'\x1b\[[0-9;]*m', '', result)
+                            parts = clean_result.split(" ")
+                            # The format is: "Victory against MonsterName XP gold"
                             monster_name = parts[2]
-                            xp_gained = int(parts[3])
-                            gold_gained = int(parts[4])
-                            print(f"\nVictory! Gained {xp_gained} XP and {gold_gained} gold!")
+                            # Find the gold value by looking for the number before "gold"
+                            gold_gained = int(parts[parts.index("gold") - 1])  # Gold value is before "gold" text
+                            victory_text = f"\nVictory! Gained {gold_gained} gold!"
+                            print(victory_text, color=Fore.GREEN, animation='pulse')
                             update_kill_count(player, monster_name)
                             total_gold += gold_gained
                         else:
-                            print("You avoid the boss and head back to town.")
+                            print("You avoid the boss and head back to town.", color=Fore.YELLOW, animation='fade')
                             adventure = False
-                        break
+                        
+                        # Check if we've reached the maximum encounters
+                        if encounter_count >= max_encounters:
+                            adventure = False
 
                     encounter_count += 1
                     Encounters = []  # Changed: Moved inside loop to reset per encounter
@@ -561,11 +665,15 @@ def main():
 
                         if "Victory" in result:
                             completed_encounters += 1
-                            parts = result.split(" ")
+                            # Remove ANSI color codes before parsing
+                            clean_result = re.sub(r'\x1b\[[0-9;]*m', '', result)
+                            parts = clean_result.split(" ")
+                            # The format is: "Victory against MonsterName XP gold"
                             monster_name = parts[2]
-                            xp_gained = int(parts[3])
-                            gold_gained = int(parts[4])
-                            print(f"\nVictory! Gained {xp_gained} XP and {gold_gained} gold!")
+                            # Find the gold value by looking for the number before "gold"
+                            gold_gained = int(parts[parts.index("gold") - 1])  # Gold value is before "gold" text
+                            victory_text = f"\nVictory! Gained {gold_gained} gold!"
+                            print(victory_text, color=Fore.GREEN, animation='pulse')
                             update_kill_count(player, monster_name)
                             total_gold += gold_gained
                             drop_item = None
@@ -611,14 +719,16 @@ def main():
                             adventure = False
 
                         if combat_count > 0 and player.hp < player.max_hp / 2 and adventure:
-                            print(f"\nYou've fought {combat_count} battles in the {location}. HP: {round(player.hp, 1)}/{player.max_hp}")
-                            print("Continue adventure? 1 for Yes | 2 for No")
+                            status_text = f"\nYou've fought {combat_count} battles in the {location}. HP: {round(player.hp, 1)}/{player.max_hp}"
+                            print(status_text, color=Fore.YELLOW, animation='fade')
+                            print("Continue adventure? 1 for Yes | 2 for No", color=Fore.CYAN)
                             choice = input("Selection: ")
                             if choice == "2":
-                                print(f"You decide to return to town with {completed_encounters} victories.")
+                                print(f"You decide to return to town with {completed_encounters} victories.", 
+                                      color=Fore.YELLOW, animation='fade')
                                 adventure = False
                             elif choice != "1":
-                                print("Invalid choice, continuing adventure.")
+                                print("Invalid choice, continuing adventure.", color=Fore.RED, animation='pulse')
 
                 # End adventure here
                 end_adventure(player, location, completed_encounters, gear_drops, treasure_count, total_xp, total_gold, tavern)
@@ -627,22 +737,30 @@ def main():
             inventory_menu(player)
 
         elif choice == "3":
-            tavern.visit_tavern()
+            # Show player stats
+            print(f"\n=== {player.name}'s Stats ===")
+            print(f"Level: {player.level}")
+            print(f"XP: {player.exp}/{player.max_exp}")
+            print(f"HP: {round(player.hp, 1)}/{player.max_hp}")
+            print(f"MP: {player.mp}/{player.max_mp}")
+            print(f"Gold: {player.gold}")
+            print("\nAttributes:")
+            for stat, value in player.stats.items():
+                print(f"{stat}: {value}")
+            input("\nPress Enter to continue...")
 
         elif choice == "4":
-            guild.guild_menu()
+            shop_menu(player)
 
         elif choice == "5":
-            inventory_menu(player)
+            tavern.visit_tavern()
 
         elif choice == "6":
-            save_game(player)
-            print("Game saved!")
+            guild.guild_menu()
 
         elif choice == "7":
-            player = load_game()
-            if player:
-                print("Game loaded!")
+            save_game(player)
+            print("Game saved!")
 
         elif choice == "8":
             print("Goodbye!")
