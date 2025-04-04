@@ -16,15 +16,27 @@ from utils import load_json, load_file, load_art_file, parse_stats, get_resource
 from commands import handle_command
 
 # Global sleep delay (in seconds)
-SLEEP_DELAY = 0.3
+SLEEP_DELAY = 0.03  # Reduced for smoother animation
 
 # Store the original print function
 _original_print = builtins.print
 
-# Override print to include a delay
+# Override print to include a typing animation
 def print(*args, **kwargs):
-    _original_print(*args, **kwargs)
-    time.sleep(SLEEP_DELAY)
+    # Get the text to print
+    text = " ".join(str(arg) for arg in args)
+    
+    # Print character by character with a small delay
+    for char in text:
+        _original_print(char, end='', flush=True)
+        time.sleep(SLEEP_DELAY)
+    
+    # Print newline if needed
+    if not kwargs.get('end', ''):
+        _original_print()
+    
+    # Add a small delay after each line
+    time.sleep(SLEEP_DELAY * 2)
 
 # Replace the built-in print with our version
 builtins.print = print

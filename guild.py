@@ -3,7 +3,8 @@ from typing import Dict, List, Optional, Union
 from utils import load_json, save_json
 
 class Guild:
-    def __init__(self):
+    def __init__(self, player):
+        self.player = player
         self.exchange_data = self._load_exchange_data()
         self.key_items = self._load_key_items()
         self.quests_data = load_json("quest.json")
