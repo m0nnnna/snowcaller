@@ -43,8 +43,10 @@ builtins.print = print
 
 # Import the update checker
 try:
+    # Add the current directory to the Python path
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from update import check_for_updates
-except ImportError:
+except (ImportError, ModuleNotFoundError):
     def check_for_updates():
         pass  # Dummy function if update.py is missing
     print("Warning: update.py not found. Skipping update checks.")
