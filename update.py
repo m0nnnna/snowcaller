@@ -30,6 +30,27 @@ def get_latest_commit():
     except Exception:
         return None
 
+def get_current_commit():
+    """Get the current commit hash from the game directory."""
+    try:
+        commit_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "commit.txt")
+        if os.path.exists(commit_file):
+            with open(commit_file, 'r') as f:
+                return f.read().strip()
+        return None
+    except Exception:
+        return None
+
+def save_current_commit(commit_hash):
+    """Save the current commit hash to a file."""
+    try:
+        commit_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "commit.txt")
+        with open(commit_file, 'w') as f:
+            f.write(commit_hash)
+        return True
+    except Exception:
+        return False
+
 def download_and_extract_update(game_dir):
     """Download the latest files and extract them to the game directory."""
     try:
@@ -88,16 +109,24 @@ def check_for_updates():
             print("No internet connection. Skipping update check.")
             return
             
-        # Get the latest commit hash
+        # Get current and latest commit hashes
+        current_commit = get_current_commit()
         latest_commit = get_latest_commit()
+        
         if not latest_commit:
             print("Could not check for updates.")
             return
             
-        # Download and apply updates
-        if download_and_extract_update(game_dir):
-            print("Update completed. Please restart the game.")
-            sys.exit(0)
+        # If we don't have a current commit or it's different from the latest
+        if not current_commit or current_commit != latest_commit:
+            print("New update available!")
+            if download_and_extract_update(game_dir):
+                # Save the new commit hash
+                save_current_commit(latest_commit)
+                print("Update completed. Please restart the game.")
+                sys.exit(0)
+        else:
+            print("Game is up to date.")
             
     except Exception as e:
         print(f"Update check failed: {e}")
