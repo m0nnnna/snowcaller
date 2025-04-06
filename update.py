@@ -5,6 +5,7 @@ import time
 import shutil
 import subprocess
 import requests
+import ctypes
 from packaging import version
 
 # Current game version (update this with each release)
@@ -14,6 +15,19 @@ CURRENT_VERSION = "0.0.5"
 GITHUB_USER = "m0nnnna"
 GITHUB_REPO = "snowcaller"
 RELEASES_URL = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}/releases/latest"
+
+def is_admin():
+    """Check if the program is running with admin privileges."""
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False
+
+def run_as_admin():
+    """Relaunch the program with admin privileges."""
+    if sys.platform == "win32":
+        ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
+        sys.exit()
 
 def get_git_path():
     """Get the path to git executable, trying portable git first, then falling back to system git."""
@@ -138,16 +152,27 @@ Thumbs.db
                 return
                 
             except subprocess.CalledProcessError as e:
+                if sys.platform == "win32" and not is_admin():
+                    print("Update requires admin privileges. Restarting with admin rights...")
+                    run_as_admin()
+                    return
                 print(f"Failed to download latest version: {e}")
                 return
         
         # For subsequent runs, force pull the latest changes
         print("Checking for updates...")
-        # First fetch the latest changes
-        subprocess.run([git_path, "fetch", "origin", "main"], cwd=game_dir, check=True)
-        # Then reset hard to origin/main to force overwrite all files
-        subprocess.run([git_path, "reset", "--hard", "origin/main"], cwd=game_dir, check=True)
-        print("Game is up to date!")
+        try:
+            # First fetch the latest changes
+            subprocess.run([git_path, "fetch", "origin", "main"], cwd=game_dir, check=True)
+            # Then reset hard to origin/main to force overwrite all files
+            subprocess.run([git_path, "reset", "--hard", "origin/main"], cwd=game_dir, check=True)
+            print("Game is up to date!")
+        except subprocess.CalledProcessError as e:
+            if sys.platform == "win32" and not is_admin():
+                print("Update requires admin privileges. Restarting with admin rights...")
+                run_as_admin()
+                return
+            print(f"Update check failed: {e}")
             
     except subprocess.CalledProcessError as e:
         print(f"Update check failed: {e}")
