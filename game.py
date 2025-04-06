@@ -22,9 +22,9 @@ from commands import handle_command
 init()
 
 # Global sleep delay (in seconds)
-MENU_DELAY = 0.005  # Fast for menus
-TEXT_DELAY = 0.02   # Normal for story/important text
-ANIMATION_DELAY = 0.05  # Slower for special animations
+MENU_DELAY = 0.001  # Fast for menus (reduced from 0.005)
+TEXT_DELAY = 0.005   # Normal for story/important text (reduced from 0.02)
+ANIMATION_DELAY = 0.01  # Slower for special animations (reduced from 0.05)
 
 # Store the original print function
 _original_print = builtins.print

@@ -2,6 +2,7 @@
 echo Cleaning old builds...
 if exist dist rmdir /s /q dist
 if exist build rmdir /s /q build
+if exist installer rmdir /s /q installer
 if exist *.spec del /q *.spec
 if exist __pycache__ rmdir /s /q __pycache__
 for /d /r . %%d in (__pycache__) do @if exist "%%d" rmdir /s /q "%%d"
@@ -11,6 +12,13 @@ REM Check for Python
 where python >nul 2>&1
 if %ERRORLEVEL% neq 0 (
     echo Python not found. Please install it from python.org and ensure it's in PATH.
+    exit /b 1
+)
+
+REM Check for Inno Setup
+where iscc >nul 2>&1
+if %ERRORLEVEL% neq 0 (
+    echo Inno Setup not found. Please install it from https://jrsoftware.org/isdl.php
     exit /b 1
 )
 
@@ -53,7 +61,14 @@ pyinstaller --onefile ^
     --name Snowcaller game.py
 
 if %ERRORLEVEL% equ 0 (
-    echo Build successful! Executable is in the 'dist' folder as 'Snowcaller.exe'.
+    echo Build successful! Creating installer...
+    mkdir installer
+    iscc installer.iss
+    if %ERRORLEVEL% equ 0 (
+        echo Installer created successfully in the 'installer' folder!
+    ) else (
+        echo Failed to create installer. Check the output above for errors.
+    )
     call deactivate
 ) else (
     echo Build failed. Check the output above for errors.
