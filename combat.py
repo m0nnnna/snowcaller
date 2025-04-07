@@ -322,26 +322,48 @@ def combat(player, boss_fight=False, monster_name=None):
                 if not player.inventory:
                     print(f"{RED}No items available!{RESET}")
                     continue
-                print(f"\n{BLUE}Inventory:{RESET}", ", ".join(player.inventory))
-                item = input("Select item (or 'back'): ")
-                if item == "back":
-                    continue
-                if item in player.inventory:
-                    if not use_item(player, item, monster_stats):
-                        print(f"{RED}{item} cannot be used here!{RESET}")
+                # Sort items alphabetically
+                sorted_items = sorted(player.inventory)
+                page = 0
+                while True:
+                    start_idx = page * 8  # Show 8 items per page (1-8 for items, 9 for next/0 for back)
+                    items_to_show = sorted_items[start_idx:start_idx + 8]
+                    
+                    print(f"\n{BLUE}Inventory (Page {page + 1}):{RESET}")
+                    for i, item in enumerate(items_to_show, 1):
+                        print(f"{i}. {item}")
+                    
+                    if start_idx + 8 < len(sorted_items):
+                        print("9. Next Page")
+                    print("0. Back")
+                    
+                    choice = input("Selection: ")
+                    if choice == "0":
+                        break
+                    elif choice == "9" and start_idx + 8 < len(sorted_items):
+                        page += 1
                         continue
-                    if "effects" in monster_stats and monster_stats["effects"]:
-                        for effect, turns in list(monster_stats["effects"].items()):
-                            if turns > 0:
-                                monster_hp -= 5
-                                monster_stats["effects"][effect] -= 1
-                                if monster_stats["effects"][effect] <= 0:
-                                    del monster_stats["effects"][effect]
-                    print(f"{CYAN}Used {item}!{RESET}")
-                    action_taken = True
-                else:
-                    print(f"{RED}Item not found!{RESET}")
-                    continue
+                    
+                    try:
+                        item_idx = int(choice) - 1
+                        if 0 <= item_idx < len(items_to_show):
+                            selected_item = items_to_show[item_idx]
+                                if not use_item(player, selected_item, monster_stats):
+                                    print(f"{RED}{selected_item} cannot be used here!{RESET}")
+                                    continue
+                                if "effects" in monster_stats and monster_stats["effects"]:
+                                    for effect, turns in list(monster_stats["effects"].items()):
+                                        if turns > 0:
+                                            monster_hp -= 5
+                                            monster_stats["effects"][effect] -= 1
+                                            if monster_stats["effects"][effect] <= 0:
+                                                del monster_stats["effects"][effect]
+                                print(f"{CYAN}Used {selected_item}!{RESET}")
+                                action_taken = True
+                                break
+                    except ValueError:
+                        print(f"{RED}Invalid selection!{RESET}")
+                        continue
 
             elif choice == "3":  # Skills
                 if not player.skills or player_status.get("curse", 0) > 0:

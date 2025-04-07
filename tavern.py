@@ -686,7 +686,9 @@ class Tavern:
         else:
             print("Resting costs 5 gold.")
             if self.player.gold >= 5:
-                if input("Pay to rest? (y/n): ").lower() == "y":
+                print("1. Yes | 2. No")
+                choice = input("Selection: ")
+                if choice == "1":
                     self.player.gold -= 5
                     self.player.hp = self.player.max_hp
                     self.player.mp = self.player.max_mp
