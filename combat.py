@@ -348,19 +348,19 @@ def combat(player, boss_fight=False, monster_name=None):
                         item_idx = int(choice) - 1
                         if 0 <= item_idx < len(items_to_show):
                             selected_item = items_to_show[item_idx]
-                                if not use_item(player, selected_item, monster_stats):
-                                    print(f"{RED}{selected_item} cannot be used here!{RESET}")
-                                    continue
-                                if "effects" in monster_stats and monster_stats["effects"]:
-                                    for effect, turns in list(monster_stats["effects"].items()):
-                                        if turns > 0:
-                                            monster_hp -= 5
-                                            monster_stats["effects"][effect] -= 1
-                                            if monster_stats["effects"][effect] <= 0:
-                                                del monster_stats["effects"][effect]
-                                print(f"{CYAN}Used {selected_item}!{RESET}")
-                                action_taken = True
-                                break
+                            if not use_item(player, selected_item, monster_stats):
+                                print(f"{RED}{selected_item} cannot be used here!{RESET}")
+                                continue
+                            if "effects" in monster_stats and monster_stats["effects"]:
+                                for effect, turns in list(monster_stats["effects"].items()):
+                                    if turns > 0:
+                                        monster_hp -= 5
+                                        monster_stats["effects"][effect] -= 1
+                                        if monster_stats["effects"][effect] <= 0:
+                                            del monster_stats["effects"][effect]
+                            print(f"{CYAN}Used {selected_item}!{RESET}")
+                            action_taken = True
+                            break
                     except ValueError:
                         print(f"{RED}Invalid selection!{RESET}")
                         continue
@@ -512,4 +512,4 @@ def trigger_npc_event(player, npc_name):
         player.tavern_npcs = []
     if npc_name and npc_name not in [n["name"] for n in player.tavern_npcs]:
         player.tavern_npcs.append({"name": npc_name, "room": False})
-        print(f"{npc_name} has appeared at the tavern!")
+        print(f"{npc_name} has appeared at the tavern!") 
