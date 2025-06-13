@@ -99,7 +99,27 @@ class Guild:
                 quest_index = int(quest_choice) - 1
                 if 0 <= quest_index < len(available_quests):
                     selected_quest = available_quests[quest_index]
-                    active_quests.append({"quest_name": selected_quest["quest_name"], "kill_count": 0})
+                    # Create a proper quest object with stages
+                    quest_object = {
+                        "quest_name": selected_quest["quest_name"],
+                        "stages": []
+                    }
+                    # Initialize each stage with progress tracking
+                    for stage in selected_quest["stages"]:
+                        stage_progress = {
+                            "type": stage["type"],
+                            "kill_count": 0,
+                            "item_count": 0
+                        }
+                        if "target_monster" in stage:
+                            stage_progress["target_monster"] = stage["target_monster"]
+                        elif "target_item" in stage:
+                            stage_progress["target_item"] = stage["target_item"]
+                        elif "target_npc" in stage:
+                            stage_progress["target_npc"] = stage["target_npc"]
+                        quest_object["stages"].append(stage_progress)
+                    
+                    active_quests.append(quest_object)
                     player.active_quests = active_quests
                     print(f"Accepted quest: {selected_quest['quest_name']}")
                     
@@ -157,13 +177,13 @@ class Guild:
             print("Invalid input. Please enter a number.")
 
     def _check_quest_completion(self, player, quest, quest_data):
-        for stage in quest_data["stages"]:
+        for i, stage in enumerate(quest_data["stages"]):
             if stage["type"] == "kill":
                 if "target_monster" in stage:
-                    if player.kill_counts.get(stage["target_monster"], 0) < stage["kill_count_required"]:
+                    if quest["stages"][i].get("kill_count", 0) < stage["kill_count_required"]:
                         return False
                 elif "target_item" in stage:
-                    if player.kill_counts.get(stage["target_item"], 0) < stage["item_count_required"]:
+                    if quest["stages"][i].get("kill_count", 0) < stage["item_count_required"]:
                         return False
             elif stage["type"] == "collect":
                 if player.inventory.get(stage["target_item"], 0) < stage["item_count_required"]:

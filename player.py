@@ -102,8 +102,8 @@ class Player:
             quest_data = next((q for q in quests if q["quest_name"] == quest["quest_name"]), None)
             if quest_data:
                 for i, stage in enumerate(quest["stages"]):
-                    if (stage["type"] in ["kill", "boss"] and 
-                        stage["target_monster"] == monster_name):
+                    if (stage["type"] == "kill" and 
+                        stage.get("target_monster") == monster_name):
                         stage["kill_count"] = stage.get("kill_count", 0) + 1
                         required = quest_data["stages"][i]["kill_count_required"]
                         print(f"Progress: {quest['quest_name']} - {monster_name} {stage['kill_count']}/{required}")
@@ -114,7 +114,7 @@ class Player:
             quest_data = next((q for q in quests if q["quest_name"] == quest["quest_name"]), None)
             if quest_data:
                 for i, stage in enumerate(quest["stages"]):
-                    if stage["type"] == "collect" and stage["target_item"] == item_name:
+                    if stage["type"] == "collect" and stage.get("target_item") == item_name:
                         stage["item_count"] = min(
                             self.inventory.count(item_name),
                             quest_data["stages"][i]["item_count_required"]
